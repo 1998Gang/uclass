@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cqupt.jyxxh.uclass.dao.TeacherMapper">
+
+
+    <!--1.queryTeacherByOpenid，通过openid查询单个教师信息-->
+    <select id="queryTeacherByOpenid" parameterType="String" resultType="Teacher">
+        SELECT * from uclass_teacher_info where openid='${value}'
+    </select>
+
+    <!--2.deleteTeacherByOpenid，根据openid删除老师数据-->
+    <delete id="deleteTeacherByOpenid" parameterType="String">
+        delete from uclass_teacher_info where openid='${value}'
+    </delete>
+</mapper>
