@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"cqupt.jyxxh.uclass.dao","h":"","u":""},{"l":"cqupt.jyxxh.uclass.pojo","h":"","u":""},{"l":"cqupt.jyxxh.uclass.service","h":"","u":""},{"l":"cqupt.jyxxh.uclass.utils","h":"","u":""},{"l":"cqupt.jyxxh.uclass.utils.yige","h":"","u":""},{"l":"cqupt.jyxxh.uclass.web","h":"","u":""},{"l":"所有程序包","h":"","u":"allpackages-index.html"}]
