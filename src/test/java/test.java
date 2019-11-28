@@ -23,6 +23,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPoolConfig;
 
 
 import javax.naming.directory.Attributes;
@@ -317,8 +318,11 @@ public class test {
      */
     @Test
     public void testRedis(){
+        JedisPoolConfig jedisPoolConfig=new JedisPoolConfig();
         Jedis jedis=new Jedis("127.0.0.1");
-        System.out.println(jedis.ping());
+        String timekey3 = jedis.get("timekey3");
+
+        System.out.println(timekey3);
     }
 
 

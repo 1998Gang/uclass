@@ -156,7 +156,6 @@
     </dependency>
 
     <!--12.jedis,用于redis连接-->
-    <!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
     <dependency>
       <groupId>redis.clients</groupId>
       <artifactId>jedis</artifactId>
