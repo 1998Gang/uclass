@@ -39,22 +39,22 @@ public class UclassUser {
     final Logger logger= LoggerFactory.getLogger(UclassUser.class);    //日志（slf4j搭配logback）
 
     @Autowired
-    private GetInfoFromWx getInfoFromWx;    //去微信获取数据的service
+    private GetInfoFromWxService getInfoFromWxService;    //去微信获取数据的service
 
     @Autowired
-    private OperationUserInfo operationUserInfo;  //操作用户数据的service
+    private OperationUserInfoService operationUserInfoService;  //操作用户数据的service
 
     @Autowired
-    private OperationBind operationBind;           //与绑定有关的操作 service
+    private OperationBindService operationBindService;           //与绑定有关的操作 service
 
     @Autowired
     private Authentication authentication;        //身份验证操作的封装 对接学校的统一身份认证系统（使用的是LDAP）  utils
 
     @Autowired
-    private DeleteUser deleteUser;                  //删除用户的操作（service）
+    private DeleteUserService deleteUserService;                  //删除用户的操作（service）
 
     @Autowired
-    private AddUser addUser;                        //添加新用户（service）
+    private AddUserService addUserService;                        //添加新用户（service）
 
     /**
      * 用户登陆，调用此方法
@@ -73,7 +73,7 @@ public class UclassUser {
             }
 
             // 1.用code去微信后台换取OpenID,同时去除双引号
-            String opneId =getInfoFromWx.getOpenid(code).replace("\"","");
+            String opneId = getInfoFromWxService.getOpenid(code).replace("\"","");
                // 1.1 判断返回openid是否为空值
             if ("nullOpenid"==opneId){
 
@@ -91,7 +91,7 @@ public class UclassUser {
 
 
             // 2.根据openid查询是否绑定
-            Boolean isBind= operationBind.isBind(opneId);
+            Boolean isBind= operationBindService.isBind(opneId);
 
             if (logger.isDebugEnabled()){
                 logger.debug("【登陆接口（login）】openid:[{}]是否存在绑定数据？{}",opneId,isBind);
@@ -100,11 +100,11 @@ public class UclassUser {
             // 3.判断是否绑定。
             if (isBind){
                 // 3.1已经绑定，根据绑定信息判断用户类型 “01”为老师 “16”为学生
-                String typeNumber= operationBind.bindType(opneId);
+                String typeNumber= operationBindService.bindType(opneId);
                 switch (typeNumber){
                     case "01":{
                         // 3.1.1 老师用户，根据openid查询教师信息，并返回。
-                        Teacher teacher=operationUserInfo.getTeacherInfoByOpenid(opneId);
+                        Teacher teacher= operationUserInfoService.getTeacherInfoByOpenid(opneId);
 
                         if (logger.isInfoEnabled()){
                             logger.info("【登陆接口（login）】登陆成功，老师[{},{},{}]",teacher.getTeaName(),teacher.getTeaId(),teacher.getOpenid());
@@ -114,7 +114,7 @@ public class UclassUser {
                     }
                     case "16":{
                         // 3.1.2 学生用户，根据openid查询学生信息，并返回。
-                        Student student = operationUserInfo.getStudentInfoByOpenid(opneId);
+                        Student student = operationUserInfoService.getStudentInfoByOpenid(opneId);
 
                         if (logger.isInfoEnabled()){
                             logger.info("【登陆接口（login）】登陆成功，学生[{},{},{}]",student.getXm(),student.getXh(),student.getOpenid());
@@ -167,7 +167,7 @@ public class UclassUser {
             }
 
             // 2. 通过code获取openid，并校验该openid是否存在绑定。
-            String openid = getInfoFromWx.getOpenid(code).replace("\"","");
+            String openid = getInfoFromWxService.getOpenid(code).replace("\"","");
             if ("nullOpenid"==openid){
                 if (logger.isDebugEnabled()){
                     logger.debug("【添加新用户（AddUser）】获取openid失败，code：[{}]可能是无效的",code);
@@ -175,7 +175,7 @@ public class UclassUser {
                 //获取openid失败，响应415
                 return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("绑定失败，可能是无效code");
             }
-            if (operationBind.isBind(openid)){
+            if (operationBindService.isBind(openid)){
                 if (logger.isDebugEnabled()){
                     logger.debug("【添加新用户（AddUser）】openid：[{}]已经存在绑定",openid);
                 }
@@ -189,7 +189,7 @@ public class UclassUser {
             // 4.添加新用户
             if (isTrue){
                 // 4.1身份验证成功 添加绑定
-                boolean isAdd=addUser.addUInfoAndUBind(openid,yktId,password);
+                boolean isAdd= addUserService.addUInfoAndUBind(openid,yktId,password);
                 if (isAdd){
                     if (logger.isInfoEnabled()){
                         logger.info("【绑定接口（bind）】绑定成功！统一认证码:[{}]",yktId);
@@ -252,7 +252,7 @@ public class UclassUser {
 
 
         // 2.根据code换取openid，去除引号
-            String openid=getInfoFromWx.getOpenid(code).replace("\"","");
+            String openid= getInfoFromWxService.getOpenid(code).replace("\"","");
             // 2.1判断oepnid是否正确
             if ("nullOpenid"==openid){
                 if (logger.isInfoEnabled()){
@@ -265,7 +265,7 @@ public class UclassUser {
 
 
         // 3.根据有openid删除相关用户数据（用户信息，用户绑定）
-            boolean b = deleteUser.deleteUserinfoAndBind(openid);
+            boolean b = deleteUserService.deleteUserinfoAndBind(openid);
             //3.1 判断删除操作是否成功
             if (!b){
                 if (logger.isInfoEnabled()){

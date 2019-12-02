@@ -5,7 +5,7 @@ package cqupt.jyxxh.uclass.pojo;
  * @version 1.0.0
  * @date created in 22:19 2019/11/19
  */
-public class ClassInfo {
+public class KebiaoInfo {
     private String jxb;//教学班 （SJ13191A2130640003）
     private String kch;//课程号 （A2130640）
     private String kcm;//课程名 （计算机网络）
@@ -13,6 +13,9 @@ public class ClassInfo {
     private String jsm; //教师名    （曹岭）
     private String kclb; //课程类别（必修/选修）
     private String credit;//学分    （3.0学分）
+
+    private String skzy;//上课的专业  （软件工程 针对教师端）
+    private String skbjh; //上课的班级号  （130017|01，02班 针对教师端）
 
     private String week; //上课周（  “00000000000000001000” 20位代表20周，本例表示第17周有课，其他周没有  ）
     private String weekday;//上课天（“1”、“2”、“3”、“4”、“5”、“6”、“7” ）
@@ -76,6 +79,22 @@ public class ClassInfo {
         this.credit = credit;
     }
 
+    public String getSkzy() {
+        return skzy;
+    }
+
+    public void setSkzy(String skzy) {
+        this.skzy = skzy;
+    }
+
+    public String getSkbjh() {
+        return skbjh;
+    }
+
+    public void setSkbjh(String skbjh) {
+        this.skbjh = skbjh;
+    }
+
     public String getWeek() {
         return week;
     }
@@ -110,7 +129,7 @@ public class ClassInfo {
 
     @Override
     public String toString() {
-        return "ClassInfo{" +
+        return "KebiaoInfo{" +
                 "jxb='" + jxb + '\'' +
                 ", kch='" + kch + '\'' +
                 ", kcm='" + kcm + '\'' +
@@ -118,6 +137,8 @@ public class ClassInfo {
                 ", jsm='" + jsm + '\'' +
                 ", kclb='" + kclb + '\'' +
                 ", credit='" + credit + '\'' +
+                ", skzy='" + skzy + '\'' +
+                ", skbjh='" + skbjh + '\'' +
                 ", week='" + week + '\'' +
                 ", weekday='" + weekday + '\'' +
                 ", cStart='" + cStart + '\'' +

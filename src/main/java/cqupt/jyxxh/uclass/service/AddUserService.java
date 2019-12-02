@@ -18,15 +18,17 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
+ * 添加新用户操作类
+ *
  * @author 彭渝刚
  * @version 1.0.0
  * @date created in 18:45 2019/11/12
  */
 
 @Service
-public class AddUser {
+public class AddUserService {
 
-    final Logger logger= LoggerFactory.getLogger(AddUser.class);    //日志
+    final Logger logger= LoggerFactory.getLogger(AddUserService.class);    //日志
 
 
     @Autowired
@@ -37,16 +39,16 @@ public class AddUser {
 
 
     @Autowired
-    private OperationUserInfo operationUserInfo;    //用户数据操作类（service）
+    private OperationUserInfoService operationUserInfoService;    //用户数据操作类（service）
 
     @Autowired
-    private OperationBind operationBind;            //绑定数据操作类（service）
+    private OperationBindService operationBindService;            //绑定数据操作类（service）
 
-    @Value("${getStuInfoFronJWZX}")
-    private  String GET_STUINFO_FROMJWZX;           //从教务在线获取学生信息的url
+    @Value("${URLStuInfoFronJWZX}")
+    private  String URL_STUINFO_FROM_JWZX;           //从教务在线获取学生信息的url
 
-    @Value("${getTeaInfoFromJWZX}")
-    private String GET_TEAINFO_FROMJWZX;           //从教务在线获取教师信息的url
+    @Value("${URLTeaInfoFromJWZX}")
+    private String URL_TEAINFO_FROM_JWZX;           //从教务在线获取教师信息的url
 
     /**
      *
@@ -71,7 +73,7 @@ public class AddUser {
                         //获得学生学号
                         String edupersonstudentid = attrsMap.get("edupersonstudentid");
                         //根据学号去教务在线查询学生个人信息(json字符串)    studentinfoF={"code":0,"info":"ok","returnData":[{"xh":"2017214033","xm":"\u5f6d\u6e1d\u521a","xmEn":"Peng Yu Gang ","xb":"\u7537","bj":"13001701","zyh":"1300","zym":"\u8f6f\u4ef6\u5de5\u7a0b","yxh":"13","yxm":"\u8f6f\u4ef6\u5de5\u7a0b\u5b66\u9662","nj":"2017","csrq":"19981030","xjzt":"\u5728\u6821","rxrq":"201709","yxmen":"School of Software","zymEn":"Software Engineering","xz":4,"mz":"\u6c49\u65cf                "}]}
-                        String stuJsoninfo = sendHttpRquest.getJsonfromhttp(GET_STUINFO_FROMJWZX, "searchKey=" + edupersonstudentid);
+                        String stuJsoninfo = sendHttpRquest.getJsonfromhttp(URL_STUINFO_FROM_JWZX, "searchKey=" + edupersonstudentid);
                         //解析该json数据，转化未Student对象
                         Student student = Parse.ParseJsonToStudent(stuJsoninfo);
                         //往该Student对象添加openid、与一卡通号（统一认证码）
@@ -79,10 +81,10 @@ public class AddUser {
                         student.setYkth(yktId);
 
                         // 保存学生信息到数据库
-                        boolean b = operationUserInfo.addUserInfo(student, yktBegin);
+                        boolean b = operationUserInfoService.addUserInfo(student, yktBegin);
 
                         //添加绑定信息到数据库
-                        boolean b1 = operationBind.addBind(student, yktBegin);
+                        boolean b1 = operationBindService.addBind(student, yktBegin);
 
                         //保存信息数据，添加绑定数据同时成功，表示学生添加成功！
                         if (b && b1) {
@@ -104,7 +106,7 @@ public class AddUser {
                         String teaName = attrsMap.get("cn");
                         String yxm = attrsMap.get("edupersonorgdn");
                         //2.根据教师姓名去教务在线查教师信息
-                        String teaJsonInfo = sendHttpRquest.getJsonfromhttp(GET_TEAINFO_FROMJWZX, "searchKey=" + teaName);
+                        String teaJsonInfo = sendHttpRquest.getJsonfromhttp(URL_TEAINFO_FROM_JWZX, "searchKey=" + teaName);
                         //3.解析该json数据，转化为Teacher对象,由于用教师姓名进行查询，存在查询出多条教师信息的情况。
                         List<Teacher> teachers = Parse.ParseJsonToTeacher(teaJsonInfo);
                         //4.遍历该教师集合，找出符合条件的教师。  （两个条件：姓名、学院）
@@ -115,10 +117,10 @@ public class AddUser {
                                 teacher.setYkth(yktId);   //teacher添加一卡通号
 
                                 //保存教师信息到数据库
-                                boolean b = operationUserInfo.addUserInfo(teacher, yktBegin);
+                                boolean b = operationUserInfoService.addUserInfo(teacher, yktBegin);
 
                                 //添加绑定信息到数据库
-                                boolean b1 = operationBind.addBind(teacher, yktBegin);
+                                boolean b1 = operationBindService.addBind(teacher, yktBegin);
 
                                 //以上两个保存操作都正确，添加用户操作才正确。
                                 if (b&&b1){

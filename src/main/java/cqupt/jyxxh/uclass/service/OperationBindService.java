@@ -1,14 +1,10 @@
 package cqupt.jyxxh.uclass.service;
 
 import cqupt.jyxxh.uclass.dao.BindContrastMapper;
-import cqupt.jyxxh.uclass.dao.StudentMapper;
-import cqupt.jyxxh.uclass.dao.TeacherMapper;
 import cqupt.jyxxh.uclass.pojo.BindContrast;
 import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.pojo.Teacher;
 import cqupt.jyxxh.uclass.pojo.UserInfo;
-import cqupt.jyxxh.uclass.utils.Authentication;
-import cqupt.jyxxh.uclass.utils.SendHttpRquest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +27,9 @@ import java.util.Date;
 
 @Service
 @Transactional
-public class OperationBind {
+public class OperationBindService {
 
-    final Logger logger= LoggerFactory.getLogger(OperationBind.class);  //日志
+    final Logger logger= LoggerFactory.getLogger(OperationBindService.class);  //日志
 
     @Autowired
     private  BindContrastMapper  bindContrastMapper;  //操作绑定表的接口（DAO） 由spring管理创建实例对象注入

@@ -3,8 +3,8 @@
 
 
 
-import cqupt.jyxxh.uclass.pojo.ClassInfo;
-import cqupt.jyxxh.uclass.service.GetInfoFromWx;
+import cqupt.jyxxh.uclass.pojo.KebiaoInfo;
+import cqupt.jyxxh.uclass.service.GetInfoFromWxService;
 
 import cqupt.jyxxh.uclass.utils.Parse;
 import cqupt.jyxxh.uclass.utils.SendHttpRquest;
@@ -28,6 +28,7 @@ import redis.clients.jedis.JedisPoolConfig;
 
 import javax.naming.directory.Attributes;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -64,7 +65,7 @@ public class test {
      */
     @Test
     public void ioio(){
-        GetInfoFromWx getInfoFromVx=new GetInfoFromWx();
+        GetInfoFromWxService getInfoFromVx=new GetInfoFromWxService();
         String openid = getInfoFromVx.getOpenid("033jPVCd1XtRAz0jdMAd1lLFCd1jPVCD");
         System.out.println(openid);
     }
@@ -200,13 +201,14 @@ public class test {
     @Test
     public void client() throws IOException {
 
-        List<ClassInfo> classInfoList = null;
+        List<KebiaoInfo> stuKebiaoInfoList = null;
 
         //1.生成httpclient
         CloseableHttpClient httpClient= HttpClients.createDefault();
         CloseableHttpResponse response=null;
         //2.创建get请求
-        HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_stu.php?xh=2017214033");
+        //HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_stu.php?xh=2017214032");
+        HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_tea.php?teaId=030512");
         //3.发请求
         response=httpClient.execute(httpGet);
         //4.判断响应状态码为200在继续执行
@@ -214,13 +216,13 @@ public class test {
             //5.获取响应内容
             HttpEntity httpEntity=response.getEntity();
             String html= EntityUtils.toString(httpEntity,"utf-8");
-            //System.out.println(html);
+
 
             // jsoup解析
             Document doc= Jsoup.parse(html);
 
-
-            Element kbStuTabslist=doc.getElementById("kbStuTabs-table");
+            //Element kbStuTabslist=doc.getElementById("kbStuTabs-table");
+            Element kbStuTabslist=doc.getElementById("kbTeaTabs-table");
             //获取printTable
             Elements printTables=kbStuTabslist.getElementsByClass("printTable");
 
@@ -229,9 +231,9 @@ public class test {
 
             for(Element printTable:printTables){
                 System.out.println("==================kkkk=========================");
-                Elements tables = printTable.getElementsByTag("table");
-                for (Element table:tables){
-                    Elements tbody = table.getElementsByTag("tbody  ");
+                /*Elements tables = printTable.getElementsByTag("table");
+                for (Element table:tables){*/
+                    Elements tbody = printTable.getElementsByTag("tbody  ");
                     Elements trs = tbody.select("tr");
 
                     int qsjs=1;//课程开始节数
@@ -259,58 +261,58 @@ public class test {
                                 String html1 = div.html();
 
                                 //System.out.println(clma);
-                                ClassInfo classInfo = parseClass(html1);
+                                KebiaoInfo stuKebiaoInfo = parseClass(html1);
                                 //
                                 String zc = div.attr("zc");
 
-                                classInfo.setWeek(zc);  //上课周数
-                                classInfo.setcStart(String.valueOf(qsjs));//上课  起始节数
-                                classInfo.setWeekday(String.valueOf(j));//上课 天
+                                stuKebiaoInfo.setWeek(zc);  //上课周数
+                                stuKebiaoInfo.setcStart(String.valueOf(qsjs));//上课  起始节数
+                                stuKebiaoInfo.setWeekday(String.valueOf(j));//上课 天
 
-                                System.out.println(classInfo);
-                                //classInfoList.add(classInfo);
+                                System.out.println(stuKebiaoInfo);
+                                //stuKebiaoInfoList.add(stuKebiaoInfo);
 
                             }
                         }
                         qsjs+=2;
                     }
-                }
+                //}
             }
         }
     }
 
 
-    public ClassInfo parseClass(String s){
-        ClassInfo classInfo=new ClassInfo();
+    public KebiaoInfo parseClass(String s){
+        KebiaoInfo stuKebiaoInfo =new KebiaoInfo();
         String[] s1 = s.split("\n");
-        /*System.out.println(s1.length);
+        System.out.println(s1.length);
         System.out.println(Arrays.toString(s1));
         for (String ss:s1){
             System.out.println(ss);
-        }*/
-        classInfo.setJxb(s1[0]);//教学班号
-        classInfo.setKch(s1[1].substring(s1[1].indexOf("<br>")+4,s1[1].indexOf("-")));//课程号
-        classInfo.setKcm(s1[1].substring(s1[1].indexOf("-")+1));  //课程名
+        }
+        stuKebiaoInfo.setJxb(s1[0]);//教学班号
+        stuKebiaoInfo.setKch(s1[1].substring(s1[1].indexOf("<br>")+4,s1[1].indexOf("-")));//课程号
+        stuKebiaoInfo.setKcm(s1[1].substring(s1[1].indexOf("-")+1));  //课程名
 
         if (isbaobao("综合实验楼",s1[2])){
-            classInfo.setSkdd(s1[2].substring(s1[2].indexOf("综合实验楼"),s1[2].length()-2));
+            stuKebiaoInfo.setSkdd(s1[2].substring(s1[2].indexOf("综合实验楼"),s1[2].length()-2));
         }else {
-            classInfo.setSkdd(s1[2].substring(s1[2].indexOf("：")+1)); //上课地点
+            stuKebiaoInfo.setSkdd(s1[2].substring(s1[2].indexOf("：")+1)); //上课地点
         }
 
-        classInfo.setJsm(s1[6].substring(s1[6].indexOf(">")+1,s1[6].indexOf("修")-2));//教师名
-        classInfo.setKclb(s1[6].substring(s1[6].lastIndexOf(" ")-2,s1[6].lastIndexOf(" ")));//课程类别
-        classInfo.setCredit(s1[6].substring(s1[6].lastIndexOf(" ")+1,s1[6].indexOf("</span>")));//学分
+        stuKebiaoInfo.setJsm(s1[6].substring(s1[6].indexOf(">")+1,s1[6].indexOf("修")-2));//教师名
+        stuKebiaoInfo.setKclb(s1[6].substring(s1[6].lastIndexOf(" ")-2,s1[6].lastIndexOf(" ")));//课程类别
+        stuKebiaoInfo.setCredit(s1[6].substring(s1[6].lastIndexOf(" ")+1,s1[6].indexOf("</span>")));//学分
         //上课节数
         if (isbaobao("3节连上",s1[4])){
-            classInfo.setcTimes("3");
+            stuKebiaoInfo.setcTimes("3");
         }else if(isbaobao("4节连上",s1[4])){
-            classInfo.setcTimes("4");
+            stuKebiaoInfo.setcTimes("4");
         }else {
-            classInfo.setcTimes("2");
+            stuKebiaoInfo.setcTimes("2");
         }
 
-        return classInfo;
+        return stuKebiaoInfo;
     }
 
     /**
@@ -319,7 +321,8 @@ public class test {
     @Test
     public void testRedis(){
         JedisPoolConfig jedisPoolConfig=new JedisPoolConfig();
-        Jedis jedis=new Jedis("127.0.0.1");
+        Jedis jedis=new Jedis("118.25.64.213");
+        jedis.set("timekey3","123");
         String timekey3 = jedis.get("timekey3");
 
         System.out.println(timekey3);

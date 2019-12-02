@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-
 
 /**
  *
@@ -23,9 +21,9 @@ import java.io.IOException;
  * @date created in 22:19 2019/11/2
  */
 @Service
-public class GetInfoFromWx {
+public class GetInfoFromWxService {
 
-    final Logger logger= LoggerFactory.getLogger(GetInfoFromWx.class);    //日志
+    final Logger logger= LoggerFactory.getLogger(GetInfoFromWxService.class);    //日志
 
     @Value("${code2Session}")
     private  String code2Session;      //微信的auth.code2Session网址
@@ -41,10 +39,9 @@ public class GetInfoFromWx {
     /**
      * 访问微信的接口 用code换取openid与session_key的json字符串，并解析字符串返回指定键的值
      *
-     * @param code
-     * @param key
-     * @return
-     * @throws IOException
+     * @param code 微信临时身份验证码
+     * @param key  想要获取的参数类型
+     * @return  返回openid或者sessionkey
      */
     private String getOpenIdOrSessionkey(String code, String key)  {
         //访问接口地址

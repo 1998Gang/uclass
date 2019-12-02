@@ -2,7 +2,7 @@ package cqupt.jyxxh.uclass.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cqupt.jyxxh.uclass.pojo.ClassInfo;
+import cqupt.jyxxh.uclass.pojo.KebiaoInfo;
 import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.pojo.Teacher;
 import org.jsoup.Jsoup;
@@ -20,6 +20,7 @@ import java.util.List;
 
 /**
  * 用于解析相关数据的工具类
+ * 解析工具类，所有方法均为静态方法。
  *
  *
  * @author 彭渝刚
@@ -36,8 +37,8 @@ public class Parse {
      *     以下是Attributes（无法直接读取具体数据）的数据格式：{uid=uid: 1655728, edupersonstudentid=eduPersonStudentID: 2017214033, edupersonorgdn=eduPersonOrgDN: 软件工程学院, cn=cn: 彭渝刚}
      *     将其解析为HashMap，以 key-value方式，方后续取用：{ c= 彭渝刚, ui= 1655728,  edupersonorgd= 软件工程学院,  edupersonstudenti= 2017214033}
      *
-     * @param attributes
-     * @return
+     * @param attributes LDAP查询到的字符串数据
+     * @return  解析之后的数据，以map集合形式返回
      */
     public static HashMap<String,String> ParseAttributes(Attributes attributes){
         //创建一个map集合
@@ -67,8 +68,8 @@ public class Parse {
      *     转化之前：{"code":0,"info":"ok","returnData":[{"xh":"2017214033","xm":"\u5f6d\u6e1d\u521a","xmEn":"Peng Yu Gang ","xb":"\u7537","bj":"13001701","zyh":"1300","zym":"\u8f6f\u4ef6\u5de5\u7a0b","yxh":"13","yxm":"\u8f6f\u4ef6\u5de5\u7a0b\u5b66\u9662","nj":"2017","csrq":"19981030","xjzt":"\u5728\u6821","rxrq":"201709","yxmen":"School of Software","zymEn":"Software Engineering","xz":4,"mz":"\u6c49\u65cf                "}]}
      *     转化之后：{"code":0,"info":"ok","returnData":[{"xh":"2017214033","xm":"彭渝刚","xmEn":"Peng Yu Gang ","xb":"男","bj":"13001701","zyh":"1300","zym":"软件工程","yxh":"13","yxm":"软件工程学院","nj":"2017","csrq":"19981030","xjzt":"在校","rxrq":"201709","yxmen":"School of Software","zymEn":"Software Engineering","xz":4,"mz":"汉族                "}]}
      *
-     * @param theString
-     * @return
+     * @param theString 未转码之前的字符串
+     * @return  转码之后的字符串
      */
     public static String decodeUnicode(String theString) {
         char aChar;
@@ -141,7 +142,7 @@ public class Parse {
      * 解析学生接口返回的json数据 json对象转为Student对象
      *
      * @param stuJsonInfo    ：学生信息json数据,例如:{"code":0,"info":"ok","returnData":[{"xh":"2017214033","xm":"\u5f6d\u6e1d\u521a","xmEn":"Peng Yu Gang ","xb":"\u7537","bj":"13001701","zyh":"1300","zym":"\u8f6f\u4ef6\u5de5\u7a0b","yxh":"13","yxm":"\u8f6f\u4ef6\u5de5\u7a0b\u5b66\u9662","nj":"2017","csrq":"19981030","xjzt":"\u5728\u6821","rxrq":"201709","yxmen":"School of Software","zymEn":"Software Engineering","xz":4,"mz":"\u6c49\u65cf                "}]}
-     * @return
+     * @return 返回学生信息
      */
     public static Student ParseJsonToStudent(String stuJsonInfo){
         Student studentInfo=new Student();
@@ -185,7 +186,7 @@ public class Parse {
      *
      * @param teaJsonInfo   教师信息的json数据，例如：{"code":0,"info":"ok","returnData":[{"teaId":"030403","teaName":"\u5411\u654f\uff08\u7ecf\uff09","xb":"\u5973","jysm":"\u5e94\u7528\u7ecf\u6d4e\u5b66\u7cfb","yxm":"\u7ecf\u6d4e\u7ba1\u7406\u5b66\u9662","zc":"\u6559\u6388"},
      *                                                                          {"teaId":"080213","teaName":"\u5411\u654f\uff08\u81ea\u52a8\u5316\uff09","xb":"\u7537","jysm":"\u81ea\u52a8\u5316\u4e0e\u673a\u5668\u4eba\u5de5\u7a0b\u7cfb","yxm":"\u81ea\u52a8\u5316\u5b66\u9662","zc":"\u6559\u6388"}]}
-     * @return
+     * @return 返回教师信息list集合
      */
     public static List<Teacher> ParseJsonToTeacher(String teaJsonInfo){
         //创建教师集合
@@ -231,7 +232,7 @@ public class Parse {
      *
      * @param a  被包含字符串
      * @param b  包含字符串
-     * @return
+     * @return 返回boolean值
      */
     public static boolean isbaohan(String a,String b){
         boolean flage=true;
@@ -247,19 +248,76 @@ public class Parse {
         return flage;
     }
 
-    public static List<ClassInfo>  parseHtmlToClassInfo(String html){
-        List<ClassInfo> classInfoList=null;
+    /**
+     * 解析去教务在校获取到的课表页html
+     *学生课表
+     *
+     *
+     *
+     * @param html 教务在线原始界面
+     * @return 返回课表信息集合
+     */
+    public static List<KebiaoInfo>  parseHtmlToStuKebiaoInfo(String html){
+        List<KebiaoInfo> stuKebiaoInfoList =null;
 
-        //1.解析html
+        //1.jsoup解析html
         Document doc = Jsoup.parse(html);
         //2.根据id获取“kbStuTabs-table”课表形式的课表
         Element kbStuTabsTable = doc.getElementById("kbStuTabs-table");
         //2.根据class获取 printTable
-        Elements printTable = kbStuTabsTable.getElementsByClass("printTable");
-        //3.获取课表body
+        Elements printTables = kbStuTabsTable.getElementsByClass("printTable");
+        //3.循环printTables
+        for (Element printRable:printTables){
+            //3.1 获取printTable中的tbody，课表实体
+            Elements tbody = printRable.getElementsByTag("tbody");
+            //3.2 获取tbody中的所有tr标签（tr表示节数，第一个tr表示12节，第二个tr表示34节）
+            Elements trs = tbody.select("tr");
+            //3.3 循环解析每一个tr标签内容
+
+            int cStart=1;    //课程开始节数
+            for (int i=0;i<trs.size();i++){
+                //第3个tr 与第6个tr是午间休息与下午休息，跳过
+                if (i==2||i==5){
+                    continue;
+                }
+
+                //System.out.println(qsjs+"-"+(qsjs+1)+"节");
+                Element tr=trs.get(i);
+                Elements tds=tr.select("td");
+                Element td1=tds.get(0);
+                td1.attr("rowspan");
 
 
-        return classInfoList;
+                for (int j=1;j<tds.size();j++){
+                    //System.out.println("星期"+(j)+":"+qsjs+"-"+(qsjs+1)+"节");
+                    Element td=tds.get(j);
+                    Elements divs=td.getElementsByClass("kbTd");
+                    for (int k=0;k<divs.size();k++){
+
+                        Element div = divs.get(k);
+                        //System.out.println(div.html());
+                        String html1 = div.html();
+
+                        //System.out.println(clma);
+                        KebiaoInfo stuKebiaoInfo = parseClass(html1);
+                        //
+                        String zc = div.attr("zc");
+
+                        stuKebiaoInfo.setWeek(zc);  //上课周数
+                        stuKebiaoInfo.setcStart(String.valueOf(cStart));//上课  起始节数
+                        stuKebiaoInfo.setWeekday(String.valueOf(j));//上课 天
+
+                        System.out.println(stuKebiaoInfo);
+                        //stuKebiaoInfoList.add(stuKebiaoInfo);
+
+                    }
+                }
+                cStart+=2;
+            }
+
+        }
+
+        return stuKebiaoInfoList;
 
     }
 

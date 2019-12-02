@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -22,9 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
  */
 
 @Service
-public class OperationUserInfo {
+public class OperationUserInfoService {
 
-    final Logger logger= LoggerFactory.getLogger(OperationUserInfo.class);
+    final Logger logger= LoggerFactory.getLogger(OperationUserInfoService.class);
 
 
     @Autowired
@@ -34,7 +33,7 @@ public class OperationUserInfo {
     private TeacherMapper teacherMapper;  //与老师数据有关的操作（DAO）
 
     @Autowired
-    private OperationBind bindInfo;       //与用户绑定有关的操作（service）
+    private OperationBindService bindInfo;       //与用户绑定有关的操作（service）
 
     /**
      * 通过openid查询学生数据[Student]

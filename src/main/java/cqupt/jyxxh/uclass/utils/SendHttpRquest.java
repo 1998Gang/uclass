@@ -82,7 +82,7 @@ public  class SendHttpRquest {
      * @return  html页面（字符串形式）
      * @throws IOException   创建get请求，参数异常。
      */
-    public String getHtmlFromHttp(String url,String param) throws IOException {
+    public  String getHtmlFromHttp(String url,String param) throws IOException {
 
         String html=null;
 
@@ -104,9 +104,8 @@ public  class SendHttpRquest {
         }else {
             //4.2 不为200
             if (logger.isDebugEnabled()){
-                logger.debug("获取html失败");
+                logger.debug("【getHtmlFromHttp】获取html失败");
             }
-
         }
         //5.返回获取的html界面，以字符串方式
         return html;

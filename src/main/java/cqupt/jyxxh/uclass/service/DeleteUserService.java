@@ -14,13 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
  */
 
 @Service
-public class DeleteUser {
+public class DeleteUserService {
 
     @Autowired
-    private OperationBind operationBind;
+    private OperationBindService operationBindService;
 
     @Autowired
-    private OperationUserInfo operationUserInfo;
+    private OperationUserInfoService operationUserInfoService;
 
     /**
      * 删除用户信息，和绑定信息
@@ -33,8 +33,8 @@ public class DeleteUser {
         //定义操作返回结果
         boolean flage=false;
         //删除用户信息
-        boolean b = operationUserInfo.deleteUserInfo(openid);
-        boolean b1 = operationBind.deleteBind(openid);
+        boolean b = operationUserInfoService.deleteUserInfo(openid);
+        boolean b1 = operationBindService.deleteBind(openid);
         //判断两个删除操作成功
         if (b==true&&b1==true){
             //两个删除操作都成功，删除绑定用户操作成功。
