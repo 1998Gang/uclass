@@ -6,24 +6,24 @@ import cqupt.jyxxh.uclass.pojo.Teacher;
 public interface TeacherMapper {
 
     /**
-     * 通过openid查询单个教师信息
+     * 查询教师信息
      *
-     * @param openid
-     * @return
+     * @param teaId 教师号
+     * @return Teacher
      */
-     Teacher queryTeacherByOpenid(String openid);
+     Teacher queryTeacherByTeaId(String teaId);
 
     /**
-     *根据openid删除老师数据
+     *根据教师号（teaId）删除老师数据
      *
-     * @param openid
+     * @param teaId 教师号
      */
-    void deleteTeacherByOpenid(String openid);
+    void deleteTeacherByTeaId(String teaId);
 
 
     /**
      * 插入一条教师信息数据
-     * @param userInfo
+     * @param teacher 教务账号实体(教师)
      */
-    void insertTeacher(Teacher userInfo);
+    void insertTeacher(Teacher teacher);
 }

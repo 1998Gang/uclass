@@ -1,12 +1,11 @@
 package cqupt.jyxxh.uclass.web;
 
 
-import cqupt.jyxxh.uclass.pojo.Student;
-import cqupt.jyxxh.uclass.pojo.Teacher;
-import cqupt.jyxxh.uclass.pojo.UserInfo;
+import cqupt.jyxxh.uclass.pojo.UclassUser;
+import cqupt.jyxxh.uclass.pojo.EduAccount;
 import cqupt.jyxxh.uclass.service.*;
-import cqupt.jyxxh.uclass.utils.Authentication;
 
+import cqupt.jyxxh.uclass.utils.Authentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,158 +31,149 @@ import java.util.Map;
  */
 
 @Controller
-@RequestMapping(value = "user")
-public class UclassUser {
+@RequestMapping(value = "usermanage")
+public class UclassUserManage {
 
 
-    final Logger logger= LoggerFactory.getLogger(UclassUser.class);    //日志（slf4j搭配logback）
+    final Logger logger= LoggerFactory.getLogger(UclassUserManage.class);    //日志（slf4j搭配logback）
 
     @Autowired
     private GetInfoFromWxService getInfoFromWxService;    //去微信获取数据的service
 
     @Autowired
-    private OperationUserInfoService operationUserInfoService;  //操作用户数据的service
+    private UserService userService;                     //用户信息操作类
 
     @Autowired
-    private OperationBindService operationBindService;           //与绑定有关的操作 service
+    private EduAccountService EduAccountService;         //教务账户信息操作类
 
     @Autowired
-    private Authentication authentication;        //身份验证操作的封装 对接学校的统一身份认证系统（使用的是LDAP）  utils
+    private Authentication authentication;                //统一身份验证工具类
 
-    @Autowired
-    private DeleteUserService deleteUserService;                  //删除用户的操作（service）
 
-    @Autowired
-    private AddUserService addUserService;                        //添加新用户（service）
 
     /**
-     * 用户登陆，调用此方法
-     * 接收code，换取openid，去绑定表里找有没有记录该openid的绑定，如果有，说明已经绑定过，返回该用户的学生/老师信息，登陆成功。
-     *                       绑定表里没有记录该openid的绑定，说明是新微用户，还没有绑定学生/老师账号，响应404状态码，登陆失败，绑定之后在调用该方法。
+     * 用户登陆，调用此方法。
+     * 登陆成功，返回绑定的教务账户信息。
+     * 登陆失败，会自动创建一个新用户，未绑定教务账户。
      *
      * @param code   微信小程序临时身份验证码
-     * @return 返回值为suerinfo实体，用户信息，（学生或者老师）
+     * @return 返回值为EduAccount实体，教务账户信息，（学生或者老师）
      */
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<UserInfo> login(@RequestParam("code") String code){
-        try {
-
-            if (logger.isDebugEnabled()){
-                logger.debug("【登陆接口（login）】接收参数code：[{}]",code);
-            }
-
-            // 1.用code去微信后台换取OpenID,同时去除双引号
-            String opneId = getInfoFromWxService.getOpenid(code).replace("\"","");
-               // 1.1 判断返回openid是否为空值
-            if ("nullOpenid"==opneId){
-
-                if (logger.isInfoEnabled()){
-                    logger.info("【登陆接口（login）】code:[{}]换取openid失败，原因可能是无效code",code);
-                }
-                //1.1.1 openid查询失败，http状态码响应 415
-                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(null);
-            }else {
-
-                if (logger.isDebugEnabled()){
-                    logger.debug("【登陆接口（login）】code:[{}]换回的openid:[{}]",code,opneId);
-                }
-            }
-
-
-            // 2.根据openid查询是否绑定
-            Boolean isBind= operationBindService.isBind(opneId);
-
-            if (logger.isDebugEnabled()){
-                logger.debug("【登陆接口（login）】openid:[{}]是否存在绑定数据？{}",opneId,isBind);
-            }
-
-            // 3.判断是否绑定。
-            if (isBind){
-                // 3.1已经绑定，根据绑定信息判断用户类型 “01”为老师 “16”为学生
-                String typeNumber= operationBindService.bindType(opneId);
-                switch (typeNumber){
-                    case "01":{
-                        // 3.1.1 老师用户，根据openid查询教师信息，并返回。
-                        Teacher teacher= operationUserInfoService.getTeacherInfoByOpenid(opneId);
-
-                        if (logger.isInfoEnabled()){
-                            logger.info("【登陆接口（login）】登陆成功，老师[{},{},{}]",teacher.getTeaName(),teacher.getTeaId(),teacher.getOpenid());
-                        }
-                        // 3.1.1.1查询成功，http状态码响应 200 同时返回teacher实体
-                        return ResponseEntity.status(HttpStatus.OK).body((UserInfo) teacher);
-                    }
-                    case "16":{
-                        // 3.1.2 学生用户，根据openid查询学生信息，并返回。
-                        Student student = operationUserInfoService.getStudentInfoByOpenid(opneId);
-
-                        if (logger.isInfoEnabled()){
-                            logger.info("【登陆接口（login）】登陆成功，学生[{},{},{}]",student.getXm(),student.getXh(),student.getOpenid());
-                        }
-                        // 3.1.2.1 查询成功，http状态码响应 200 同时返回student实体
-                        return ResponseEntity.status(HttpStatus.OK).body((UserInfo) student);
-                    }
-                }
-            }else {
-                //3.2 没有绑定，http状态码响应  401。
-                if (logger.isInfoEnabled()){
-                    logger.info("【登陆接口（login）】登陆失败，用户(openid):[{}]未绑定",opneId);
-                }
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-            }
-
-        }catch (Exception e){
-
-            logger.error("【登陆接口（login）】登陆出错,服务器内部错误，用户code:[{}]",code,e);
+    public ResponseEntity<EduAccount> login(@RequestParam("code") String code){
+        //日志
+        if (logger.isDebugEnabled()){
+            logger.debug("【登陆接口（UclassUserManage.login）】接收参数code：[{}]",code);
         }
 
-        //  出现未知内部错误，http状态码响应 500
+        try {
+            // 1.获取openid
+            String openid = getInfoFromWxService.getOpenid(code);
+            if (null==openid&&openid.equals("")){
+                //日志
+                if (logger.isDebugEnabled()){
+                    logger.debug("【登陆接口（UclassUserManage.login）】获取openid失败");
+                }
+                //获取openid失败，响应415
+                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(null);
+            }
+
+
+            // 2.获取是否存在绑定
+            boolean isbind = userService.isBind(openid);
+
+            // 3.判断
+            if (isbind){
+
+                // 3.1 用户绑定了教务用户，获取教务账户数据并返回。
+                UclassUser uclassUser = userService.getUser(openid);
+                EduAccount eduAccount = EduAccountService.getUserEduAccountInfo(uclassUser);
+
+                return ResponseEntity.status(HttpStatus.OK).body(eduAccount);
+
+            }else {
+
+                // 3.2 用户没有绑定教务账户
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
+            }
+        }catch ( Exception e){
+            e.printStackTrace();
+        }
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
 
 
     /**
-     *添加绑定，调用此方法。
+     *为用户添加教务账号绑定调用本方法
      *
      * 接收code（微信临时身份验证码）
      *    yktId（学校统一认证码）
      *    password（统一认证身份密码）
      *
      * @param bindInfo1 {code,userid,password}
-     * @return 返回请求结果提示
+     * @return 请求结果提示
      */
     @RequestMapping(method = RequestMethod.POST,produces = "application/json;charset=utf-8")
     public ResponseEntity<String> bind(@RequestBody Map<String,String> bindInfo1){
         String code= null;
-        String yktId= null;
+        String ykth= null;
         String password= null;
         try {
             // 1. 获取请求参数
              code= bindInfo1.get("code");
-             yktId= bindInfo1.get("yktId");
+             ykth= bindInfo1.get("yktId");
              password= bindInfo1.get("password");
 
+             //日志
             if (logger.isDebugEnabled()){
-                logger.debug("【绑定接口（bind）】 接收参数code[{}],yktId[{}],password[{}]",code,yktId,password);
+                logger.debug("【绑定接口（UclassUserManage.bind）】 接收参数code[{}],ykth[{}],password[{}]",code,ykth,password);
             }
 
-            // 2. 通过code获取openid，并校验该openid是否存在绑定。
-            String openid = getInfoFromWxService.getOpenid(code).replace("\"","");
-            if ("nullOpenid"==openid){
+            // 2. 通过code获取openid，并校验该openid是否合法。
+            String openid = getInfoFromWxService.getOpenid(code);
+            if (null==openid&&openid.equals("")){
+                //日志
                 if (logger.isDebugEnabled()){
-                    logger.debug("【添加新用户（AddUser）】获取openid失败，code：[{}]可能是无效的",code);
+                    logger.debug("【绑定接口（UclassUserManage.bind）】获取openid失败");
                 }
                 //获取openid失败，响应415
                 return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("绑定失败，可能是无效code");
             }
-            if (operationBindService.isBind(openid)){
-                if (logger.isDebugEnabled()){
-                    logger.debug("【添加新用户（AddUser）】openid：[{}]已经存在绑定",openid);
+
+            // 3. 根据判断用户是否已经绑定教务账号
+            boolean isbind = userService.isBind(openid);
+            if (isbind){
+                // 4.1 用户已经存在绑定,响应409.
+                //日志
+                if (logger.isInfoEnabled()){
+                    logger.info("【绑定接口（UclassUserManage.bind）】绑定失败!用户openid：[{}],已经绑定教务账号",openid);
                 }
-                //该微信用户已经存在绑定 响应 409
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("该微信用户已经存在绑定");
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("该微信用户已经绑定了教务账号");
             }
 
-            // 3. 验证身份（一卡通账号密码） 账号密码是否正确
+            // 4.判断用户输入的统一身份是否正确
+            boolean istrue = authentication.ldapCheck(ykth, password);
+            if (!istrue){
+                // 4.1 用户输入的统一身份不正确，响应403
+                // 日志
+                if (logger.isInfoEnabled()){
+                    logger.info("【绑定接口（UclassUserManage.bind）】绑定失败!用户openid：[{}]的统一身份：[{}]验证失败",openid,ykth);
+                }
+                return  ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+            }
+
+
+            // 5.用户为绑定教务账号，添加教务账号绑定
+            boolean isSetBind = userService.setBind(openid, ykth, password);
+            if (isSetBind){
+                return ResponseEntity.status(HttpStatus.OK).body("绑定成功！");
+            }
+
+
+
+           /* // 3. 验证身份（一卡通账号密码） 账号密码是否正确
             boolean isTrue=authentication.ldapCheck(yktId,password);
 
             // 4.添加新用户
@@ -209,11 +199,11 @@ public class UclassUser {
                     logger.info("【绑定接口（bind）】绑定失败！身份验证失败,统一认证码：[{}]",yktId);
                 }
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("绑定失败（统一身份验证失败）");
-            }
+            }*/
 
 
         }catch (Exception e){
-            logger.error("【绑定接口（bind）】绑定操作错误！统一认证码[{}]",yktId,e);
+            logger.error("【绑定接口（bind）】绑定操作错误！统一认证码[{}]",ykth);
         }
 
 
@@ -237,7 +227,7 @@ public class UclassUser {
 
         try{
 
-        if (logger.isDebugEnabled()){
+        /*if (logger.isDebugEnabled()){
             logger.debug("【删除用户接口（deldete）】 接收code：[{}]",code);
         }
 
@@ -279,7 +269,7 @@ public class UclassUser {
                 logger.info("【删除用户接口（deldete）】删除用户绑定成功！ openid:[{}]",openid);
             }
             //删除绑定成功 返回200
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("删除绑定用户成功");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("删除绑定用户成功");*/
         }catch (Exception e){
             logger.error("【删除用户接口（deldete）】删除用户绑定操作出错！",e);
         }

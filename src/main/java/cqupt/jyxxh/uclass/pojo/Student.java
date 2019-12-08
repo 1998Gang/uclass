@@ -8,12 +8,11 @@ package cqupt.jyxxh.uclass.pojo;
  * @version 1.0.0
  * @date created in 22:45 2019/11/1
  */
-public class Student implements UserInfo{
+public class Student implements EduAccount {
 
-    private String openid;//唯一识别码 openid
+    private String xh;//学号 主键
     private String xm;//姓名
     private String xb;//性别
-    private String xh;//学号
     private String ykth;//一卡通号码  统一认证吗
     private String yxm;//学院
     private String zym;//专业
@@ -22,14 +21,14 @@ public class Student implements UserInfo{
     private String xjzt;//学籍状态
     private String mz;//民族
     private String csrq;//出生日期
+    private String dhhm;//电话号码
 
     @Override
     public String toString() {
         return "Student{" +
-                "openid='" + openid + '\'' +
+                "xh='" + xh + '\'' +
                 ", xm='" + xm + '\'' +
                 ", xb='" + xb + '\'' +
-                ", xh='" + xh + '\'' +
                 ", ykth='" + ykth + '\'' +
                 ", yxm='" + yxm + '\'' +
                 ", zym='" + zym + '\'' +
@@ -38,15 +37,16 @@ public class Student implements UserInfo{
                 ", xjzt='" + xjzt + '\'' +
                 ", mz='" + mz + '\'' +
                 ", csrq='" + csrq + '\'' +
+                ", dhhm='" + dhhm + '\'' +
                 '}';
     }
 
-    public String getOpenid() {
-        return openid;
+    public String getXh() {
+        return xh;
     }
 
-    public void setOpenid(String openid) {
-        this.openid = openid;
+    public void setXh(String xh) {
+        this.xh = xh;
     }
 
     public String getXm() {
@@ -65,15 +65,21 @@ public class Student implements UserInfo{
         this.xb = xb;
     }
 
-    public String getXh() {
-        return xh;
-    }
-
-    public void setXh(String xh) {
-        this.xh = xh;
+    @Override
+    public String getAccountType() {
+        return "s";
     }
 
     @Override
+    public String getName() {
+        return xm;
+    }
+
+    @Override
+    public String getNumber() {
+        return xh;
+    }
+
     public String getYkth() {
         return ykth;
     }
@@ -138,8 +144,11 @@ public class Student implements UserInfo{
         this.csrq = csrq;
     }
 
+    public String getDhhm() {
+        return dhhm;
+    }
 
-
-
-
+    public void setDhhm(String dhhm) {
+        this.dhhm = dhhm;
+    }
 }

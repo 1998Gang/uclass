@@ -5,47 +5,29 @@ package cqupt.jyxxh.uclass.pojo;
  * @version 1.0.0
  * @date created in 21:53 2019/11/2
  */
-public class Teacher implements UserInfo {
+public class Teacher implements EduAccount {
 
-    private String openid;//教师的openid
-    private String teaName;//教师的name
     private String teaId;//教师的教师号
+    private String teaName;//教师的name
     private String xb;//性别
-    private String zc;//教师的职称
     private String ykth;//一卡通号
+    private String zc;//教师的职称
     private String jysm;//教师的教研室
     private String yxm;//教师的院系名
+    private String lxyx;//教师的联系邮箱
 
     @Override
     public String toString() {
         return "Teacher{" +
-                "openid='" + openid + '\'' +
+                "teaId='" + teaId + '\'' +
                 ", teaName='" + teaName + '\'' +
-                ", teaId='" + teaId + '\'' +
                 ", xb='" + xb + '\'' +
-                ", zc='" + zc + '\'' +
                 ", ykth='" + ykth + '\'' +
+                ", zc='" + zc + '\'' +
                 ", jysm='" + jysm + '\'' +
                 ", yxm='" + yxm + '\'' +
+                ", lxyx='" + lxyx + '\'' +
                 '}';
-    }
-
-
-
-    public String getOpenid() {
-        return openid;
-    }
-
-    public void setOpenid(String openid) {
-        this.openid = openid;
-    }
-
-    public String getTeaName() {
-        return teaName;
-    }
-
-    public void setTeaName(String teaName) {
-        this.teaName = teaName;
     }
 
     public String getTeaId() {
@@ -56,6 +38,14 @@ public class Teacher implements UserInfo {
         this.teaId = teaId;
     }
 
+    public String getTeaName() {
+        return teaName;
+    }
+
+    public void setTeaName(String teaName) {
+        this.teaName = teaName;
+    }
+
     public String getXb() {
         return xb;
     }
@@ -64,21 +54,35 @@ public class Teacher implements UserInfo {
         this.xb = xb;
     }
 
-    public String getZc() {
-        return zc;
-    }
-
-    public void setZc(String zc) {
-        this.zc = zc;
+    @Override
+    public String getAccountType() {
+        return "t";
     }
 
     @Override
+    public String getName() {
+        return teaName;
+    }
+
+    @Override
+    public String getNumber() {
+        return teaId;
+    }
+
     public String getYkth() {
         return ykth;
     }
 
     public void setYkth(String ykth) {
         this.ykth = ykth;
+    }
+
+    public String getZc() {
+        return zc;
+    }
+
+    public void setZc(String zc) {
+        this.zc = zc;
     }
 
     public String getJysm() {
@@ -95,5 +99,13 @@ public class Teacher implements UserInfo {
 
     public void setYxm(String yxm) {
         this.yxm = yxm;
+    }
+
+    public String getLxyx() {
+        return lxyx;
+    }
+
+    public void setLxyx(String lxyx) {
+        this.lxyx = lxyx;
     }
 }

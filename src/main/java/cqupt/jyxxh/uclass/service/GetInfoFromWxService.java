@@ -40,7 +40,7 @@ public class GetInfoFromWxService {
      * 访问微信的接口 用code换取openid与session_key的json字符串，并解析字符串返回指定键的值
      *
      * @param code 微信临时身份验证码
-     * @param key  想要获取的参数类型
+     * @param key  想要获取的参数类型我
      * @return  返回openid或者sessionkey
      */
     private String getOpenIdOrSessionkey(String code, String key)  {
@@ -53,14 +53,13 @@ public class GetInfoFromWxService {
         //创建jackson核心对象
         ObjectMapper objectMapper=new ObjectMapper();
         //解析json字符串，返回指定键的值
-        String value="nullOpenid";
+        String value=null;
         try {
             JsonNode jsonNode=objectMapper.readTree(result).findValue(key);
             value=jsonNode.toString();
         }catch (Exception e){
             if (logger.isErrorEnabled()){
-                logger.error("【获取openid或sessionkey（GetInfoFromWx）】 code换openid，sessionkey，微信接口返回值[{}]",result);
-                logger.error("【获取openid或sessionkey（GetInfoFromWx）】 获取{}失败，code:[{}]可能是无效的",key,code,e);
+                logger.error("【获取{}失败（GetInfoFromWxService.getOpenIdOrSessionkey）】code:[{}]可能是无效的，微信接口返回值:[{}]",key,code,result);
             }
         }
         return value;
@@ -69,12 +68,16 @@ public class GetInfoFromWxService {
     /**
      *  获取openid
      *
-     * @param code
-     * @return
+     * @param code 微信小程序临时身份验证
+     * @return openid
      */
     public String getOpenid(String code)  {
-        String openid;
-        openid = getOpenIdOrSessionkey(code,"openid");
+        String openid=null;
+        //捕获一个潜在的异常，
+        try{
+            openid = getOpenIdOrSessionkey(code,"openid").replace("\"","");
+        }catch (Exception e){
+        }
         return openid;
     }
 
@@ -82,12 +85,16 @@ public class GetInfoFromWxService {
     /**
      * 获取session_key
      *
-     * @param code
-     * @return
+     * @param code 微信小程序临时身份验证
+     * @return sessionkey
      */
     public String getSessionkey(String code)  {
-        String sessionkey= null;
-        sessionkey = getOpenIdOrSessionkey(code,"session_key");
+        String sessionkey=null;
+        //捕获一个潜在的异常
+        try{
+            sessionkey = getOpenIdOrSessionkey(code,"session_key").replace("\'","");
+        }catch (Exception e){
+        }
         return sessionkey;
     }
 }

@@ -5,13 +5,19 @@
 <mapper namespace="cqupt.jyxxh.uclass.dao.TeacherMapper">
 
 
-    <!--1.queryTeacherByOpenid，通过openid查询单个教师信息-->
-    <select id="queryTeacherByOpenid" parameterType="String" resultType="Teacher">
-        SELECT * from uclass_teacher_info where openid='${value}'
+    <!--1.queryTeacherByTeaId，通过教师号（teaId）查询单个教师信息-->
+    <select id="queryTeacherByTeaId" parameterType="String" resultType="Teacher">
+        SELECT * from uclass_teacher_info where teaId='${value}'
     </select>
 
-    <!--2.deleteTeacherByOpenid，根据openid删除老师数据-->
-    <delete id="deleteTeacherByOpenid" parameterType="String">
-        delete from uclass_teacher_info where openid='${value}'
+    <!--2.deleteTeacherByTeaId，根据教师号（TeaId）删除老师数据-->
+    <delete id="deleteTeacherByTeaId" parameterType="String">
+        delete from uclass_teacher_info where eaId='${value}'
     </delete>
+
+    <!--3.插入一条新教务账号数据-->
+    <insert id="insertTeacher" parameterType="Teacher">
+        insert into uclass_user(teaId,teaName,xb,ykth,zc,jysm,yxm)
+        values (#{teaId},#{teaName},#{xb},#{ykth},#{zc},#{jysm},#{yxm})
+    </insert>
 </mapper>

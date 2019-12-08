@@ -6,6 +6,7 @@ import cqupt.jyxxh.uclass.utils.Parse;
 import cqupt.jyxxh.uclass.utils.SendHttpRquest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
@@ -17,6 +18,8 @@ import java.util.List;
  * @version 1.0.0
  * @date created in 19:08 2019/12/2
  */
+
+@Service
 public class KebiaoService {
 
     @Autowired

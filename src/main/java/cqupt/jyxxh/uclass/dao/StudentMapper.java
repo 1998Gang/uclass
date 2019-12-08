@@ -8,12 +8,12 @@ import cqupt.jyxxh.uclass.pojo.Student;
 public interface StudentMapper {
 
     /**
-     * 根据openid查询学生数据
+     * 根据学号（xh）查询学生数据
      *
-     * @param openid
+     * @param xh 学号
      *
      */
-     Student queryStudentByopenid(String openid);
+     Student queryStudentByXh(String xh);
 
     /**
      * 插入一条学生信息
@@ -25,9 +25,9 @@ public interface StudentMapper {
 
 
     /**
-     * 根据openid删除学生信息
+     * 根据学号（xh）删除学生信息
      *
-     * @param openid
+     * @param xh
      */
-    void deleteStudentByOpenid(String openid);
+    void deleteStudentByOpenid(String xh);
 }

@@ -31,7 +31,7 @@ public class Authentication {
     @Value("${URL}")
     private String URL;       //LDAP连接地址  "ldap://211.83.210.1:389/"
 
-   @Value("${BASEDN}")
+    @Value("${BASEDN}")
     private  String BASEDN;   //LDAP的根DN  "dc=cqupt,dc=edu,dc=cn"
 
     @Value("${PRINCIPAL}")
@@ -43,11 +43,11 @@ public class Authentication {
     /**
      * 验证统一身份账号密码是否正确
      *
-     * @param username
-     * @param password
-     * @return
+     * @param ykth  一卡通号，统一认证码
+     * @param password  统一认证密码
+     * @return boolean
      */
-    public boolean ldapCheck(String username,String password){
+    public boolean ldapCheck(String ykth, String password){
 
         Control[] controls=null;
 
@@ -56,7 +56,7 @@ public class Authentication {
 
         // 2.判断密码是否为空或为空串 如果是直接返回false
         if (password==null||password==""){
-            /**输出日志*/
+            //日志
             if (logger.isDebugEnabled()){
                 logger.debug("【身份验证（LDAP）】 验证失败！ 密码为空串或为空");
             }
@@ -69,7 +69,7 @@ public class Authentication {
         }
 
         // 4.获得userDN
-        String userDN=getUserDN(username);
+        String userDN=getUserDN(ykth);
         if ("".equals(userDN)||userDN==null){
             return false;
         }
@@ -82,7 +82,7 @@ public class Authentication {
             flage=true;
         } catch (NamingException e) {
             //账号密码错误，[LDAP: error code 49 - Invalid Credentials]
-            logger.error("【身份验证（LDAP）】身份验证错误！账号密码不正确，统一认证码:[{}]",username,e);
+            logger.error("【身份验证（Authentication.ldapCheck）】身份验证错误！账号或密码不正确，统一认证码:[{}]", ykth);
             flage=false;
 
         }
@@ -93,15 +93,15 @@ public class Authentication {
     /**
      * 获得UserDN
      *
-     * @param username
-     * @return
+     * @param ykth 一卡通号，统一认证码
+     * @return userDN
      */
-    private String getUserDN(String username) {
+    private String getUserDN(String ykth) {
         String userDN="";
         try {
             SearchControls searchControls=new SearchControls();
             searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-            NamingEnumeration enumeration=getLdapContext().search("","uid="+username,searchControls);
+            NamingEnumeration enumeration=getLdapContext().search("","uid="+ykth,searchControls);
             while (enumeration!=null&&enumeration.hasMoreElements()){
                 Object obj=enumeration.nextElement();
                 if (obj instanceof SearchResult){
@@ -113,8 +113,8 @@ public class Authentication {
                 }
             }
         } catch (NamingException e) {
-            /**输出日志*/
-            logger.error("【身份验证（LDAP）】身份验证失败,获取UserDN失败,可能原因为统一认证码[{}]出错",username,e);
+            //日志
+            logger.info("【身份验证（LDAP）】身份验证失败,获取UserDN失败,可能原因为ykth：[{}]出错",ykth);
         }
         return userDN;
     }
@@ -140,7 +140,7 @@ public class Authentication {
         try{
             ldapContext=new InitialLdapContext(env,controls);
         } catch (NamingException e) {
-            /**输出日志*/
+            //日志
             logger.error("【身份验证（LDAP）】获取LDAP连接失败！");
         }
         return ldapContext;
@@ -149,16 +149,16 @@ public class Authentication {
     /**
      * 获取统一认证通过后 获取姓名 学院等信息
      *
-     * @return
+     * @return Attributes
      */
-    public Attributes getAttributes(String username,String password){
+    public Attributes getAttributes(String ykth, String password){
         Attributes attributes=null;
         //如果身份验证成功，可以获取信息
-        if (ldapCheck(username,password)){
+        if (ldapCheck(ykth,password)){
             try {
                 SearchControls searchControls=new SearchControls();
                 searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-                NamingEnumeration enumeration=getLdapContext().search("","uid="+username,searchControls);
+                NamingEnumeration enumeration=getLdapContext().search("","uid="+ ykth,searchControls);
                 while (enumeration!=null&&enumeration.hasMoreElements()){
                     Object obj=enumeration.nextElement();
                     if (obj instanceof SearchResult){
@@ -172,8 +172,8 @@ public class Authentication {
                 logger.error("【身份验证（getAttributes）】获取信息失败，出现未知错误",e);
             }
         }else {
-            if (logger.isDebugEnabled()){
-                logger.debug("【身份验证（getAttributes）】获信息失败（LDAP），原因统一身份验证失败");
+            if (logger.isInfoEnabled()){
+                logger.info("【身份验证（Authentication.getAttributes）】获信息失败（LDAP），原因统一身份验证失败");
             }
         }
         return attributes;

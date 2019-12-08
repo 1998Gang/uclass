@@ -4,21 +4,22 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="cqupt.jyxxh.uclass.dao.StudentMapper">
 
-    <!--1.queryStudentByopenid,通过openid查询学生信息-->
-    <select id="queryStudentByopenid" parameterType="String" resultType="Student">
-        select * from uclass_students_info where openid='${value}'
+    <!--1.queryStudentByXh,通过学号（xh）查询学生信息-->
+    <select id="queryStudentByXh" parameterType="String" resultType="Student">
+        select * from uclass_students_info where xh='${value}'
     </select>
 
 
 
     <!--2.insertStudent,插入条学生信息-->
     <insert id="insertStudent" parameterType="Student" >
-        insert into uclass_students_info(openid,xm,xb,xh,ykth,yxm,zym,nj,bj,xjzt,mz,csrq)
-         values(#{openid},#{xm},#{xb},#{xh},#{ykth},#{yxm},#{zym},#{nj},#{bj},#{xjzt},#{mz},#{csrq})
+        insert into
+        uclass_students_info(xh,xm,xb,ykth,yxm,zym,nj,bj,xjzt,mz,csrq,dhhm)
+        values(#{xh},#{xm},#{xb},#{ykth},#{yxm},#{zym},#{nj},#{bj},#{xjzt},#{mz},#{csrq},#{dhhm})
     </insert>
 
-    <!--3.deleteStudentByOpenid,根据openid删除学生数据-->
+    <!--3.deleteStudentByOpenid,根据学号（xh）删除学生数据-->
     <delete id="deleteStudentByOpenid" parameterType="String">
-        delete from uclass_students_info where openid='${value}'
+        delete from uclass_students_info where xh='${value}'
     </delete>
 </mapper>

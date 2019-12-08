@@ -1,11 +1,16 @@
 package cqupt.jyxxh.uclass.pojo;
 
 /**
+ * 课程信息
+ * 不同时间对应不同的
+ * 如同一课程一周有两节课，则有两个时间数据不同的课程信息
+ *
  * @author 彭渝刚
  * @version 1.0.0
  * @date created in 22:19 2019/11/19
  */
 public class KebiaoInfo {
+
     private String jxb;//教学班 （SJ13191A2130640003）
     private String kch;//课程号 （A2130640）
     private String kcm;//课程名 （计算机网络）
@@ -17,10 +22,12 @@ public class KebiaoInfo {
     private String skzy;//上课的专业  （软件工程 针对教师端）
     private String skbjh; //上课的班级号  （130017|01，02班 针对教师端）
 
-    private String week; //上课周（  “00000000000000001000” 20位代表20周，本例表示第17周有课，其他周没有  ）
+    private String week; //上课周（  “00000000000000001000” 20位代表20周，本例表示第17周（某一节）有课，其他周没有  ）
     private String weekday;//上课天（“1”、“2”、“3”、“4”、“5”、“6”、“7” ）
     private String cStart;//课程开始节数（如该课为 34节 的课，cStart参数为3）
     private String cTimes;//课程节数    （如该课为 34节 ，cTimes为2。如果该课为4节连上1234节，cuTime为4）
+
+    private String cjzc; //该堂课的成绩组成
 
     public String getJxb() {
         return jxb;

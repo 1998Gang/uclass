@@ -11,7 +11,7 @@
 
 
     <!--1.读取连接数据库、小程序、连接LDAP、教务在线访问地址相关参数的perperties文件-->
-    <context:property-placeholder location="classpath:properties/db.properties,classpath:properties/wxMassige.properties,classpath:properties/ldap.properties,classpath:properties/jwzxRequestURL.properties"/>
+    <context:property-placeholder location="classpath:properties/*.properties"/>
 
     <!--2.数据库连接池 数据源-->
     <bean id="druidDataSource" class="com.alibaba.druid.pool.DruidDataSource">

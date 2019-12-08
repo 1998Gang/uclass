@@ -272,27 +272,26 @@ public class Parse {
             Elements tbody = printRable.getElementsByTag("tbody");
             //3.2 获取tbody中的所有tr标签（tr表示节数，第一个tr表示12节，第二个tr表示34节）
             Elements trs = tbody.select("tr");
-            //3.3 循环解析每一个tr标签内容
+            //3.3 循环trs，遍历每一个tr
 
-            int cStart=1;    //课程开始节数
+            int cStart=1;    //标记，课程开始节数
+
             for (int i=0;i<trs.size();i++){
-                //第3个tr 与第6个tr是午间休息与下午休息，跳过
+                //3.3.1 第3个tr 与第6个tr是午间休息与下午休息，跳过
                 if (i==2||i==5){
                     continue;
                 }
-
-                //System.out.println(qsjs+"-"+(qsjs+1)+"节");
+                //3.3.2 获取tr
                 Element tr=trs.get(i);
+                //3.3.3 获取tr标签中的所有td标签（td代表星期几，一共7个td）
                 Elements tds=tr.select("td");
-                Element td1=tds.get(0);
-                td1.attr("rowspan");
-
-
+                //3.3.3.1 循环tds，遍历每一个td
                 for (int j=1;j<tds.size();j++){
-                    //System.out.println("星期"+(j)+":"+qsjs+"-"+(qsjs+1)+"节");
+                    // 3.3.3.1.1 获取td
                     Element td=tds.get(j);
+                    //3.3.3.1.2 获取装课程信息的div，一个td里面可能有多个div（同一个时间上课时间，不同周可能有不同课程）
                     Elements divs=td.getElementsByClass("kbTd");
-                    for (int k=0;k<divs.size();k++){
+                    /*for (int k=0;k<divs.size();k++){
 
                         Element div = divs.get(k);
                         //System.out.println(div.html());
@@ -310,9 +309,9 @@ public class Parse {
                         System.out.println(stuKebiaoInfo);
                         //stuKebiaoInfoList.add(stuKebiaoInfo);
 
-                    }
+                    }*/
                 }
-                cStart+=2;
+                cStart+=2;    //标记，循环一次，课程开始节数+2。
             }
 
         }

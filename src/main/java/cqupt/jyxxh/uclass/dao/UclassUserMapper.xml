@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cqupt.jyxxh.uclass.dao.StudentMapper">
+
+    <!--1.根据openid查询存在条数-->
+    <select id="numByOpenid" parameterType="String" resultType="int">
+        select  count(*) FROM uclass_user WHERE openid='${value}'
+    </select>
+
+    <!--2.根据oprnid获取绑定用户的类型 “s”为学生 “t”为老师-->
+    <select id="queryBindTypeByOpenid" resultType="String" parameterType="String">
+        select user_type from uclass_user where openid='${value}'
+    </select>
+
+    <!--3.根据openid获取用户是否存在绑定-->
+    <select id="queryIsBindByOpenid" resultType="String" parameterType="String">
+        select is_bind from uclass_user where openid='${value}'
+    </select>
+
+    <!--4.插入一条用户数据，新用户（未绑定）-->
+    <insert id="insertUclassUser" parameterType="String">
+        insert into
+        uclass_user (openid,is_bind,first_use_time,last_use_time)
+        values (#{openid},#{is_bind},#{first_use_time},#{last_use_time})
+    </insert>
+
+    <!--5.根据openid获取用户实体-->
+    <select id="queryUserByOpenid" parameterType="String" resultType="UclassUser">
+        select * from uclass_user where openid='${value}'
+    </select>
+
+    <!--6.更新用户数据-->
+    <update id="updateUser" parameterType="UclassUser">
+        update uclass_user
+        set is_bind =#{is_bind},
+            user_type=#{user_type},
+            bind_name=#{bind_name},
+            bind_number=#{bind_number},
+            bind_ykth=#{bind_ykkth},
+            last_use_time=#{last_use_time}
+        where openid=#{openid}
+    </update>
+
+</mapper>

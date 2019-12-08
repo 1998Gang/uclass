@@ -4,6 +4,8 @@
 
 
 import cqupt.jyxxh.uclass.pojo.KebiaoInfo;
+import cqupt.jyxxh.uclass.pojo.Student;
+import cqupt.jyxxh.uclass.pojo.Teacher;
 import cqupt.jyxxh.uclass.service.GetInfoFromWxService;
 
 import cqupt.jyxxh.uclass.utils.Parse;
@@ -22,15 +24,13 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.junit.Test;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.*;
+import redis.clients.jedis.util.ShardInfo;
 
 
 import javax.naming.directory.Attributes;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 
 public class test {
@@ -41,10 +41,10 @@ public class test {
     @Test
     public  void yige() {
 
-        AuthenResult authenResult=UserAuth.authen("7207620","SSD");
+        AuthenResult authenResult=UserAuth.authen("7207619","SSD");
         Attributes attrs = authenResult.getAttrs();
         HashMap<String, String> stringStringHashMap = Parse.ParseAttributes(attrs);
-        System.out.println(attrs);
+        System.out.println(stringStringHashMap);
         /*HashMap<String,String> attrsMap=new HashMap<>();
         String ldapBack=attrs.toString().substring(1,attrs.toString().length()-1).replace(" ","");
         String ldapBackArry[]=ldapBack.split(",");
@@ -105,6 +105,31 @@ public class test {
             }
 
         }*/
+
+    }
+
+    @Test
+    public void getEduAccount(){
+        SendHttpRquest sendHttpRquest=new SendHttpRquest();
+        String JsonInfo = sendHttpRquest.getJsonfromhttp("http://jwzx.cqupt.edu.cn/data/json_StudentSearch.php","searchKey=L201630019");
+        //4.1.3 将请求回的json数据转码
+        String JsonInfo_ZW = Parse.decodeUnicode(JsonInfo);
+
+        Student student = Parse.ParseJsonToStudent(JsonInfo_ZW);
+        System.out.println(student);
+
+
+        /*//4.1.4 将josn数据解析为Teacher对象
+        List<Teacher> teachers = Parse.ParseJsonToTeacher(teaJsonInfo_ZW);
+        for (Teacher teacher:teachers){
+            //判断教师姓名，与教师所属学院，同时符合的为正确的教师
+            if (Parse.isbaohan("自动化学院", teacher.getYxm())){
+                System.out.println(teacher);
+            }
+        }*/
+
+
+
 
     }
 
@@ -207,8 +232,8 @@ public class test {
         CloseableHttpClient httpClient= HttpClients.createDefault();
         CloseableHttpResponse response=null;
         //2.创建get请求
-        //HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_stu.php?xh=2017214032");
-        HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_tea.php?teaId=030512");
+        HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_stu.php?xh=2017214032");
+        //HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_tea.php?teaId=030512");
         //3.发请求
         response=httpClient.execute(httpGet);
         //4.判断响应状态码为200在继续执行
@@ -221,8 +246,8 @@ public class test {
             // jsoup解析
             Document doc= Jsoup.parse(html);
 
-            //Element kbStuTabslist=doc.getElementById("kbStuTabs-table");
-            Element kbStuTabslist=doc.getElementById("kbTeaTabs-table");
+            Element kbStuTabslist=doc.getElementById("kbStuTabs-table");
+            //Element kbStuTabslist=doc.getElementById("kbTeaTabs-table");
             //获取printTable
             Elements printTables=kbStuTabslist.getElementsByClass("printTable");
 
@@ -243,15 +268,11 @@ public class test {
                             continue;
                         }
 
-                        //System.out.println(qsjs+"-"+(qsjs+1)+"节");
                         Element tr=trs.get(i);
                         Elements tds=tr.select("td");
-                        Element td1=tds.get(0);
-                        td1.attr("rowspan");
-
 
                         for (int j=1;j<tds.size();j++){
-                            //System.out.println("星期"+(j)+":"+qsjs+"-"+(qsjs+1)+"节");
+                            System.out.println("星期"+(j)+":"+qsjs+"-"+(qsjs+1)+"节");
                             Element td=tds.get(j);
                             Elements divs=td.getElementsByClass("kbTd");
                             for (int k=0;k<divs.size();k++){
@@ -286,10 +307,10 @@ public class test {
         KebiaoInfo stuKebiaoInfo =new KebiaoInfo();
         String[] s1 = s.split("\n");
         System.out.println(s1.length);
-        System.out.println(Arrays.toString(s1));
+        /*System.out.println(Arrays.toString(s1));
         for (String ss:s1){
             System.out.println(ss);
-        }
+        }*/
         stuKebiaoInfo.setJxb(s1[0]);//教学班号
         stuKebiaoInfo.setKch(s1[1].substring(s1[1].indexOf("<br>")+4,s1[1].indexOf("-")));//课程号
         stuKebiaoInfo.setKcm(s1[1].substring(s1[1].indexOf("-")+1));  //课程名
@@ -320,16 +341,53 @@ public class test {
      */
     @Test
     public void testRedis(){
-        JedisPoolConfig jedisPoolConfig=new JedisPoolConfig();
-        Jedis jedis=new Jedis("118.25.64.213");
-        jedis.set("timekey3","123");
-        String timekey3 = jedis.get("timekey3");
+        Jedis jedis=new Jedis("118.25.64.213",6379);
+        Set<String> keys = jedis.keys("*");
+        System.out.println(keys);
+    }
 
-        System.out.println(timekey3);
+    @Test
+    public void testJedisPool(){
+        //1.创建jedisPoolConfig连接池对象
+        JedisPoolConfig jedisPoolConfig=new JedisPoolConfig();
+        //2.设置最大连接数、最大空闲连接等
+        jedisPoolConfig.setMaxTotal(20);
+        jedisPoolConfig.setMaxIdle(10);
+        //3.创建连接池对象
+        JedisPool jedisPool=new JedisPool("118.25.64.213",6379);
+        Jedis jedis = jedisPool.getResource();
+        jedis.set("jedispool","123");
+        String jedispool = jedis.get("jedispool");
+        System.out.println(jedispool);
+    }
+
+    @Test
+    public void testShareJedisPool(){
+        //1.创建jedisPoolConfig连接池对象
+        JedisPoolConfig jedisPoolConfig=new JedisPoolConfig();
+        //2.设置最大连接数、最大空闲连接等
+        jedisPoolConfig.setMaxTotal(20);
+        jedisPoolConfig.setMaxIdle(10);
+        //3.定义redis集群节点,本例设置了两个reids连接节点
+        List<JedisShardInfo> jedisShardInfos=new ArrayList<>();
+        jedisShardInfos.add(new JedisShardInfo("118.25.64.213",6379));
+        jedisShardInfos.add(new JedisShardInfo("127.0.0.1",6379));
+        //3.创建reids集群连接池对象
+        ShardedJedisPool shardedJedisPool=new ShardedJedisPool(jedisPoolConfig,jedisShardInfos);
+        ShardedJedis shardedJedis = shardedJedisPool.getResource();
+        //创建50条数据
+        for (int i=1;i<50;i++){
+            shardedJedis.set("shardedjedispool-"+i,""+i);
+        }
     }
 
 
 
+    @Test
+    public void ttttt(){
+        String kk="1234".substring(0,2);
+        System.out.println(kk);
+    }
 
 
 
