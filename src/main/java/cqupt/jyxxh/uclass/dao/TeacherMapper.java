@@ -26,4 +26,20 @@ public interface TeacherMapper {
      * @param teacher 教务账号实体(教师)
      */
     void insertTeacher(Teacher teacher);
+
+
+    /**
+     * 通过一卡通号查询数据条数
+     * @param ykth 一卡通号
+     * @return  数据条数
+     */
+     int numByYkth(String ykth);
+
+
+    /**
+     * 获取教务账号（教师）通过一卡通号
+     * @param ykth 一卡通号
+     * @return  teacher 教务账号（教师）实体
+     */
+    Teacher queryTeacherByYkth(String ykth);
 }

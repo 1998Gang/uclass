@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class GetInfoFromWxService {
 
-    final Logger logger= LoggerFactory.getLogger(GetInfoFromWxService.class);    //日志
+    private final Logger logger= LoggerFactory.getLogger(GetInfoFromWxService.class);    //日志
 
     @Value("${code2Session}")
     private  String code2Session;      //微信的auth.code2Session网址
@@ -33,8 +33,13 @@ public class GetInfoFromWxService {
     private String appSercet;         //小程序的appSercet
 
 
-    @Autowired
-    private SendHttpRquest sendHttpRquest;      //发起网络请求的工具类
+    private final SendHttpRquest sendHttpRquest;      //发起网络请求的工具类
+
+   @Autowired
+    public GetInfoFromWxService(SendHttpRquest sendHttpRquest) {
+        this.sendHttpRquest = sendHttpRquest;
+    }
+
 
     /**
      * 访问微信的接口 用code换取openid与session_key的json字符串，并解析字符串返回指定键的值
@@ -58,9 +63,11 @@ public class GetInfoFromWxService {
             JsonNode jsonNode=objectMapper.readTree(result).findValue(key);
             value=jsonNode.toString();
         }catch (Exception e){
+
             if (logger.isErrorEnabled()){
                 logger.error("【获取{}失败（GetInfoFromWxService.getOpenIdOrSessionkey）】code:[{}]可能是无效的，微信接口返回值:[{}]",key,code,result);
             }
+            System.out.println();
         }
         return value;
     }
@@ -76,7 +83,7 @@ public class GetInfoFromWxService {
         //捕获一个潜在的异常，
         try{
             openid = getOpenIdOrSessionkey(code,"openid").replace("\"","");
-        }catch (Exception e){
+        }catch (Exception ignored){
         }
         return openid;
     }
@@ -93,7 +100,7 @@ public class GetInfoFromWxService {
         //捕获一个潜在的异常
         try{
             sessionkey = getOpenIdOrSessionkey(code,"session_key").replace("\'","");
-        }catch (Exception e){
+        }catch (Exception ignored){
         }
         return sessionkey;
     }

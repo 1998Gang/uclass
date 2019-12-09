@@ -6,10 +6,8 @@
 
     <!--1.queryStudentByXh,通过学号（xh）查询学生信息-->
     <select id="queryStudentByXh" parameterType="String" resultType="Student">
-        select * from uclass_students_info where xh='${value}'
+        select * from uclass_students_info where xh=#{value}
     </select>
-
-
 
     <!--2.insertStudent,插入条学生信息-->
     <insert id="insertStudent" parameterType="Student" >
@@ -18,8 +16,19 @@
         values(#{xh},#{xm},#{xb},#{ykth},#{yxm},#{zym},#{nj},#{bj},#{xjzt},#{mz},#{csrq},#{dhhm})
     </insert>
 
+
     <!--3.deleteStudentByOpenid,根据学号（xh）删除学生数据-->
     <delete id="deleteStudentByOpenid" parameterType="String">
-        delete from uclass_students_info where xh='${value}'
+        delete from uclass_students_info where xh=#{value}
     </delete>
+
+    <!--4.numByYkth，根据一卡通号查询数据条数-->
+    <select id="numByYkth" resultType="int" parameterType="String">
+        select count(*) from uclass_students_info where ykth=#{value}
+    </select>
+
+    <!--5.queryStudentByXh,通过一卡通号（ykth）查询学生信息-->
+    <select id="queryStudentByYkth" parameterType="String" resultType="Student">
+        select * from uclass_students_info where ykth=#{value}
+    </select>
 </mapper>

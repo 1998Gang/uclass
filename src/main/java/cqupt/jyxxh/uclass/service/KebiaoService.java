@@ -22,12 +22,16 @@ import java.util.List;
 @Service
 public class KebiaoService {
 
-    @Autowired
-    private SendHttpRquest sendHttpRquest;
+    private final SendHttpRquest sendHttpRquest;
 
 
     @Value("${URLStuKebiaoFromJWZX}")
     private String URL_STUKEBIAO_FROM_JWZX;       //从教务在线获取学生课表的URL
+
+    @Autowired
+    public KebiaoService(SendHttpRquest sendHttpRquest) {
+        this.sendHttpRquest = sendHttpRquest;
+    }
 
     /**
      *
@@ -36,7 +40,7 @@ public class KebiaoService {
      * @throws IOException getHtmlFromHttp的异常
      */
     public List<KebiaoInfo>getStuKebiao(String xh) throws IOException {
-        List<KebiaoInfo> kebiaoInfoList=null;
+        List<KebiaoInfo> kebiaoInfoList;
         //1.根据学号去获取教务在线的课表页（html）
         String stuKebiaoHtml = sendHttpRquest.getHtmlFromHttp(URL_STUKEBIAO_FROM_JWZX, "xh=" + xh);
         //2.解析返回的课表页（html）

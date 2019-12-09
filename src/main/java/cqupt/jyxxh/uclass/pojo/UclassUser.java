@@ -13,7 +13,7 @@ public class UclassUser {
 
     private String openid; //唯一的用户识别码
     private String is_bind;//标识符   该用户是否绑定了教务账号
-    private String  user_type;//绑定类型   "t"为老师  "s"为学生
+    private String user_type;//绑定类型   "t"为老师  "s"为学生
     private String bind_name; //绑定用户的姓名
     private String bind_number;//用户绑定的教务账号的学号或者教师号
     private String bind_ykth;//绑定用户的一卡通号

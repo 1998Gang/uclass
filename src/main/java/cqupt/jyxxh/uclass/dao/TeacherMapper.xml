@@ -12,12 +12,22 @@
 
     <!--2.deleteTeacherByTeaId，根据教师号（TeaId）删除老师数据-->
     <delete id="deleteTeacherByTeaId" parameterType="String">
-        delete from uclass_teacher_info where eaId='${value}'
+        delete from uclass_teacher_info where teaId='${value}'
     </delete>
 
     <!--3.插入一条新教务账号数据-->
     <insert id="insertTeacher" parameterType="Teacher">
-        insert into uclass_user(teaId,teaName,xb,ykth,zc,jysm,yxm)
+        insert into uclass_teacher_info(teaId,teaName,xb,ykth,zc,jysm,yxm)
         values (#{teaId},#{teaName},#{xb},#{ykth},#{zc},#{jysm},#{yxm})
     </insert>
+
+    <!--4.根据一卡通号查询数据条数（不是0，就是1），用来验证数据库中有没有这个教务用户-->
+    <select id="numByYkth" parameterType="String" resultType="int">
+        select count(*) from uclass_teacher_info where ykth ='${value}'
+    </select>
+
+    <!--5.queryTeacherByYkth，获取教务账号（教师）通过一卡通号-->
+    <select id="queryTeacherByYkth" parameterType="String" resultType="Teacher">
+        select * from uclass_teacher_info where ykth=#{value}
+    </select>
 </mapper>

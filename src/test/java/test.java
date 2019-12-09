@@ -65,7 +65,7 @@ public class test {
      */
     @Test
     public void ioio(){
-        GetInfoFromWxService getInfoFromVx=new GetInfoFromWxService();
+        GetInfoFromWxService getInfoFromVx=new GetInfoFromWxService(new SendHttpRquest());
         String openid = getInfoFromVx.getOpenid("033jPVCd1XtRAz0jdMAd1lLFCd1jPVCD");
         System.out.println(openid);
     }
@@ -73,7 +73,7 @@ public class test {
 
 
     @Test
-    public void getmassage() throws IOException {
+    public void getmassage()  {
         SendHttpRquest sendHttpRquest=new SendHttpRquest();
         String stuJsonInfo=sendHttpRquest.getJsonfromhttp("http://jwzx.cqupt.edu.cn/kebiao/kb_tea.php","teaId=030403");
         System.out.println("=============教务在线返回原始json===============");
@@ -140,9 +140,9 @@ public class test {
 
         char[] chars = A.toCharArray();
 
-        for (int i=0;i<chars.length;i++){
-            if (B.indexOf(chars[i])==-1){
-                flage=false;
+        for (char aChar : chars) {
+            if (B.indexOf(aChar) == -1) {
+                flage = false;
             }
         }
 
@@ -152,7 +152,7 @@ public class test {
     public static String decodeUnicode(String theString) {
         char aChar;
         int len = theString.length();
-        StringBuffer outBuffer = new StringBuffer(len);
+        StringBuilder outBuffer = new StringBuilder(len);
         for (int x = 0; x < len;) {
             aChar = theString.charAt(x++);
             if (aChar == '\\') {
@@ -230,7 +230,7 @@ public class test {
 
         //1.生成httpclient
         CloseableHttpClient httpClient= HttpClients.createDefault();
-        CloseableHttpResponse response=null;
+        CloseableHttpResponse response;
         //2.创建get请求
         HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_stu.php?xh=2017214032");
         //HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_tea.php?teaId=030512");
@@ -275,9 +275,8 @@ public class test {
                             System.out.println("星期"+(j)+":"+qsjs+"-"+(qsjs+1)+"节");
                             Element td=tds.get(j);
                             Elements divs=td.getElementsByClass("kbTd");
-                            for (int k=0;k<divs.size();k++){
+                            for (Element div : divs) {
 
-                                Element div = divs.get(k);
                                 //System.out.println(div.html());
                                 String html1 = div.html();
 

@@ -31,32 +31,36 @@ import java.util.List;
 @Service
 public class EduAccountService {
 
-    final Logger logger= LoggerFactory.getLogger(EduAccountService.class);
+    private final Logger logger= LoggerFactory.getLogger(EduAccountService.class);
 
-    @Autowired
-    private Authentication authentication;       //统一身份认证实现类
+    private final Authentication authentication;       //统一身份认证实现类
 
-    @Autowired
-    private SendHttpRquest sendHttpRquest;       //发送http请求的工具类
+    private final SendHttpRquest sendHttpRquest;       //发送http请求的工具类
 
-    @Autowired
-    private TeacherMapper teacherMapper;       //教务账号（教师）dao操作接口
+    private final TeacherMapper teacherMapper;       //教务账号（教师）dao操作接口
 
-    @Autowired
-    private StudentMapper studentMapper;        //教务账号（学生）dao操作接口
+    private final StudentMapper studentMapper;        //教务账号（学生）dao操作接口
 
     @Value("${URLTeaInfoFromJWZX}")
     private  String URL_TeaInfo_From_JWZX;            //去教务在线请求教师信息的URL
     @Value("${URLStuInfoFromJWZX}")
     private  String URL_StuInfo_From_JWZX;            //去教务在线请求学生信息的URL
 
+    @Autowired
+    public EduAccountService(Authentication authentication, SendHttpRquest sendHttpRquest, TeacherMapper teacherMapper, StudentMapper studentMapper) {
+        this.authentication = authentication;
+        this.sendHttpRquest = sendHttpRquest;
+        this.teacherMapper = teacherMapper;
+        this.studentMapper = studentMapper;
+    }
+
     /**
-     * 获取教务账户信息，通过统一身份。
+     * 获取教务账户信息，通过统一身份，去教务在线爬取。
      * @param ykth   统一身份认证码（一卡通号）
      * @param password   统一身份认证密码
      * @return EduAccount 教务账号实体对象
      */
-    public EduAccount getEduAccountInfoByYKTH(String ykth, String password){
+    public EduAccount getEduAccountInfoFromJWZX(String ykth, String password){
         EduAccount eduAccount =null;
 
         // 1.验证统一身份是否正确
@@ -97,7 +101,7 @@ public class EduAccountService {
                 //4.1.4 将josn数据解析为Teacher对象
                 List<Teacher> teachers = Parse.ParseJsonToTeacher(teaJsonInfo_ZW);
                 //4.1.5 遍历teachers集合，筛选符合条件的教师教师。
-                /** 通过姓名查询，会查询出较多同名教师。
+                /* 通过姓名查询，会查询出较多同名教师。
                     但是这些同名教师的所属学院大概率不一致，当然这也不能百分百保证能正确筛选。
                     实在没有办法，目前只能用这样的方式去确定老师。
                     所有此处采用去对比学院名的方式，来确定该教务账户到底是哪一个老师。*/
@@ -175,9 +179,8 @@ public class EduAccountService {
      * 自动判断传如参数是学生账户还剩教师账户
      *
      * @param eduAccount 教务账户实体
-     * @return boolean
      */
-    public boolean insertEduAcoToDB(EduAccount eduAccount){
+    public void insertEduAccountToDB(EduAccount eduAccount){
         boolean flage=false;
         // 1.获取账户类型
         String accountType = eduAccount.getAccountType();
@@ -187,7 +190,73 @@ public class EduAccountService {
                 teacherMapper.insertTeacher((Teacher) eduAccount);
                 break;
             }
+            case "s":{
+                studentMapper.insertStudent((Student) eduAccount);
+                break;
+            }
+            default:{
+                break;
+            }
         }
+    }
+
+    public boolean isEduAccountInDB(String ykth){
+        boolean flage=false;
+        // 1.获取用户类型（一卡通前两位，16开头为本科生、72开头为留学生、01开头为教师）
+        String ykthStart=ykth.substring(0,2);
+        // 2.判断
+        switch(ykthStart){
+            //教师
+            case "01":{
+                //根据一卡通号去u课堂后台数据库（教务账号表（uclass_teacher_info））查询数据条数，如果返回1，就说明数据库中有该教务用户。
+                int num = teacherMapper.numByYkth(ykth);
+                flage= 1 == num;
+                break;
+            }
+            //学生
+            case "16":
+            case "72":{
+                //根据一卡通号去u课堂后台数据库（教务账号表（uclass_students_info））查询数据条数，如果返回1，就说明数据库中有该教务用户。
+                int num=studentMapper.numByYkth(ykth);
+                flage= 1 == num;
+                break;
+            }
+        }
+
         return flage;
+    }
+
+
+    /**
+     * 通过一卡通号（ykth）获取教务账号实体
+     * @param ykth 一卡通号
+     * @return eduAccount
+     */
+    public EduAccount getEduAccountFromDB(String ykth) {
+        EduAccount eduAccount=null;
+
+        //1.获取用户类型（一卡通前两位，16开头为本科生、72开头为留学生、01开头为教师）
+        String ykthStart = ykth.substring(0, 2);
+        // 2.判断
+        switch(ykthStart){
+            //教师
+            case "01":{
+                //根据ykth号查询教师教务账号数据。
+                eduAccount= teacherMapper.queryTeacherByYkth(ykth);
+                break;
+            }
+            //学生
+            case "16":
+            case "72":{
+                //根据ykth号查询学生教务账号数据。
+                eduAccount= studentMapper.queryStudentByYkth(ykth);
+                break;
+            }
+            default:{
+                break;
+            }
+        }
+
+        return eduAccount;
     }
 }

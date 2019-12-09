@@ -23,7 +23,7 @@ public class UclassKebiao {
      * @param  teaId 教师号
      * @return  以json数组形式返回完整的课表信息
      */
-    @RequestMapping(value = "teakebiao",method = RequestMethod.POST,produces = "application/json;charset=utf-8")
+    @RequestMapping(value = "teakebiao",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
     public ResponseEntity<List<KebiaoInfo>> getTeaKebiao(@RequestParam("teaId") String teaId){
 
         return ResponseEntity.ok(null);

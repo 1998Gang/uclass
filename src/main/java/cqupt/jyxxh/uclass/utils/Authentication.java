@@ -26,7 +26,7 @@ import java.util.Hashtable;
 @Component
 public class Authentication {
 
-    final Logger logger= LoggerFactory.getLogger(Authentication.class);   //日志
+    private final Logger logger= LoggerFactory.getLogger(Authentication.class);   //日志
 
     @Value("${URL}")
     private String URL;       //LDAP连接地址  "ldap://211.83.210.1:389/"
@@ -52,10 +52,10 @@ public class Authentication {
         Control[] controls=null;
 
         // 1.设置账号密码检查标记
-        boolean flage=false;
+        boolean flage;
 
         // 2.判断密码是否为空或为空串 如果是直接返回false
-        if (password==null||password==""){
+        if (password==null|| password.equals("")){
             //日志
             if (logger.isDebugEnabled()){
                 logger.debug("【身份验证（LDAP）】 验证失败！ 密码为空串或为空");
@@ -70,7 +70,7 @@ public class Authentication {
 
         // 4.获得userDN
         String userDN=getUserDN(ykth);
-        if ("".equals(userDN)||userDN==null){
+        if ("".equals(userDN)){
             return false;
         }
 
@@ -97,7 +97,7 @@ public class Authentication {
      * @return userDN
      */
     private String getUserDN(String ykth) {
-        String userDN="";
+        StringBuilder userDN= new StringBuilder();
         try {
             SearchControls searchControls=new SearchControls();
             searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -106,8 +106,8 @@ public class Authentication {
                 Object obj=enumeration.nextElement();
                 if (obj instanceof SearchResult){
                     SearchResult si= (SearchResult) obj;
-                    userDN+=si.getName();
-                    userDN+=","+ BASEDN;
+                    userDN.append(si.getName());
+                    userDN.append(",").append(BASEDN);
                 }else {
                     System.out.println(obj);
                 }
@@ -116,14 +116,14 @@ public class Authentication {
             //日志
             logger.info("【身份验证（LDAP）】身份验证失败,获取UserDN失败,可能原因为ykth：[{}]出错",ykth);
         }
-        return userDN;
+        return userDN.toString();
     }
 
 
     /**
      * 建立LDAP连接  LdapContext
      */
-    public LdapContext getLdapContext(){
+    private LdapContext getLdapContext(){
 
         Control [] controls=null;
 
@@ -169,11 +169,11 @@ public class Authentication {
                     }
                 }
             } catch (NamingException e) {
-                logger.error("【身份验证（getAttributes）】获取信息失败，出现未知错误",e);
+                logger.error("【LDAP信息获取（Authentication.getAttributes）】获取信息失败！出现未知错误",e);
             }
         }else {
             if (logger.isInfoEnabled()){
-                logger.info("【身份验证（Authentication.getAttributes）】获信息失败（LDAP），原因统一身份验证失败");
+                logger.info("【LDAP信息获取（Authentication.getAttributes）】获信息失败（LDAP）！原因统一身份验证失败");
             }
         }
         return attributes;
