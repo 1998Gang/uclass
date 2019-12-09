@@ -25,21 +25,19 @@ public class UserService {
     private Logger logger= LoggerFactory.getLogger(UserService.class);//日志
 
 
-    private final UclassUserMapper uclassUserMapper;           //用户dao操作类
+    @Autowired
+    private  UclassUserMapper uclassUserMapper;           //用户dao操作类
 
-    private final Authentication authentication;              //统一身份认证操作类
+    @Autowired
+    private  Authentication authentication;              //统一身份认证操作类
 
-    private final EduAccountService eduAccountService;          //教务账号操作类
+    @Autowired
+    private  EduAccountService eduAccountService;          //教务账号操作类
 
     private final  String YES_BIND="y"; //用户存在绑定了教务账号的标识
     private final  String NO_BIND="n";  //用户没绑定教务账户的标识
 
-    @Autowired
-    public UserService(UclassUserMapper uclassUserMapper, Authentication authentication, EduAccountService eduAccountService) {
-        this.uclassUserMapper = uclassUserMapper;
-        this.authentication = authentication;
-        this.eduAccountService = eduAccountService;
-    }
+
 
 
     /**
@@ -200,6 +198,31 @@ public class UserService {
                 logger.error("【添加绑定（UserService.setBind）】绑定失败！用户：[{}],统一身份认证码：[{}]",uclassUser.getOpenid(),ykth);
             }
             flage=false;
+        }
+
+        return flage;
+    }
+
+    public boolean deleteBind(UclassUser uclassUser) {
+        boolean flage;
+
+        try {
+            // 1.删除用户的绑定数据（更改用户实体（uclassUser）数据）
+            uclassUser.setIs_bind(NO_BIND); //将是否绑定教务账户的标识改为n
+            uclassUser.setUser_type("");//绑定教务用户类型为空
+            uclassUser.setBind_name("");//绑定的教务用户的姓名为空
+            uclassUser.setBind_ykth("");//绑定的教务账户的一卡通号为空
+            uclassUser.setBind_number("");//绑定的教务账户的学号或者教师号为空
+            uclassUser.setLast_use_time(new Date());//该账户最后一次操作时间
+
+            // 2.将更改后的数据持久化到数据库
+            uclassUserMapper.updateUser(uclassUser);
+
+            // 3.更改标识符(删除绑定成功)
+            flage=true;
+        }catch (Exception e){
+            flage=false;
+            logger.error("【删除绑定操作（deleteBind）】未知错误！");
         }
 
         return flage;

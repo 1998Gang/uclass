@@ -37,21 +37,19 @@ public class UclassUserManage {
 
     private final Logger logger= LoggerFactory.getLogger(UclassUserManage.class);    //日志（slf4j搭配logback）
 
-    private final GetInfoFromWxService getInfoFromWxService;    //去微信获取数据的service
-
-    private final UserService userService;                     //用户信息操作类
-
-    private final EduAccountService EduAccountService;         //教务账户信息操作类
-
-    private final Authentication authentication;                //统一身份验证工具类
+    @Autowired
+    private  GetInfoFromWxService getInfoFromWxService;    //去微信获取数据的service
 
     @Autowired
-    public UclassUserManage(GetInfoFromWxService getInfoFromWxService, UserService userService, EduAccountService EduAccountService, Authentication authentication) {
-        this.getInfoFromWxService = getInfoFromWxService;
-        this.userService = userService;
-        this.EduAccountService = EduAccountService;
-        this.authentication = authentication;
-    }
+    private  UserService userService;                     //用户信息操作类
+
+    @Autowired
+    private  EduAccountService EduAccountService;         //教务账户信息操作类
+
+    @Autowired
+    private  Authentication authentication;                //统一身份验证工具类
+
+
 
 
     /**
@@ -157,8 +155,8 @@ public class UclassUserManage {
             if ("y".equals(uclassuser.getIs_bind())){
                 // 4.1 用户已经存在绑定,响应409.
                 //日志
-                if (logger.isInfoEnabled()){
-                    logger.info("【绑定接口（UclassUserManage.bind）】绑定失败!用户openid：[{}],已经绑定教务账号",openid);
+                if (logger.isDebugEnabled()){
+                    logger.debug("【绑定接口（UclassUserManage.bind）】绑定失败!用户openid：[{}],已经绑定教务账号",openid);
                 }
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("该微信用户已经绑定了教务账号");
             }
@@ -168,58 +166,30 @@ public class UclassUserManage {
             if (!istrue){
                 // 4.1 用户输入的统一身份不正确，响应403
                 // 日志
-                if (logger.isInfoEnabled()){
-                    logger.info("【绑定接口（UclassUserManage.bind）】绑定失败!用户openid：[{}]的统一身份：[{}]验证失败",openid,ykth);
+                if (logger.isDebugEnabled()){
+                    logger.debug("【绑定接口（UclassUserManage.bind）】绑定失败!用户openid：[{}]的统一身份：[{}]验证失败",openid,ykth);
                 }
                 return  ResponseEntity.status(HttpStatus.FORBIDDEN).body("统一身份验证失败");
             }
 
-
             // 5.给用户添加教务账户绑定
             boolean isSetBind = userService.setBind(uclassuser, ykth, password);
-            if (isSetBind){
+            if (isSetBind) {
                 //日志
-                if (logger.isInfoEnabled()){
-                    logger.info("用户：[{}]绑定成功！统一认证码：[{}]",openid,ykth);
+                if (logger.isInfoEnabled()) {
+                    logger.info("用户：[{}]绑定成功！统一认证码：[{}]", openid, ykth);
                 }
                 return ResponseEntity.status(HttpStatus.OK).body("绑定成功！");
+            }else {
+                //日志
+                if (logger.isErrorEnabled()){
+                    logger.info("用户：[{}]绑定失败！统一认证码：[{}]",openid,ykth);
+                }
             }
 
-
-
-           /* // 3. 验证身份（一卡通账号密码） 账号密码是否正确
-            boolean isTrue=authentication.ldapCheck(yktId,password);
-
-            // 4.添加新用户
-            if (isTrue){
-                // 4.1身份验证成功 添加绑定
-                boolean isAdd= addUserService.addUInfoAndUBind(openid,yktId,password);
-                if (isAdd){
-                    if (logger.isInfoEnabled()){
-                        logger.info("【绑定接口（bind）】绑定成功！统一认证码:[{}]",yktId);
-                    }
-                    //4.1.1 绑定成功，http状态码响应 200
-                    return  ResponseEntity.status(HttpStatus.OK).body("绑定成功");
-                }else {
-                    if (logger.isInfoEnabled()){
-                        logger.info("【绑定接口（bind）】绑定失败！统一身份验证成功，但该微信用户已经绑定或是不支持用户类型（统一认证码不以”01“”16“开头），统一认证码：[{}]",yktId);
-                    }
-                    // 4.1.2 绑定失败（身份验证成功，该微信用户存在绑定），http状态码响应 409
-                    return  ResponseEntity.status(HttpStatus.CONFLICT).body("绑定失败（统一身份验证成功），该微信用户存在绑定或是不支持用户类型（统一认证码不以”01“”16“开头）");
-                }
-            }else {
-                //  4.2身份验证失败，http状态码响应 403
-                if (logger.isInfoEnabled()){
-                    logger.info("【绑定接口（bind）】绑定失败！身份验证失败,统一认证码：[{}]",yktId);
-                }
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("绑定失败（统一身份验证失败）");
-            }*/
-
-
         }catch (Exception e){
-            logger.error("【绑定接口（bind）】绑定操作错误！统一认证码[{}]",ykth);
+            logger.error("【绑定接口（bind）】出现未知错误！统一认证码[{}]",ykth,e);
         }
-
 
         //  5，服务器内部错误，http状态码响应 500
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("绑定失败，服务器内部错误！");
@@ -236,60 +206,59 @@ public class UclassUserManage {
      */
     @RequestMapping(method = RequestMethod.DELETE,produces = "application/json;charset=utf-8")
     public ResponseEntity<String> delete(@RequestBody Map<String,String> deleteInfo){
-        //获取code
-        String code=deleteInfo.get("code");
+
+        String code=null;
 
         try{
-
-        /*if (logger.isDebugEnabled()){
-            logger.debug("【删除用户接口（deldete）】 接收code：[{}]",code);
-        }
-
-        // 1.判断是否接收到code参数
-        if ("00".equals(code)){
-            if (logger.isWarnEnabled()){
-                logger.warn("【删除用户接口（deldete）】 没有接收到code参数，删除失败。");
+            // 1.获取参数code
+            code =deleteInfo.get("code");
+            //日志
+            if (logger.isDebugEnabled()){
+                logger.debug("【删除绑定接口】接收参数code：[{}]",code);
             }
-            // 1.1 没有参数 返回400
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("删除失败，没有接收到code参数");
-        }
 
 
-        // 2.根据code换取openid，去除引号
-            String openid= getInfoFromWxService.getOpenid(code).replace("\"","");
-            // 2.1判断oepnid是否正确
-            if ("nullOpenid"==openid){
+            // 2.根据code换取openid，去除引号
+            String openid= getInfoFromWxService.getOpenid(code);
+            // 判断oepnid是否符合要求
+            if (null==openid||"".equals(openid)){
+                //日志
                 if (logger.isInfoEnabled()){
-                    logger.info("【删除用户接口（deldete）】删除绑定用户失败！ code:[{}]换取openid失败",code);
+                    logger.info("【删除绑定接口】openid获取失败！ 可能是无效code:[{}]",code);
                 }
-                // 2.1 openid换取失败，可能原因是code不正确，http响应状态码 415
-                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("删除失败，可能因为code不正确或该code使用过，code："+code);
+                // openid换取失败，可能原因是code不正确，http响应状态码 415
+                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("删除绑定失败！可能因为code不合法，code："+code);
 
             }
 
+            // 3.根据openid获取用户实体
+            UclassUser uclassUser = userService.getUser(openid);
 
-        // 3.根据有openid删除相关用户数据（用户信息，用户绑定）
-            boolean b = deleteUserService.deleteUserinfoAndBind(openid);
-            //3.1 判断删除操作是否成功
-            if (!b){
+            // 4.删除用户绑定的教务账户
+            boolean istrue = userService.deleteBind(uclassUser);
+            if (istrue){
+                //日志
                 if (logger.isInfoEnabled()){
-                    logger.info("【删除用户接口（deldete）】删除绑定用户失败！ openid：[{}]",openid);
+                    logger.info("用户；[{}]删除绑定成功！删除的教务账户：[{},{},{}]",openid,uclassUser.getBind_name(),uclassUser.getBind_number(),uclassUser.getBind_ykth());
                 }
-                //删除绑定失败 返回 409
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("删除绑定用户失败");
+                //删除绑定成功，响应200
+                return ResponseEntity.status(HttpStatus.OK).body("删除绑定成功！");
+            }else {
+                //日志
+                if (logger.isInfoEnabled()){
+                    logger.info("用户；[{}]删除绑定失败！教务账户：[{},{},{}]",openid,uclassUser.getBind_name(),uclassUser.getBind_number(),uclassUser.getBind_ykth());
+                }
+                //删除绑定失败，响应409
+                return  ResponseEntity.status(HttpStatus.CONFLICT).body("删除绑定失败！");
             }
 
-            if (logger.isInfoEnabled()){
-                logger.info("【删除用户接口（deldete）】删除用户绑定成功！ openid:[{}]",openid);
-            }
-            //删除绑定成功 返回200
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("删除绑定用户成功");*/
+
         }catch (Exception e){
             logger.error("【删除用户接口（deldete）】删除用户绑定操作出错！",e);
         }
 
         // 4.服务器内部错误 响应 500
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("删除失败，服务器端内部未知错误");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("删除失败！服务器端内部未知错误！");
 
     }
 }

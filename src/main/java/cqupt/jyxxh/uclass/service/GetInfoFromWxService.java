@@ -33,12 +33,10 @@ public class GetInfoFromWxService {
     private String appSercet;         //小程序的appSercet
 
 
-    private final SendHttpRquest sendHttpRquest;      //发起网络请求的工具类
+    @Autowired
+    private  SendHttpRquest sendHttpRquest;      //发起网络请求的工具类
 
-   @Autowired
-    public GetInfoFromWxService(SendHttpRquest sendHttpRquest) {
-        this.sendHttpRquest = sendHttpRquest;
-    }
+
 
 
     /**

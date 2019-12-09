@@ -22,16 +22,14 @@ import java.util.List;
 @Service
 public class KebiaoService {
 
-    private final SendHttpRquest sendHttpRquest;
+    @Autowired
+    private  SendHttpRquest sendHttpRquest;
 
 
     @Value("${URLStuKebiaoFromJWZX}")
     private String URL_STUKEBIAO_FROM_JWZX;       //从教务在线获取学生课表的URL
 
-    @Autowired
-    public KebiaoService(SendHttpRquest sendHttpRquest) {
-        this.sendHttpRquest = sendHttpRquest;
-    }
+
 
     /**
      *

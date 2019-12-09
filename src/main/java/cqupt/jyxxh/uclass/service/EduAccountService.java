@@ -33,26 +33,23 @@ public class EduAccountService {
 
     private final Logger logger= LoggerFactory.getLogger(EduAccountService.class);
 
-    private final Authentication authentication;       //统一身份认证实现类
+    @Autowired
+    private  Authentication authentication;       //统一身份认证实现类
 
-    private final SendHttpRquest sendHttpRquest;       //发送http请求的工具类
+    @Autowired
+    private  SendHttpRquest sendHttpRquest;       //发送http请求的工具类
 
-    private final TeacherMapper teacherMapper;       //教务账号（教师）dao操作接口
+    @Autowired
+    private  TeacherMapper teacherMapper;       //教务账号（教师）dao操作接口
 
-    private final StudentMapper studentMapper;        //教务账号（学生）dao操作接口
+    @Autowired
+    private  StudentMapper studentMapper;        //教务账号（学生）dao操作接口
 
     @Value("${URLTeaInfoFromJWZX}")
     private  String URL_TeaInfo_From_JWZX;            //去教务在线请求教师信息的URL
     @Value("${URLStuInfoFromJWZX}")
     private  String URL_StuInfo_From_JWZX;            //去教务在线请求学生信息的URL
 
-    @Autowired
-    public EduAccountService(Authentication authentication, SendHttpRquest sendHttpRquest, TeacherMapper teacherMapper, StudentMapper studentMapper) {
-        this.authentication = authentication;
-        this.sendHttpRquest = sendHttpRquest;
-        this.teacherMapper = teacherMapper;
-        this.studentMapper = studentMapper;
-    }
 
     /**
      * 获取教务账户信息，通过统一身份，去教务在线爬取。
