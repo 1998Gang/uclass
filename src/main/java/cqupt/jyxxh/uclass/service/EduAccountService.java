@@ -86,19 +86,21 @@ public class EduAccountService {
 
         switch (ykthStart){
             // 4.1  教师
+
             case "01":{
                 //4.1.1 获取教师姓名、教师的所属学院（LDAP返回的数据）
+                System.out.println("attributeHashMap======================"+attributeHashMap);
                 String jsxm = attributeHashMap.get("cn");
                 String yxm=attributeHashMap.get("edupersonorgdn");
                 //4.1.2 以教师姓名为参数去教务在线查询教师账户的详细信息
                 String param="searchKey="+jsxm;
-                String teaJsonInfo = sendHttpRquest.getJsonfromhttp(URL_TeaInfo_From_JWZX, param);
-                //4.1.3 将请求回的json数据转码
-                String teaJsonInfo_ZW = Parse.decodeUnicode(teaJsonInfo);
+                System.out.println("param==========================="+param);
+                String teaJsonInfo = sendHttpRquest.getJsonfromhttp(URL_TeaInfo_From_JWZX,param);
+                System.out.println("teaJsonInfo======================"+teaJsonInfo);
                 //4.1.4 将josn数据解析为Teacher对象
-                List<Teacher> teachers = Parse.ParseJsonToTeacher(teaJsonInfo_ZW);
+                List<Teacher> teachers = Parse.ParseJsonToTeacher(teaJsonInfo);
                 //4.1.5 遍历teachers集合，筛选符合条件的教师教师。
-                /* 通过姓名查询，会查询出较多同名教师。
+                 /*通过姓名查询，会查询出较多同名教师。
                     但是这些同名教师的所属学院大概率不一致，当然这也不能百分百保证能正确筛选。
                     实在没有办法，目前只能用这样的方式去确定老师。
                     所有此处采用去对比学院名的方式，来确定该教务账户到底是哪一个老师。*/
@@ -107,22 +109,23 @@ public class EduAccountService {
                         //添加一卡通号
                         teacher.setYkth(ykth);
                         eduAccount=teacher;
+                        System.out.println(teacher);
                     }
                 }
                 break;
             }
             // 4.2 留学生、本科生
-            case "72":
-            case "16":{
+
+            case "16":
+            case "72": {
                 //4.2.1 获取学生学号(LDAP返回的数据)
                 String xh=attributeHashMap.get("edupersonstudentid");
+
                 //4.2.2 以学生学号为参数去教务在线查询详细的学生信息
                 String param="searchKey="+xh;
-                String stuJsonInfo = sendHttpRquest.getJsonfromhttp(URL_StuInfo_From_JWZX, param);
-                // 4.2.3 转码
-                String stuJsonInfo_ZW = Parse.decodeUnicode(stuJsonInfo);
-                //4.2.4 将json数据解析为Student对象
-                Student student = Parse.ParseJsonToStudent(stuJsonInfo_ZW);
+                String stuJsonInfo = sendHttpRquest.getJsonfromhttp(URL_StuInfo_From_JWZX,param);
+                //4.2.3 将json数据解析为Student对象
+                Student student = Parse.ParseJsonToStudent(stuJsonInfo);
                 //添加一卡通号
                 student.setYkth(ykth);
 
@@ -132,6 +135,30 @@ public class EduAccountService {
             // 4.3
             default:{
 
+              /*  //4.1.1 获取教师姓名、教师的所属学院（LDAP返回的数据）
+                System.out.println("attributeHashMap======================"+attributeHashMap);
+                String jsxm = attributeHashMap.get("cn");
+                String yxm=attributeHashMap.get("edupersonorgdn");
+                //4.1.2 以教师姓名为参数去教务在线查询教师账户的详细信息
+                String param="searchKey="+jsxm;
+                System.out.println("param==========================="+param);
+                String teaJsonInfo = sendHttpRquest.getJsonfromhttp(URL_TeaInfo_From_JWZX,param);
+                System.out.println("teaJsonInfo======================"+teaJsonInfo);
+                //4.1.4 将josn数据解析为Teacher对象
+                List<Teacher> teachers = Parse.ParseJsonToTeacher(teaJsonInfo);
+                //4.1.5 遍历teachers集合，筛选符合条件的教师教师。
+                 *//*通过姓名查询，会查询出较多同名教师。
+                    但是这些同名教师的所属学院大概率不一致，当然这也不能百分百保证能正确筛选。
+                    实在没有办法，目前只能用这样的方式去确定老师。
+                    所有此处采用去对比学院名的方式，来确定该教务账户到底是哪一个老师。*//*
+                *//*for (Teacher teacher:teachers){
+                    if (Parse.isbaohan(yxm,teacher.getYxm())){
+                        //添加一卡通号
+                        teacher.setYkth(ykth);
+                        eduAccount=teacher;
+                        System.out.println(teacher);
+                    }
+                }*/
                 break;
             }
         }

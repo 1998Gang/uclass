@@ -49,6 +49,15 @@ public class Authentication {
      */
     public boolean ldapCheck(String ykth, String password){
 
+        /**
+         * 用于开发过程教师校验,后期删除！！！
+         */
+
+        if (ykth.equals("0101303")&&password.equals("123456")){
+            return true;
+        }
+
+
         Control[] controls=null;
 
         // 1.设置账号密码检查标记

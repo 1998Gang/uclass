@@ -102,6 +102,10 @@ public class UclassUserManage {
             }else {
 
                 // 3.2 用户没有绑定教务账户 响应401
+                //日志
+                if (logger.isInfoEnabled()){
+                    logger.info("用户：[{}]登陆失败！未绑定教务账户",openid);
+                }
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
 
             }
@@ -233,13 +237,17 @@ public class UclassUserManage {
 
             // 3.根据openid获取用户实体
             UclassUser uclassUser = userService.getUser(openid);
+            //获取姓名，学号或者教师号，一卡通号 用于日志书写
+            String name=uclassUser.getBind_name();
+            String bind_number = uclassUser.getBind_number();
+            String bind_ykth = uclassUser.getBind_ykth();
 
             // 4.删除用户绑定的教务账户
             boolean istrue = userService.deleteBind(uclassUser);
             if (istrue){
                 //日志
                 if (logger.isInfoEnabled()){
-                    logger.info("用户；[{}]删除绑定成功！删除的教务账户：[{},{},{}]",openid,uclassUser.getBind_name(),uclassUser.getBind_number(),uclassUser.getBind_ykth());
+                    logger.info("用户；[{}]删除绑定成功！删除的教务账户：[{},{},{}]",openid,name,bind_number,bind_ykth);
                 }
                 //删除绑定成功，响应200
                 return ResponseEntity.status(HttpStatus.OK).body("删除绑定成功！");

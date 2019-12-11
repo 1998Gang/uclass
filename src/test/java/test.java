@@ -65,12 +65,10 @@ public class test {
      */
     @Test
     public void ioio(){
-        GetInfoFromWxService getInfoFromVx=new GetInfoFromWxService(new SendHttpRquest());
+        GetInfoFromWxService getInfoFromVx=new GetInfoFromWxService();
         String openid = getInfoFromVx.getOpenid("033jPVCd1XtRAz0jdMAd1lLFCd1jPVCD");
         System.out.println(openid);
     }
-
-
 
     @Test
     public void getmassage()  {
@@ -111,22 +109,22 @@ public class test {
     @Test
     public void getEduAccount(){
         SendHttpRquest sendHttpRquest=new SendHttpRquest();
-        String JsonInfo = sendHttpRquest.getJsonfromhttp("http://jwzx.cqupt.edu.cn/data/json_StudentSearch.php","searchKey=L201630019");
+        String JsonInfo = sendHttpRquest.getJsonfromhttp("http://jwzx.cqupt.edu.cn/data/json_TeacherSearch.php","searchKey="+"向敏");
         //4.1.3 将请求回的json数据转码
-        String JsonInfo_ZW = Parse.decodeUnicode(JsonInfo);
-
-        Student student = Parse.ParseJsonToStudent(JsonInfo_ZW);
-        System.out.println(student);
 
 
-        /*//4.1.4 将josn数据解析为Teacher对象
-        List<Teacher> teachers = Parse.ParseJsonToTeacher(teaJsonInfo_ZW);
+       /* Student student = Parse.ParseJsonToStudent(JsonInfo);
+        System.out.println(student);*/
+
+
+        //4.1.4 将josn数据解析为Teacher对象
+        List<Teacher> teachers = Parse.ParseJsonToTeacher(JsonInfo);
         for (Teacher teacher:teachers){
             //判断教师姓名，与教师所属学院，同时符合的为正确的教师
-            if (Parse.isbaohan("自动化学院", teacher.getYxm())){
+            if (Parse.isbaohan("经管", teacher.getYxm())){
                 System.out.println(teacher);
             }
-        }*/
+        }
 
 
 
@@ -341,6 +339,7 @@ public class test {
     @Test
     public void testRedis(){
         Jedis jedis=new Jedis("118.25.64.213",6379);
+
         Set<String> keys = jedis.keys("*");
         System.out.println(keys);
     }
@@ -369,15 +368,25 @@ public class test {
         jedisPoolConfig.setMaxIdle(10);
         //3.定义redis集群节点,本例设置了两个reids连接节点
         List<JedisShardInfo> jedisShardInfos=new ArrayList<>();
-        jedisShardInfos.add(new JedisShardInfo("118.25.64.213",6379));
-        jedisShardInfos.add(new JedisShardInfo("127.0.0.1",6379));
+
+        JedisShardInfo jedisShardInfo1=new JedisShardInfo("118.25.64.213",6379);
+        jedisShardInfo1.setPassword("MtBv2omyQfTHYQpb1yLX");
+        jedisShardInfos.add(jedisShardInfo1);
+
+        JedisShardInfo jedisShardInfo2 = new JedisShardInfo("127.0.0.1", 6379);
+        jedisShardInfo2.setPassword("root");
+        jedisShardInfos.add(jedisShardInfo2);
         //3.创建reids集群连接池对象
         ShardedJedisPool shardedJedisPool=new ShardedJedisPool(jedisPoolConfig,jedisShardInfos);
         ShardedJedis shardedJedis = shardedJedisPool.getResource();
         //创建50条数据
         for (int i=1;i<50;i++){
-            shardedJedis.set("shardedjedispool-"+i,""+i);
+            System.out.println(shardedJedis.get("shardedjedispool-"+i));
+
+            //shardedJedis.set("shardedjedispool-"+i,""+i);
         }
+
+
     }
 
 

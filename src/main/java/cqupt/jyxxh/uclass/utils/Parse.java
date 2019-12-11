@@ -239,10 +239,10 @@ public class Parse {
         //将字符串a转换为char数组
         char[] chars = a.toCharArray();
         //循环判断chars中字符是否包含在字符串内
-        for (int i=0;i<chars.length;i++){
-            if (b.indexOf(chars[i])==-1){
+        for (char aChar : chars) {
+            if (b.indexOf(aChar) == -1) {
                 //如果有chars中字符在字符串b中没有，改flage为false
-                flage=false;
+                flage = false;
             }
         }
         return flage;

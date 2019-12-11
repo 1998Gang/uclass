@@ -44,22 +44,31 @@ public  class SendHttpRquest {
      */
     public String getJsonfromhttp(String url,String param)  {
         //定义访问的返回值
-        String result="";
+        StringBuilder result= new StringBuilder();
         //创建URL对象
-        URL url1= null;
+        URL url1;
         try {
             url1 = new URL(url+"?"+param);
             //打开输入流
             InputStream inputStream = url1.openStream();
             //定义bufferedInputstream接受读取返回值
             BufferedInputStream bufferedInputStream=new BufferedInputStream(inputStream);
+
+
+            System.out.println(bufferedInputStream.toString());
+
             //定义接收数组 一次读取1024个字节
-            byte [] bytes=new byte[1024];
+            byte [] bytes=new byte[2048];
             //定义bufferedInputStream read方法返回长度值
-            int len=0;
+            int len;
             //循环读取BufferedInputStraeam
             while ((len=bufferedInputStream.read(bytes))!=-1){
-                result +=new String(bytes,0,len);
+
+                System.out.println(len);
+                System.out.println(bytes.toString());
+
+
+                result.append(new String(bytes, 0, len));
             }
         } catch (MalformedURLException e) {
             logger.error("【网络请求（getJsonfromhttp）】 URL地址错误",e);
@@ -70,9 +79,7 @@ public  class SendHttpRquest {
         }
 
         //对获取的返回值进行转码
-        String duResult = Parse.decodeUnicode(result);
-
-        return duResult;
+        return Parse.decodeUnicode(result.toString());
     }
 
     /**
