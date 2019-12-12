@@ -3,11 +3,13 @@
 
 
 
+import checkers.units.quals.A;
 import cqupt.jyxxh.uclass.pojo.KebiaoInfo;
 import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.pojo.Teacher;
 import cqupt.jyxxh.uclass.service.GetInfoFromWxService;
 
+import cqupt.jyxxh.uclass.utils.Authentication;
 import cqupt.jyxxh.uclass.utils.Parse;
 import cqupt.jyxxh.uclass.utils.SendHttpRquest;
 import cqupt.jyxxh.uclass.utils.yige.AuthenResult;
@@ -32,6 +34,7 @@ import redis.clients.jedis.util.ShardInfo;
 
 import javax.naming.directory.Attributes;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -76,6 +79,7 @@ public class test {
 
     @Test
     public void getmassage()  {
+
         SendHttpRquest sendHttpRquest=new SendHttpRquest();
         String stuJsonInfo=sendHttpRquest.getJsonfromhttp("http://jwzx.cqupt.edu.cn/kebiao/kb_tea.php","teaId=030403");
         System.out.println("=============教务在线返回原始json===============");
@@ -112,14 +116,22 @@ public class test {
 
     @Test
     public void getEduAccount(){
+        AuthenResult authenResult=UserAuth.authen("0101303","SSD");
+        Attributes attrs = authenResult.getAttrs();
+        HashMap<String, String> stringStringHashMap = Parse.ParseAttributes(attrs);
+        String cn = stringStringHashMap.get("cn");
+
+        String encoding = Parse.getEncoding(cn);
+        System.out.println(encoding);
+
+
+
+
+
+
         SendHttpRquest sendHttpRquest=new SendHttpRquest();
-        String JsonInfo = sendHttpRquest.getJsonfromhttp("http://jwzx.cqupt.edu.cn/data/json_TeacherSearch.php","searchKey="+"向敏");
-        //4.1.3 将请求回的json数据转码
-
-
-       /* Student student = Parse.ParseJsonToStudent(JsonInfo);
-        System.out.println(student);*/
-
+        String JsonInfo = sendHttpRquest.getJsonfromhttp("http://jwzx.cqupt.edu.cn/data/json_TeacherSearch.php","searchKey="+encoding);
+        System.out.println(JsonInfo);
 
         //4.1.4 将josn数据解析为Teacher对象
         List<Teacher> teachers = Parse.ParseJsonToTeacher(JsonInfo);
@@ -219,9 +231,20 @@ public class test {
 
 
     @Test
-    public  void kjkj(){
+    public  void kjkj() throws UnsupportedEncodingException {
         boolean isbaobao = isbaobao("软件学院", "件工程/离开家离开家学院");
         System.out.println(isbaobao);
+
+
+        String s="你好 hello";
+        System.out.println(Parse.getEncoding(s));
+
+        byte[] b=s.getBytes("GBK");
+        System.out.println(b.toString());
+
+        String s1=new String(b,"GBK");
+        System.out.println(Parse.getEncoding(s1));
+        System.out.println(s1);
     }
 
 
@@ -405,6 +428,7 @@ public class test {
     @Test
     public void getJsonFromHttpTest() throws IOException {
         URL url=new URL("http://jwzx.cqupt.edu.cn/data/json_teacherSearch.php?searchKey=向敏");
+
         Document parse = Jsoup.parse(url,1000000);
         String body = parse.body().text();
         String s = Parse.decodeUnicode(body);

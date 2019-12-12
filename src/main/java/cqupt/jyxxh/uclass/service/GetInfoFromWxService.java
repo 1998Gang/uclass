@@ -14,23 +14,23 @@ import org.springframework.stereotype.Service;
 /**
  *
  * 对微信数据接口操作的类
- *
- *
  * @author 彭渝刚
  * @version 1.0.0
  * @date created in 22:19 2019/11/2
  */
+
+
 @Service
 public class GetInfoFromWxService {
 
     private final Logger logger= LoggerFactory.getLogger(GetInfoFromWxService.class);    //日志
 
     @Value("${code2Session}")
-    private  String code2Session;      //微信的auth.code2Session网址
+    private  String CODE2SESSION;      //微信的auth.code2Session网址
     @Value("${AppID}")
-    private  String appid;             //小程序的appid
+    private  String APPID;              //小程序的appid
     @Value("${AppSercet}")
-    private String appSercet;         //小程序的appSercet
+    private String APPSERCET;         //小程序的appSercet
 
 
     @Autowired
@@ -46,9 +46,9 @@ public class GetInfoFromWxService {
      */
     private String getOpenIdOrSessionkey(String code, String key)  {
         //访问接口地址
-        String url=code2Session;
+        String url=CODE2SESSION;
         //访问参数拼接
-        String param="appid="+appid+"&secret="+appSercet+"&js_code="+code+"&grant_type=authorization_code";
+        String param="appid="+APPID+"&secret="+ APPSERCET +"&js_code="+code+"&grant_type=authorization_code";
         //发起访问 返回json字符串
         String result=sendHttpRquest.getJsonfromhttp(url,param);
         //创建jackson核心对象

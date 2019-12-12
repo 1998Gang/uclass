@@ -17,10 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.naming.directory.Attributes;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -52,7 +49,7 @@ public class EduAccountService {
     private  StudentMapper studentMapper;        //教务账号（学生）dao操作接口
 
     @Value("${URLTeaInfoFromJWZX}")
-    private  String URL_TeaInfo_From_JWZX;            //去教务在线请求教师信息的URL
+    private  String URL_TEAINFO_FROM_JWZX;            //去教务在线请求教师信息的URL
     @Value("${URLStuInfoFromJWZX}")
     private  String URL_StuInfo_From_JWZX;            //去教务在线请求学生信息的URL
 
@@ -96,15 +93,14 @@ public class EduAccountService {
             case "01":{
                 //4.1.1 获取教师姓名、教师的所属学院（LDAP返回的数据）
                 String jsxm = attributeHashMap.get("cn");
-                jsxm = URLEncoder.encode(jsxm, StandardCharsets.UTF_8);
-
-
                 String yxm=attributeHashMap.get("edupersonorgdn");
+
+                //更改教师姓名的编码格式
+                jsxm = URLEncoder.encode(jsxm, Charset.forName("utf-8"));
+
                 //4.1.2 以教师姓名为参数去教务在线查询教师账户的详细信息
                 String param="searchKey="+jsxm;
-                System.out.println("param==========================="+param);
-                String teaJsonInfo = sendHttpRquest.getJsonfromhttp(URL_TeaInfo_From_JWZX,param);
-                System.out.println("teaJsonInfo======================"+teaJsonInfo);
+                String teaJsonInfo = sendHttpRquest.getJsonfromhttp(URL_TEAINFO_FROM_JWZX,param);
                 //4.1.4 将josn数据解析为Teacher对象
                 List<Teacher> teachers = Parse.ParseJsonToTeacher(teaJsonInfo);
                 //4.1.5 遍历teachers集合，筛选符合条件的教师教师。
@@ -150,7 +146,7 @@ public class EduAccountService {
                 //4.1.2 以教师姓名为参数去教务在线查询教师账户的详细信息
                 String param="searchKey="+jsxm;
                 System.out.println("param==========================="+param);
-                String teaJsonInfo = sendHttpRquest.getJsonfromhttp(URL_TeaInfo_From_JWZX,param);
+                String teaJsonInfo = sendHttpRquest.getJsonfromhttp(URL_TEAINFO_FROM_JWZX,param);
                 System.out.println("teaJsonInfo======================"+teaJsonInfo);
                 //4.1.4 将josn数据解析为Teacher对象
                 List<Teacher> teachers = Parse.ParseJsonToTeacher(teaJsonInfo);
