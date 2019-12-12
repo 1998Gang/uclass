@@ -1,12 +1,15 @@
 package cqupt.jyxxh.uclass.web;
 
-import cqupt.jyxxh.uclass.pojo.KebiaoInfo;
+import cqupt.jyxxh.uclass.pojo.keChengInfo;
+import cqupt.jyxxh.uclass.service.KebiaoService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,13 +21,20 @@ import java.util.List;
  */
 @Controller
 public class UclassKebiao {
+
+    @Autowired
+    private KebiaoService kebiaoService;     //获取课表课表
+
+
+
+
     /**
      * 获取教师的完整课表，
      * @param  teaId 教师号
      * @return  以json数组形式返回完整的课表信息
      */
     @RequestMapping(value = "teakebiao",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
-    public ResponseEntity<List<KebiaoInfo>> getTeaKebiao(@RequestParam("teaId") String teaId){
+    public ResponseEntity<List<keChengInfo>> getTeaKebiao(@RequestParam("teaId") String teaId){
 
         return ResponseEntity.ok(null);
     }
@@ -35,9 +45,11 @@ public class UclassKebiao {
      * @return 以json数组形式返回完整课表信息
      */
     @RequestMapping(value = "stukebiao",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
-    public ResponseEntity<KebiaoInfo> getStuKebiao(@RequestParam("xh") String xh){
+    public ResponseEntity<ArrayList<ArrayList<ArrayList<keChengInfo>>>> getStuKebiao(@RequestParam("xh") String xh){
 
-        return ResponseEntity.ok(null);
+        ArrayList<ArrayList<ArrayList<keChengInfo>>> stuKebiao = kebiaoService.getKebiao(xh,"s");
+
+        return ResponseEntity.ok(stuKebiao);
     }
 
 }

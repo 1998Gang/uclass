@@ -9,7 +9,7 @@ package cqupt.jyxxh.uclass.pojo;
  * @version 1.0.0
  * @date created in 22:19 2019/11/19
  */
-public class KebiaoInfo {
+public class keChengInfo {
 
     private String jxb;//教学班 （SJ13191A2130640003）
     private String kch;//课程号 （A2130640）
@@ -136,7 +136,7 @@ public class KebiaoInfo {
 
     @Override
     public String toString() {
-        return "KebiaoInfo{" +
+        return "keChengInfo{" +
                 "jxb='" + jxb + '\'' +
                 ", kch='" + kch + '\'' +
                 ", kcm='" + kcm + '\'' +

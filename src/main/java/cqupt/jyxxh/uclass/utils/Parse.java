@@ -2,7 +2,7 @@ package cqupt.jyxxh.uclass.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cqupt.jyxxh.uclass.pojo.KebiaoInfo;
+import cqupt.jyxxh.uclass.pojo.keChengInfo;
 import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.pojo.Teacher;
 import org.jsoup.Jsoup;
@@ -248,77 +248,143 @@ public class Parse {
         return flage;
     }
 
+
     /**
-     * 解析去教务在校获取到的课表页html
-     *学生课表
-     *
-     *
-     *
-     * @param html 教务在线原始界面
-     * @return 返回课表信息集合
+     * 解析教务在线获取的课表html页
+     * @param html html字符串
+     * @param type 用户类型，”s“学生，"t"老师。必填
+     * @return 嵌套的集合，最里层放的课程信息
      */
-    public static List<KebiaoInfo>  parseHtmlToStuKebiaoInfo(String html){
-        List<KebiaoInfo> stuKebiaoInfoList =null;
+    public static ArrayList<ArrayList<ArrayList<keChengInfo>>> parseHtmlToKebiaoInfo(String html, String type){
 
-        //1.jsoup解析html
-        Document doc = Jsoup.parse(html);
-        //2.根据id获取“kbStuTabs-table”课表形式的课表
-        Element kbStuTabsTable = doc.getElementById("kbStuTabs-table");
-        //2.根据class获取 printTable
-        Elements printTables = kbStuTabsTable.getElementsByClass("printTable");
-        //3.循环printTables
-        for (Element printRable:printTables){
-            //3.1 获取printTable中的tbody，课表实体
-            Elements tbody = printRable.getElementsByTag("tbody");
-            //3.2 获取tbody中的所有tr标签（tr表示节数，第一个tr表示12节，第二个tr表示34节）
-            Elements trs = tbody.select("tr");
-            //3.3 循环trs，遍历每一个tr
 
-            int cStart=1;    //标记，课程开始节数
+        ArrayList<ArrayList<ArrayList<keChengInfo>>> jj=null;
+        ArrayList<ArrayList<keChengInfo>> xx;
 
-            for (int i=0;i<trs.size();i++){
-                //3.3.1 第3个tr 与第6个tr是午间休息与下午休息，跳过
-                if (i==2||i==5){
-                    continue;
-                }
-                //3.3.2 获取tr
-                Element tr=trs.get(i);
-                //3.3.3 获取tr标签中的所有td标签（td代表星期几，一共7个td）
-                Elements tds=tr.select("td");
-                //3.3.3.1 循环tds，遍历每一个td
-                for (int j=1;j<tds.size();j++){
-                    // 3.3.3.1.1 获取td
-                    Element td=tds.get(j);
-                    //3.3.3.1.2 获取装课程信息的div，一个td里面可能有多个div（同一个时间上课时间，不同周可能有不同课程）
-                    Elements divs=td.getElementsByClass("kbTd");
-                    /*for (int k=0;k<divs.size();k++){
 
-                        Element div = divs.get(k);
-                        //System.out.println(div.html());
-                        String html1 = div.html();
+        // jsoup解析html页面
+        Document doc= Jsoup.parse(html);
+        //获取stuPanl
+        Element stuPanel=doc.getElementById("stuPanel");
+        //获取tbody（教务在线学生课表的 表格）,实际tbody只有一个
+        Elements tbodys = stuPanel.getElementsByTag("tbody");
 
-                        //System.out.println(clma);
-                        KebiaoInfo stuKebiaoInfo = parseClass(html1);
-                        //
-                        String zc = div.attr("zc");
-
-                        stuKebiaoInfo.setWeek(zc);  //上课周数
-                        stuKebiaoInfo.setcStart(String.valueOf(cStart));//上课  起始节数
-                        stuKebiaoInfo.setWeekday(String.valueOf(j));//上课 天
-
-                        System.out.println(stuKebiaoInfo);
-                        //stuKebiaoInfoList.add(stuKebiaoInfo);
-
-                    }*/
-                }
-                cStart+=2;    //标记，循环一次，课程开始节数+2。
+        /*switch (type){
+            case "s":{
+                Element stuPanel=doc.getElementById("stuPanel");
+                //获取tbody（教务在线学生课表的 表格）,实际tbody只有一个
+                tbodys = stuPanel.getElementsByTag("tbody");
+                break;
             }
+            case "t":{
+                Element teaPanel = doc.getElementById("teaPanel");
+                //获取tbody
+                tbodys = teaPanel.getElementsByTag("tbody");
+                break;
+            }
+        }
+*/
 
+        assert tbodys != null;
+        for(Element tbody:tbodys){
+            //解析表格 <tr>代表上课的节数,一共8个。第3个<tr>代表午间休息，第6个<tr>代表下午大课间,无用去掉。   <td>标签代表上课的星期数
+            Elements trs= tbody.select("tr");
+            trs.remove(2);
+            trs.remove(4);
+            //遍历<tr>标签，一共6个，“i”是标记参数（上课节数）。 0：12节、1：34节、2：56节.......5：11 12节
+            int j=-1;
+
+
+            jj=new ArrayList<>();
+            for (Element tr:trs){
+                j++;
+                //根据<tr>获取<td>带代表上课星期数，一共8个，第一个无用去掉。
+                Elements tds = tr.select("td");
+                tds.remove(0);
+                //遍历<td>标签，一共7个。代表星期一到星期天。"x"是标记参数，0：星期一、1：星期二.......6：星期天
+                int x=-1;
+
+
+
+                xx=new ArrayList<>();
+                for (Element td:tds){
+
+
+                    x++;
+                    //此时已经定位到了星期几，第几节课了。
+                    System.out.print("星期"+(x+1)+":"+(j*2+1)+"节");
+                    //相同星期，相同节数可能有多节课（上课周数不同），多个<div class="KbTd">。
+                    Elements kbTds = td.getElementsByClass("kbTd");
+
+                    //创建集合(最里层)
+                    ArrayList<keChengInfo> jandx=new ArrayList<>();
+                    for (Element kbTd : kbTds) {
+                        //此时定位到具体的课程
+                        //获取上课周数,"10101010101010101000"，一共20位，代表20周，为1带表有课，0为没课。
+                        String zc = kbTd.attr("zc");
+                        //解析具体的课程信息
+                        keChengInfo keChengInfo = ParseKebiaoToKebiaoInfo(kbTd.html());
+                        keChengInfo.setWeek(zc);
+                        keChengInfo.setcStart(String.valueOf(j * 2 + 1));
+                        keChengInfo.setWeekday(String.valueOf(x + 1));
+
+                        //放入集合
+                        jandx.add(keChengInfo);
+
+                    }
+
+
+                    xx.add(jandx);
+
+                }
+                System.out.println();
+
+
+                jj.add(xx);
+            }
         }
 
-        return stuKebiaoInfoList;
+        return jj;
 
     }
+
+
+
+
+
+    public static keChengInfo ParseKebiaoToKebiaoInfo(String html){
+        keChengInfo stuKeChengInfo =new keChengInfo();
+        String[] s1 = html.split("\n");
+
+        stuKeChengInfo.setJxb(s1[0]);//教学班号
+        stuKeChengInfo.setKch(s1[1].substring(s1[1].indexOf("<br>")+4,s1[1].indexOf("-")));//课程号
+        stuKeChengInfo.setKcm(s1[1].substring(s1[1].indexOf("-")+1));  //课程名
+
+        if (isbaohan("综合实验楼",s1[2])){
+            stuKeChengInfo.setSkdd(s1[2].substring(s1[2].indexOf("综合实验楼"),s1[2].length()-2));
+        }else {
+            stuKeChengInfo.setSkdd(s1[2].substring(s1[2].indexOf("：")+1)); //上课地点
+        }
+
+        stuKeChengInfo.setJsm(s1[6].substring(s1[6].indexOf(">")+1,s1[6].indexOf("修")-2));//教师名
+        stuKeChengInfo.setKclb(s1[6].substring(s1[6].lastIndexOf(" ")-2,s1[6].lastIndexOf(" ")));//课程类别
+        stuKeChengInfo.setCredit(s1[6].substring(s1[6].lastIndexOf(" ")+1,s1[6].indexOf("</span>")));//学分
+        //上课节数
+        if (isbaohan("3节连上",s1[4])){
+            stuKeChengInfo.setcTimes("3");
+        }else if(isbaohan("4节连上",s1[4])){
+            stuKeChengInfo.setcTimes("4");
+        }else {
+            stuKeChengInfo.setcTimes("2");
+        }
+
+        return stuKeChengInfo;
+    }
+
+
+
+
+
 
 
     /**
@@ -333,8 +399,8 @@ public class Parse {
         try
         {
             if(str.equals(new String(str.getBytes(), encode))) {
-            return encode;
-        }
+                return encode;
+            }
         }
         catch(Exception ex) {}
 
@@ -342,8 +408,8 @@ public class Parse {
         try
         {
             if(str.equals(new String(str.getBytes(), encode))){
-            return "字符串<< " + str + " >>中仅由数字和英文字母组成，无法识别其编码格式";
-        }
+                return "字符串<< " + str + " >>中仅由数字和英文字母组成，无法识别其编码格式";
+            }
         }
         catch(Exception ex) {}
 
@@ -351,8 +417,8 @@ public class Parse {
         try
         {
             if(str.equals(new String(str.getBytes(), encode))){
-            return encode;
-        }
+                return encode;
+            }
         }
         catch(Exception ex) {}
 
@@ -360,8 +426,8 @@ public class Parse {
         try
         {
             if(str.equals(new String(str.getBytes(), encode))){
-            return encode;
-        }
+                return encode;
+            }
         }
         catch(Exception ex) {}
 
@@ -369,8 +435,8 @@ public class Parse {
         try
         {
             if(str.equals(new String(str.getBytes(), encode))){
-            return encode;
-        }
+                return encode;
+            }
         }
         catch(Exception ex) {}
 
@@ -380,8 +446,6 @@ public class Parse {
 
         return "未识别编码格式";
     }
-
-
 
 
 
