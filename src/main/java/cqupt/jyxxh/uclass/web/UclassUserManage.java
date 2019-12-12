@@ -94,7 +94,7 @@ public class UclassUserManage {
 
                 //日志
                 if (logger.isInfoEnabled()){
-                    logger.info("用户：[{}]登陆成功！教务账号:[{},{}.{}]",openid,eduAccount.getName(),eduAccount.getNumber(),eduAccount.getYkth());
+                    logger.info("用户：[{}]登陆成功！教务账号:[{},{},{}]",openid,eduAccount.getName(),eduAccount.getNumber(),eduAccount.getYkth());
                 }
 
                 return ResponseEntity.status(HttpStatus.OK).body(eduAccount);
@@ -138,7 +138,7 @@ public class UclassUserManage {
              code= bindInfo1.get("code");
              ykth= bindInfo1.get("yktId");
              password= bindInfo1.get("password");
-             //日志
+             //日志一身份验证失败
             if (logger.isDebugEnabled()){
                 logger.debug("【绑定接口（UclassUserManage.bind）】 接收参数code[{}],ykth[{}]",code,ykth);
             }
@@ -211,7 +211,7 @@ public class UclassUserManage {
     @RequestMapping(method = RequestMethod.DELETE,produces = "application/json;charset=utf-8")
     public ResponseEntity<String> delete(@RequestBody Map<String,String> deleteInfo){
 
-        String code=null;
+        String code;
 
         try{
             // 1.获取参数code

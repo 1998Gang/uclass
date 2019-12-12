@@ -155,6 +155,7 @@ public class Authentication {
         return ldapContext;
     }
 
+
     /**
      * 获取统一认证通过后 获取姓名 学院等信息
      *

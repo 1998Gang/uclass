@@ -24,12 +24,16 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.junit.Test;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestMapping;
 import redis.clients.jedis.*;
 import redis.clients.jedis.util.ShardInfo;
 
 
 import javax.naming.directory.Attributes;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
 
@@ -45,17 +49,17 @@ public class test {
         Attributes attrs = authenResult.getAttrs();
         HashMap<String, String> stringStringHashMap = Parse.ParseAttributes(attrs);
         System.out.println(stringStringHashMap);
-        /*HashMap<String,String> attrsMap=new HashMap<>();
+        HashMap<String,String> attrsMap=new HashMap<>();
         String ldapBack=attrs.toString().substring(1,attrs.toString().length()-1).replace(" ","");
-        String ldapBackArry[]=ldapBack.split(",");
+        String[] ldapBackArry = ldapBack.split(",");
 
-        for (int i=0;i<ldapBackArry.length;i++){
-            String key=ldapBackArry[i].substring(0,ldapBackArry[i].indexOf("="));
-            String value=ldapBackArry[i].substring(ldapBackArry[i].indexOf(":")+1);
-            attrsMap.put(key,value);
-        }*/
+        for (String s : ldapBackArry) {
+            String key = s.substring(0, s.indexOf("="));
+            String value = s.substring(s.indexOf(":") + 1);
+            attrsMap.put(key, value);
+        }
 
-       /* System.out.println(attrsMap);*/
+        System.out.println(attrsMap);
 
 
     }
@@ -344,6 +348,9 @@ public class test {
         System.out.println(keys);
     }
 
+    /**
+     * 测试jedis连接池
+     */
     @Test
     public void testJedisPool(){
         //1.创建jedisPoolConfig连接池对象
@@ -359,6 +366,9 @@ public class test {
         System.out.println(jedispool);
     }
 
+    /**
+     * 测试jedis集群
+     */
     @Test
     public void testShareJedisPool(){
         //1.创建jedisPoolConfig连接池对象
@@ -391,10 +401,15 @@ public class test {
 
 
 
+
     @Test
-    public void ttttt(){
-        String kk="1234".substring(0,2);
-        System.out.println(kk);
+    public void getJsonFromHttpTest() throws IOException {
+        URL url=new URL("http://jwzx.cqupt.edu.cn/data/json_teacherSearch.php?searchKey=向敏");
+        Document parse = Jsoup.parse(url,1000000);
+        String body = parse.body().text();
+        String s = Parse.decodeUnicode(body);
+        System.out.println(s);
+
     }
 
 

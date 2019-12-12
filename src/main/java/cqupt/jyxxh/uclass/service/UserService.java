@@ -158,7 +158,6 @@ public class UserService {
      * @param password 统一身份认证密码
      * @return boolean，绑定是否成功
      */
-    @Transactional(rollbackFor = Exception.class)
     public boolean setBind(UclassUser uclassUser,String ykth,String password){
         //本方法的返回标识
         boolean flage;
@@ -169,7 +168,7 @@ public class UserService {
             // 1.通过一卡通号判断u课堂后台数据库（uclass_students_info、uclass_teacher_info）中有没有该教务用户
             boolean isIn = eduAccountService.isEduAccountInDB(ykth);
 
-            // 2.判断，如果数据库中有就在数据库中取，如果没有就取教务在线爬取并存如本地数据库。
+            // 2.判断，如果数据库中有就在数据库中取，如果没有就取教务在线爬取并存入本地数据库。
             if (isIn){
                 //2.1.1数据库中有
                  eduAccount = eduAccountService.getEduAccountFromDB(ykth);
@@ -203,6 +202,12 @@ public class UserService {
         return flage;
     }
 
+
+    /**
+     * 删除用户绑定的教务账号
+     * @param uclassUser 教务账号实体
+     * @return boolean
+     */
     public boolean deleteBind(UclassUser uclassUser) {
         boolean flage;
 

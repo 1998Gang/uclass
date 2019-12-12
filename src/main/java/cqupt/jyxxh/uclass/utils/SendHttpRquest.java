@@ -7,9 +7,12 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -17,6 +20,7 @@ import java.io.InputStream;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 
 
 /**
@@ -44,42 +48,28 @@ public  class SendHttpRquest {
      */
     public String getJsonfromhttp(String url,String param)  {
         //定义访问的返回值
-        StringBuilder result= new StringBuilder();
-        //创建URL对象
-        URL url1;
+        String json=null;
+        //声明URL对象
+        URL urlReal;
         try {
-            url1 = new URL(url+"?"+param);
-            //打开输入流
-            InputStream inputStream = url1.openStream();
-            //定义bufferedInputstream接受读取返回值
-            BufferedInputStream bufferedInputStream=new BufferedInputStream(inputStream);
+            //实例化URL对象
+            urlReal = new URL(url+"?"+param);
+
+            //使用Jsoup,请求时间10秒，
+            Document document = Jsoup.parse(urlReal, 10000);
+
+            //获取body中的json数据
+            json= document.body().text();
+
+            return Parse.decodeUnicode(json);
 
 
-            System.out.println(bufferedInputStream.toString());
-
-            //定义接收数组 一次读取1024个字节
-            byte [] bytes=new byte[2048];
-            //定义bufferedInputStream read方法返回长度值
-            int len;
-            //循环读取BufferedInputStraeam
-            while ((len=bufferedInputStream.read(bytes))!=-1){
-
-                System.out.println(len);
-                System.out.println(bytes.toString());
-
-
-                result.append(new String(bytes, 0, len));
-            }
-        } catch (MalformedURLException e) {
-            logger.error("【网络请求（getJsonfromhttp）】 URL地址错误",e);
-            e.printStackTrace();
-        } catch (IOException e) {
-            logger.error("【网络请求（getJsonfromhttp）】 解析返回数据异常",e);
+        }catch (Exception e){
             e.printStackTrace();
         }
 
         //对获取的返回值进行转码
-        return Parse.decodeUnicode(result.toString());
+        return json;
     }
 
     /**
@@ -95,7 +85,7 @@ public  class SendHttpRquest {
 
         //1.生成httpclient
         CloseableHttpClient httpClient= HttpClients.createDefault();
-        CloseableHttpResponse response=null;
+        CloseableHttpResponse response;
         //2.创建get请求
         HttpGet httpGet=new HttpGet(url+"?"+param);
         //3.发送请求

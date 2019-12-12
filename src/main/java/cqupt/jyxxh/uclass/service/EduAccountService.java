@@ -17,6 +17,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.naming.directory.Attributes;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 
@@ -89,8 +95,10 @@ public class EduAccountService {
 
             case "01":{
                 //4.1.1 获取教师姓名、教师的所属学院（LDAP返回的数据）
-                System.out.println("attributeHashMap======================"+attributeHashMap);
                 String jsxm = attributeHashMap.get("cn");
+                jsxm = URLEncoder.encode(jsxm, StandardCharsets.UTF_8);
+
+
                 String yxm=attributeHashMap.get("edupersonorgdn");
                 //4.1.2 以教师姓名为参数去教务在线查询教师账户的详细信息
                 String param="searchKey="+jsxm;
@@ -165,7 +173,6 @@ public class EduAccountService {
         return eduAccount;
     }
 
-
     /**
      * 获取用户已经绑定的教务账号信息
      * @param uclassUser 用户实体
@@ -197,7 +204,6 @@ public class EduAccountService {
         return eduAccount;
     }
 
-
     /**
      * 将教务账户数据插入到数据库中
      * 自动判断传如参数是学生账户还剩教师账户
@@ -224,6 +230,11 @@ public class EduAccountService {
         }
     }
 
+    /**
+     * 根据一卡通号判断u课堂后台数据库中是否有该教务账户的数据
+     * @param ykth 统一身份认证吗（一卡通号）
+     * @return boolean
+     */
     public boolean isEduAccountInDB(String ykth){
         boolean flage=false;
         // 1.获取用户类型（一卡通前两位，16开头为本科生、72开头为留学生、01开头为教师）
@@ -249,7 +260,6 @@ public class EduAccountService {
 
         return flage;
     }
-
 
     /**
      * 通过一卡通号（ykth）获取教务账号实体

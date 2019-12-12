@@ -37,8 +37,6 @@ public class GetInfoFromWxService {
     private  SendHttpRquest sendHttpRquest;      //发起网络请求的工具类
 
 
-
-
     /**
      * 访问微信的接口 用code换取openid与session_key的json字符串，并解析字符串返回指定键的值
      *
