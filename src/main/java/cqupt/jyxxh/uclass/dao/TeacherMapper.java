@@ -36,6 +36,7 @@ public interface TeacherMapper {
      int numByYkth(String ykth);
 
 
+
     /**
      * 获取教务账号（教师）通过一卡通号
      * @param ykth 一卡通号

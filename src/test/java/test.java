@@ -3,10 +3,9 @@
 
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import cqupt.jyxxh.uclass.pojo.keChengInfo;
+import cqupt.jyxxh.uclass.pojo.KeChengInfo;
 import cqupt.jyxxh.uclass.pojo.Teacher;
-import cqupt.jyxxh.uclass.service.GetInfoFromWxService;
+import cqupt.jyxxh.uclass.utils.GetDataFromWX;
 
 import cqupt.jyxxh.uclass.utils.Parse;
 import cqupt.jyxxh.uclass.utils.SendHttpRquest;
@@ -42,7 +41,7 @@ public class test {
     @Test
     public  void yige() {
 
-        AuthenResult authenResult=UserAuth.authen("7207619","SSD");
+        AuthenResult authenResult=UserAuth.authen("7800004","SSD");
         Attributes attrs = authenResult.getAttrs();
         HashMap<String, String> stringStringHashMap = Parse.ParseAttributes(attrs);
         System.out.println(stringStringHashMap);
@@ -66,7 +65,7 @@ public class test {
      */
     @Test
     public void getinfoFromWx(){
-        GetInfoFromWxService getInfoFromVx=new GetInfoFromWxService();
+        GetDataFromWX getInfoFromVx=new GetDataFromWX();
         String openid = getInfoFromVx.getOpenid("033jPVCd1XtRAz0jdMAd1lLFCd1jPVCD");
         System.out.println(openid);
     }
@@ -214,18 +213,23 @@ public class test {
     }
 
 
+    /**
+     * 课表相关操作
+     * @throws IOException
+     */
     @Test
     public void kebiao() throws IOException {
 
-        List<keChengInfo> stuKeChengInfoList = null;
+        List<KeChengInfo> stuKeChengInfoList = null;
 
         //1.生成httpclient
         CloseableHttpClient httpClient= HttpClients.createDefault();
         CloseableHttpResponse response;
         //2.创建get请求
-        HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_stu.php?xh=2017214033");
-        //HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_tea.php?teaId=030512");
-        //3.发请求
+        //HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_stu.php?xh=2017214033");
+        HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_tea.php?teaId=130702");
+        //HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_tea.php?teaId=130712");
+        //        //3.发请求
         response=httpClient.execute(httpGet);
         //4.判断响应状态码为200在继续执行
         if (response.getStatusLine().getStatusCode()== HttpStatus.SC_OK){
@@ -234,13 +238,23 @@ public class test {
             String html= EntityUtils.toString(httpEntity,"utf-8");
 
 
-            ArrayList<ArrayList<ArrayList<keChengInfo>>> jj=new ArrayList<>();
+            ArrayList<ArrayList<ArrayList<KeChengInfo>>> jj = null;  //课表最外层，代表节数
+            ArrayList<ArrayList<KeChengInfo>> xx;             //课表第二层，代表上课的星期数
+            ArrayList<KeChengInfo> jandx;                     //课表第三层，代表节数，星期数相同的时间里的课程。
+
             // jsoup解析html页面
             Document doc= Jsoup.parse(html);
-            //获取stuPanl
+
+
+            /*//获取stuPanl
             Element stuPanel=doc.getElementById("stuPanel");
             //获取tbody（教务在线学生课表的 表格）,实际tbody只有一个
-            Elements tbodys = stuPanel.getElementsByTag("tbody");
+            Elements tbodys = stuPanel.getElementsByTag("tbody");*/
+
+            //获取teaPanel
+            Element teaPanel = doc.getElementById("teaPanel");
+            //获取tbody
+            Elements tbodys = teaPanel.getElementsByTag("tbody");
 
 
             for(Element tbody:tbodys){
@@ -252,7 +266,8 @@ public class test {
                 int j=-1;
 
 
-
+                //最外层 节数
+                jj=new ArrayList<>();
                 for (Element tr:trs){
                     j++;
                     //根据<tr>获取<td>带代表上课星期数，一共8个，第一个无用去掉。
@@ -261,8 +276,8 @@ public class test {
                     //遍历<td>标签，一共7个。代表星期一到星期天。"x"是标记参数，0：星期一、1：星期二.......6：星期天
                     int x=-1;
 
-
-                    ArrayList<ArrayList<keChengInfo>> xx=new ArrayList<>();
+                    //星期数
+                    xx=new ArrayList<>();
                     for (Element td:tds){
                         x++;
                         //此时已经定位到了星期几，第几节课了。
@@ -271,75 +286,92 @@ public class test {
                         Elements kbTds = td.getElementsByClass("kbTd");
 
                         //创建集合(最里层)
-                        ArrayList<keChengInfo> jandx=new ArrayList<>();
+                        jandx=new ArrayList<>();
                         for (int k=0;k<kbTds.size();k++){
                             //此时定位到具体的课程
                             Element kbTd = kbTds.get(k);
                             //获取上课周数,"10101010101010101000"，一共20位，代表20周，为1带表有课，0为没课。
                             String zc = kbTd.attr("zc");
+                            //解析上课周数，将这20位的数字转位具体的上课周数的集合
+                            List<String> strings = Parse.parseZCtoWeekNum(zc);
                             //解析具体的课程信息
-                            keChengInfo keChengInfo = parseKebiao(kbTd.html());
+                           /* KeChengInfo keChengInfo = parseKebiaoTostu(kbTd.html());*/
+                            KeChengInfo keChengInfo = parseTokebiaoinfo(kbTd.html(),"t");
 
+                            //添加一些其他数据
+                            keChengInfo.setWeekNum(strings);
+                            keChengInfo.setWeek(zc);
                             keChengInfo.setcStart(String.valueOf(j*2+1));
                             keChengInfo.setWeekday(String.valueOf(x+1));
 
+
+                            System.out.print(keChengInfo);
                             //放入集合
                             jandx.add(keChengInfo);
 
-                            System.out.print(keChengInfo);
                         }
-
                         xx.add(jandx);
 
                         System.out.print("  ||  ");
                     }
-                    System.out.println();
-
                     jj.add(xx);
+                    System.out.println();
                 }
             }
 
-            System.out.println(jj.toString());
-
-            ObjectMapper objectMapper =new ObjectMapper();
-
-
-
-
         }
     }
 
+    private KeChengInfo parseTokebiaoinfo(String kebiaoHtml, String type){
+        KeChengInfo keChengInfo=new KeChengInfo();
+        String[] s1=kebiaoHtml.split("\n");
 
-    public keChengInfo parseKebiao(String s){
-
-
-        keChengInfo stuKeChengInfo =new keChengInfo();
-        String[] s1 = s.split("\n");
-
-        stuKeChengInfo.setJxb(s1[0]);//教学班号
-        stuKeChengInfo.setKch(s1[1].substring(s1[1].indexOf("<br>")+4,s1[1].indexOf("-")));//课程号
-        stuKeChengInfo.setKcm(s1[1].substring(s1[1].indexOf("-")+1));  //课程名
-
+        //教学班
+        keChengInfo.setJxb(s1[0]);
+        //课程号
+        keChengInfo.setKch(s1[1].substring(s1[1].indexOf("<br>")+4,s1[1].indexOf("-")));
+        //课程名
+        keChengInfo.setKcm(s1[1].substring(s1[1].indexOf("-")+1));
+        //上课地点
         if (isbaobao("综合实验楼",s1[2])){
-            stuKeChengInfo.setSkdd(s1[2].substring(s1[2].indexOf("综合实验楼"),s1[2].length()-2));
+            keChengInfo.setSkdd(s1[2].substring(s1[2].indexOf("综合实验楼"),s1[2].length()-2));
         }else {
-            stuKeChengInfo.setSkdd(s1[2].substring(s1[2].indexOf("：")+1)); //上课地点
+            keChengInfo.setSkdd(s1[2].substring(s1[2].indexOf("：")+1,s1[2].length()-1));
         }
-
-        stuKeChengInfo.setJsm(s1[6].substring(s1[6].indexOf(">")+1,s1[6].indexOf("修")-2));//教师名
-        stuKeChengInfo.setKclb(s1[6].substring(s1[6].lastIndexOf(" ")-2,s1[6].lastIndexOf(" ")));//课程类别
-        stuKeChengInfo.setCredit(s1[6].substring(s1[6].lastIndexOf(" ")+1,s1[6].indexOf("</span>")));//学分
+        //上课周数（如：1周,4-8周,10-18周 这样的字符串）
+        keChengInfo.setSkzs(s1[3].substring(s1[3].indexOf("<br>")+4));
         //上课节数
         if (isbaobao("3节连上",s1[4])){
-            stuKeChengInfo.setcTimes("3");
+            keChengInfo.setcTimes("3");
         }else if(isbaobao("4节连上",s1[4])){
-            stuKeChengInfo.setcTimes("4");
+            keChengInfo.setcTimes("4");
         }else {
-            stuKeChengInfo.setcTimes("2");
+            keChengInfo.setcTimes("2");
+        }
+        //教师名
+        keChengInfo.setJsm(s1[6].substring(s1[6].indexOf(">")+1,s1[6].indexOf("修")-2));
+        //课程类别
+        keChengInfo.setKclb(s1[6].substring((s1[6].indexOf("修")-1),s1[6].indexOf("修")+1));
+        //学分，如果是学生进行该步骤
+        if ("s".equals(type)){
+            keChengInfo.setCredit(s1[6].substring(s1[6].lastIndexOf(" ")+1,s1[6].indexOf("</span>")));
+        }
+        //上课班级类别以及班级号，如果是老师进行该步骤
+        if ("t".equals(type)){
+            List<String> bjlbandbjh=new ArrayList<>();
+            for (int i=7;i<s1.length-2;i++){
+                bjlbandbjh.add(s1[i].substring(s1[i].indexOf("<br>")+4));
+            }
+            keChengInfo.setBjlbandbjh(bjlbandbjh);
         }
 
-        return stuKeChengInfo;
+        return keChengInfo;
     }
+
+
+
+
+
 
     /**
      * 测试redis连接
@@ -419,10 +451,49 @@ public class test {
 
 
 
-
     @Test
     public void testArry(){
-        int [][] is={{1,2,3},{2,3,4}};
+        String s="1010101010";
+        char[] chars = s.toCharArray();
+        for (int i=0;i<chars.length;i++){
+            if (chars[i]=='1'){
+                System.out.println(i+1);
+            }
+
+        }
+
+    }
+
+
+
+
+    @Test
+    public void tes(){
+
+        try {
+            ee("2");
+        } catch (Exception e) {
+            String localizedMessage = e.getLocalizedMessage();
+            System.out.println(localizedMessage);
+        }
+
+    }
+
+
+    public String ee(String s) throws Exception {
+
+        switch (s){
+            case "1":{
+
+                return "ok";
+            }
+
+            default:{
+                Exception bzcyh = new Exception("bzcyh");
+                throw bzcyh;
+
+            }
+        }
 
     }
 

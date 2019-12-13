@@ -1,7 +1,8 @@
 package cqupt.jyxxh.uclass.service;
 
 
-import cqupt.jyxxh.uclass.pojo.keChengInfo;
+import cqupt.jyxxh.uclass.pojo.KeChengInfo;
+import cqupt.jyxxh.uclass.utils.GetDataFromJWZX;
 import cqupt.jyxxh.uclass.utils.Parse;
 import cqupt.jyxxh.uclass.utils.SendHttpRquest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,32 +24,43 @@ import java.util.ArrayList;
 public class KebiaoService {
 
     @Autowired
-    private  SendHttpRquest sendHttpRquest;
-
+    private GetDataFromJWZX getDataFromJWZX;    //去教务在线获取数据的工具类
 
     @Value("${URLStuKebiaoFromJWZX}")
     private String URL_STUKEBIAO_FROM_JWZX;       //从教务在线获取学生课表的URL
 
+    @Value("${URLTeaKebiaoFromJWZX}")
+    private String URL_TEAKEBIAO_FROM_JWZX;       //从教务在线获取教师课表URL
+
 
     /**
+     *  根据学号或者教师号获取课表
      *
      * @param number 学号或者教师号
      * @param type  类别，"s"代表学生，"t"代表老师
-     * @return
+     * @return ArrayList<ArrayList<ArrayList<KeChengInfo>>>
      */
-    public ArrayList<ArrayList<ArrayList<keChengInfo>>> getKebiao(String number, String type)  {
+    public ArrayList<ArrayList<ArrayList<KeChengInfo>>> getKebiao(String number, String type) {
 
-        //1.根据学号去获取教务在线的课表页（html）
-        String stuKebiaoHtml = null;
-        try {
-            stuKebiaoHtml = sendHttpRquest.getHtmlFromHttp(URL_STUKEBIAO_FROM_JWZX, "xh=" + number);
-        } catch (IOException e) {
-            e.printStackTrace();
+        //课表 list嵌套
+        ArrayList<ArrayList<ArrayList<KeChengInfo>>> kebiao=null;
+
+        //1.根据学号或者教师号去获取教务在线的课表页（html）
+        switch (type){
+            //学生
+            case "s":{
+                kebiao=getDataFromJWZX.getStukebiaoByXh(number);
+                break;
+            }
+            //老师
+            case "t":{
+                kebiao=getDataFromJWZX.getTeaKebiaoByTeaId(number);
+                break;
+            }
+
         }
-        //2.将获取的课表页解析成为一个 keChengInfo[][][]数组
-        ArrayList<ArrayList<ArrayList<keChengInfo>>> kebiaoList = Parse.parseHtmlToKebiaoInfo(stuKebiaoHtml,type);
 
-        return kebiaoList;
+        return kebiao;
     }
 
 

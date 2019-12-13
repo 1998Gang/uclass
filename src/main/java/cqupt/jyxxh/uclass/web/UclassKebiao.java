@@ -1,6 +1,6 @@
 package cqupt.jyxxh.uclass.web;
 
-import cqupt.jyxxh.uclass.pojo.keChengInfo;
+import cqupt.jyxxh.uclass.pojo.KeChengInfo;
 import cqupt.jyxxh.uclass.service.KebiaoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 根据教师号或者学号获取课表数据
@@ -27,16 +26,16 @@ public class UclassKebiao {
 
 
 
-
     /**
      * 获取教师的完整课表，
      * @param  teaId 教师号
      * @return  以json数组形式返回完整的课表信息
      */
     @RequestMapping(value = "teakebiao",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
-    public ResponseEntity<List<keChengInfo>> getTeaKebiao(@RequestParam("teaId") String teaId){
+    public ResponseEntity<ArrayList<ArrayList<ArrayList<KeChengInfo>>>> getTeaKebiao(@RequestParam("teaId") String teaId){
 
-        return ResponseEntity.ok(null);
+        ArrayList<ArrayList<ArrayList<KeChengInfo>>> teaKebiao = kebiaoService.getKebiao(teaId, "t");
+        return ResponseEntity.ok(teaKebiao);
     }
 
     /**
@@ -45,9 +44,9 @@ public class UclassKebiao {
      * @return 以json数组形式返回完整课表信息
      */
     @RequestMapping(value = "stukebiao",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
-    public ResponseEntity<ArrayList<ArrayList<ArrayList<keChengInfo>>>> getStuKebiao(@RequestParam("xh") String xh){
+    public ResponseEntity<ArrayList<ArrayList<ArrayList<KeChengInfo>>>> getStuKebiao(@RequestParam("xh") String xh){
 
-        ArrayList<ArrayList<ArrayList<keChengInfo>>> stuKebiao = kebiaoService.getKebiao(xh,"s");
+        ArrayList<ArrayList<ArrayList<KeChengInfo>>> stuKebiao = kebiaoService.getKebiao(xh,"s");
 
         return ResponseEntity.ok(stuKebiao);
     }

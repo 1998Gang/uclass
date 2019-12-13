@@ -3,12 +3,10 @@ package cqupt.jyxxh.uclass.service;
 import cqupt.jyxxh.uclass.dao.UclassUserMapper;
 import cqupt.jyxxh.uclass.pojo.EduAccount;
 import cqupt.jyxxh.uclass.pojo.UclassUser;
-import cqupt.jyxxh.uclass.utils.Authentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
@@ -28,8 +26,6 @@ public class UserService {
     @Autowired
     private  UclassUserMapper uclassUserMapper;           //用户dao操作类
 
-    @Autowired
-    private  Authentication authentication;              //统一身份认证操作类
 
     @Autowired
     private  EduAccountService eduAccountService;          //教务账号操作类
@@ -155,10 +151,9 @@ public class UserService {
      * 为用户绑定教务账号
      * @param uclassUser 用户实体
      * @param ykth   统一身份认证码、一卡通号
-     * @param password 统一身份认证密码
      * @return boolean，绑定是否成功
      */
-    public boolean setBind(UclassUser uclassUser,String ykth,String password){
+    public boolean setBind(UclassUser uclassUser,String ykth,String password) throws Exception {
         //本方法的返回标识
         boolean flage;
         //教务账户实体
@@ -174,8 +169,8 @@ public class UserService {
                  eduAccount = eduAccountService.getEduAccountFromDB(ykth);
             }else {
                 //2.2.1 数据库中没有，通过统一身份认证码（一卡通号）获取教务账号实体
-                eduAccount = eduAccountService.getEduAccountInfoFromJWZX(ykth, password);
-                //2.2.2将教务账户数据插入到数据库中，
+                eduAccount = eduAccountService.getEduAccountInfoByYkth(ykth,password);
+                //2.2.2将教务账户数据插入到数据库中.
                 eduAccountService.insertEduAccountToDB(eduAccount);
             }
 
@@ -193,10 +188,14 @@ public class UserService {
             // 5.成功
             flage=true;
         }catch (Exception e){
+
             if (logger.isErrorEnabled()){
                 logger.error("【添加绑定（UserService.setBind）】绑定失败！用户：[{}],统一身份认证码：[{}]",uclassUser.getOpenid(),ykth);
             }
             flage=false;
+
+            //捕获异常，抛出！
+            throw e;
         }
 
         return flage;

@@ -6,6 +6,7 @@ import cqupt.jyxxh.uclass.pojo.EduAccount;
 import cqupt.jyxxh.uclass.service.*;
 
 import cqupt.jyxxh.uclass.utils.Authentication;
+import cqupt.jyxxh.uclass.utils.GetDataFromWX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +38,7 @@ public class UclassUserManage {
 
     private final Logger logger= LoggerFactory.getLogger(UclassUserManage.class);    //日志（slf4j搭配logback）
 
-    @Autowired
-    private  GetInfoFromWxService getInfoFromWxService;    //去微信获取数据的service
+
 
     @Autowired
     private  UserService userService;                     //用户信息操作类
@@ -48,6 +48,9 @@ public class UclassUserManage {
 
     @Autowired
     private  Authentication authentication;                //统一身份验证工具类
+
+    @Autowired
+    private GetDataFromWX getDataFromWX;
 
 
 
@@ -69,7 +72,7 @@ public class UclassUserManage {
 
         try {
             // 1.获取openid
-            String openid = getInfoFromWxService.getOpenid(code);
+            String openid = getDataFromWX.getOpenid(code);
             if (null==openid||"".equals(openid)){
                 //日志
                 if (logger.isDebugEnabled()){
@@ -133,18 +136,19 @@ public class UclassUserManage {
         String code;
         String ykth= null;
         String password;
+        String openid=null;
         try {
             // 1. 获取请求参数
              code= bindInfo1.get("code");
              ykth= bindInfo1.get("yktId");
              password= bindInfo1.get("password");
-             //日志一身份验证失败
+             //日志
             if (logger.isDebugEnabled()){
                 logger.debug("【绑定接口（UclassUserManage.bind）】 接收参数code[{}],ykth[{}]",code,ykth);
             }
 
             // 2. 通过code获取openid，并校验该openid是否合法。
-            String openid = getInfoFromWxService.getOpenid(code);
+             openid = getDataFromWX.getOpenid(code);
             if (null==openid||openid.equals("")){
                 //日志
                 if (logger.isDebugEnabled()){
@@ -173,11 +177,14 @@ public class UclassUserManage {
                 if (logger.isDebugEnabled()){
                     logger.debug("【绑定接口（UclassUserManage.bind）】绑定失败!用户openid：[{}]的统一身份：[{}]验证失败",openid,ykth);
                 }
+                if (logger.isInfoEnabled()){
+                    logger.info("用户：[{}]绑定失！身份验证失败，统一身份：[{}]！",openid,ykth);
+                }
                 return  ResponseEntity.status(HttpStatus.FORBIDDEN).body("统一身份验证失败");
             }
 
             // 5.给用户添加教务账户绑定
-            boolean isSetBind = userService.setBind(uclassuser, ykth, password);
+            boolean isSetBind = userService.setBind(uclassuser, ykth,password);
             if (isSetBind) {
                 //日志
                 if (logger.isInfoEnabled()) {
@@ -192,6 +199,13 @@ public class UclassUserManage {
             }
 
         }catch (Exception e){
+
+            //不支持的用户类型 403
+            if ("Unsupported academic administration account".equals(e.getLocalizedMessage())){
+                logger.error("用户：[{}]绑定失败！统一认证码:[{}]是不支持的用户类型！",openid,ykth);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("不支持的教务账户类型");
+            }
+
             logger.error("【绑定接口（bind）】出现未知错误！统一认证码[{}]",ykth,e);
         }
 
@@ -223,7 +237,7 @@ public class UclassUserManage {
 
 
             // 2.根据code换取openid，去除引号
-            String openid= getInfoFromWxService.getOpenid(code);
+            String openid= getDataFromWX.getOpenid(code);
             // 判断oepnid是否符合要求
             if (null==openid||"".equals(openid)){
                 //日志

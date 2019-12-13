@@ -12,15 +12,11 @@ import org.jsoup.nodes.Document;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.Jedis;
-
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
-import java.net.MalformedURLException;
+
+
 import java.net.URL;
-import java.util.Arrays;
 
 
 /**
@@ -33,7 +29,7 @@ import java.util.Arrays;
 @Component
 public  class SendHttpRquest {
 
-    final Logger logger= LoggerFactory.getLogger(SendHttpRquest.class);
+    final static Logger logger= LoggerFactory.getLogger(SendHttpRquest.class);
 
 
     /**
@@ -46,7 +42,7 @@ public  class SendHttpRquest {
      * @param param    访问参数列表（完整）              appid=APPID&secret=SECRET&js_code=JSCODE&grant_type=authorization_code
      * @return        访问结果，json字符串
      */
-    public String getJsonfromhttp(String url,String param)  {
+    public static String getJsonfromhttp(String url,String param)  {
         //定义访问的返回值
         String json=null;
         //声明URL对象
@@ -79,7 +75,7 @@ public  class SendHttpRquest {
      * @return  html页面（字符串形式）
      * @throws IOException   创建get请求，参数异常。
      */
-    public  String getHtmlFromHttp(String url,String param) throws IOException {
+    public static String getHtmlFromHttp(String url,String param) throws IOException {
 
         String html=null;
 
@@ -96,12 +92,12 @@ public  class SendHttpRquest {
             HttpEntity entity = response.getEntity();
              html = EntityUtils.toString(entity, "utf-8");
              if (logger.isDebugEnabled()){
-                 logger.debug("【getHtmlFromHttp】获取html页面成功");
+                 logger.debug("【网络请求工具类（getHtmlFromHttp）】获取html页面成功");
              }
         }else {
             //4.2 不为200
             if (logger.isDebugEnabled()){
-                logger.debug("【getHtmlFromHttp】获取html失败");
+                logger.debug("【【网络请求工具类（getHtmlFromHttp）】获取html失败");
             }
         }
         //5.返回获取的html界面，以字符串方式

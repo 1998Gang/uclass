@@ -2,7 +2,7 @@ package cqupt.jyxxh.uclass.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cqupt.jyxxh.uclass.pojo.keChengInfo;
+import cqupt.jyxxh.uclass.pojo.KeChengInfo;
 import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.pojo.Teacher;
 import org.jsoup.Jsoup;
@@ -30,6 +30,7 @@ import java.util.List;
 public class Parse {
 
     final static Logger logger= LoggerFactory.getLogger(Parse.class);  //日志
+
 
 
     /**
@@ -249,27 +250,38 @@ public class Parse {
     }
 
 
+
+
+
+
     /**
      * 解析教务在线获取的课表html页
+     *
+     * 最外层集合代表上课节数，一共装6个。
+     * 第二层集合代表具体节数下的上课的星期数（星期一、.....星期天），
+     * 第三层集合代表具体节数、具体星期数的具体课程。（因为存在冲突课程以及单双周之类的）
+     *
+     * 上课的周数在 KeChengInfo 里（多少周有课）
+     *
+     *
      * @param html html字符串
      * @param type 用户类型，”s“学生，"t"老师。必填
-     * @return 嵌套的集合，最里层放的课程信息
+     * @return ArrayList<ArrayList<ArrayList<KeChengInfo>>> 嵌套的集合，最里层放的课程信息
      */
-    public static ArrayList<ArrayList<ArrayList<keChengInfo>>> parseHtmlToKebiaoInfo(String html, String type){
+    public static ArrayList<ArrayList<ArrayList<KeChengInfo>>> parseHtmlToKebiaoInfo(String html, String type){
+
+        //解析后的数据以嵌套集合的方式返回，定义三层集合
+        ArrayList<ArrayList<ArrayList<KeChengInfo>>> jj=new ArrayList<>();//最外层，代表整个课表，装具体的上课节数（12节、34节 、....11 12节）
+        ArrayList<ArrayList<KeChengInfo>> xx;                //第二层，代表具体的上课节数，装具体节数的星期数（星期一....星期天）
+        ArrayList<KeChengInfo> jandx;                        //第三层，代笔具体工作日具体上课时间段对应的课程
 
 
-        ArrayList<ArrayList<ArrayList<keChengInfo>>> jj=null;
-        ArrayList<ArrayList<keChengInfo>> xx;
-
-
-        // jsoup解析html页面
+        // 1.jsoup解析html页面
         Document doc= Jsoup.parse(html);
-        //获取stuPanl
-        Element stuPanel=doc.getElementById("stuPanel");
-        //获取tbody（教务在线学生课表的 表格）,实际tbody只有一个
-        Elements tbodys = stuPanel.getElementsByTag("tbody");
 
-        /*switch (type){
+        // 2.获取tbody（教务在线学生课表的 表格）,实际tbody只有一个
+        Elements tbodys=null ;
+        switch (type){
             case "s":{
                 Element stuPanel=doc.getElementById("stuPanel");
                 //获取tbody（教务在线学生课表的 表格）,实际tbody只有一个
@@ -283,9 +295,10 @@ public class Parse {
                 break;
             }
         }
-*/
+
 
         assert tbodys != null;
+        // 3.解析课表表格
         for(Element tbody:tbodys){
             //解析表格 <tr>代表上课的节数,一共8个。第3个<tr>代表午间休息，第6个<tr>代表下午大课间,无用去掉。   <td>标签代表上课的星期数
             Elements trs= tbody.select("tr");
@@ -295,7 +308,6 @@ public class Parse {
             int j=-1;
 
 
-            jj=new ArrayList<>();
             for (Element tr:trs){
                 j++;
                 //根据<tr>获取<td>带代表上课星期数，一共8个，第一个无用去掉。
@@ -303,85 +315,122 @@ public class Parse {
                 tds.remove(0);
                 //遍历<td>标签，一共7个。代表星期一到星期天。"x"是标记参数，0：星期一、1：星期二.......6：星期天
                 int x=-1;
-
-
-
+                //此处实例化第二成集合，代表具体的上课节数，装这个上课节数下，的星期数。
                 xx=new ArrayList<>();
+
+
                 for (Element td:tds){
-
-
                     x++;
                     //此时已经定位到了星期几，第几节课了。
-                    System.out.print("星期"+(x+1)+":"+(j*2+1)+"节");
                     //相同星期，相同节数可能有多节课（上课周数不同），多个<div class="KbTd">。
                     Elements kbTds = td.getElementsByClass("kbTd");
+                    //实例化第三层集合，代表具体上课节数、星期数，装这个时段的课程。
+                    jandx=new ArrayList<>();
 
-                    //创建集合(最里层)
-                    ArrayList<keChengInfo> jandx=new ArrayList<>();
+
                     for (Element kbTd : kbTds) {
                         //此时定位到具体的课程
                         //获取上课周数,"10101010101010101000"，一共20位，代表20周，为1带表有课，0为没课。
                         String zc = kbTd.attr("zc");
-                        //解析具体的课程信息
-                        keChengInfo keChengInfo = ParseKebiaoToKebiaoInfo(kbTd.html());
-                        keChengInfo.setWeek(zc);
-                        keChengInfo.setcStart(String.valueOf(j * 2 + 1));
-                        keChengInfo.setWeekday(String.valueOf(x + 1));
+                        //解析，将"10101010101010101000" to {1，3，5，7，9，11，13，15，17}
+                        List<String> weekNum = Parse.parseZCtoWeekNum(zc);
+                        //解析具体的课程信息，将html页面上的信息解析为 KeChengInfo。学生与老师的html页面不一样，不同的解析方式。
+                        KeChengInfo keChengInfo = parseKebiaoToKeChengInfo(kbTd.html(),type);
+                        //补充数据
+                        keChengInfo.setWeek(zc); //上课周数
+                        keChengInfo.setWeekNum(weekNum);//上课周数（具体数字）
+                        keChengInfo.setcStart(String.valueOf(j * 2 + 1)); //上课开始节数（12节的课，该数据为 1）
+                        keChengInfo.setWeekday(String.valueOf(x + 1));   //上课的工作日（星期一的课，该数据为 1）
 
                         //放入集合
                         jandx.add(keChengInfo);
-
                     }
 
-
+                    //将具体课程集合放入代表星期数的集合
                     xx.add(jandx);
 
                 }
-                System.out.println();
 
-
+                //将具体星期的课程放入具体节数里面
                 jj.add(xx);
             }
         }
 
         return jj;
-
     }
 
+    /**
+     * 解析教务在线上html上的课程的具体信息(学生端),
+     *
+     * @param kebiaoHtml 课程详细信息的html数据
+     * @param type  操作的用户类型 “s” 是学生，"t"是老师
+     * @return kechengInfo 课程的详细信息
+     */
+    private static KeChengInfo parseKebiaoToKeChengInfo(String kebiaoHtml, String type){
+        KeChengInfo keChengInfo=new KeChengInfo();
+        String[] s1=kebiaoHtml.split("\n");
 
-
-
-
-    public static keChengInfo ParseKebiaoToKebiaoInfo(String html){
-        keChengInfo stuKeChengInfo =new keChengInfo();
-        String[] s1 = html.split("\n");
-
-        stuKeChengInfo.setJxb(s1[0]);//教学班号
-        stuKeChengInfo.setKch(s1[1].substring(s1[1].indexOf("<br>")+4,s1[1].indexOf("-")));//课程号
-        stuKeChengInfo.setKcm(s1[1].substring(s1[1].indexOf("-")+1));  //课程名
-
+        //教学班
+        keChengInfo.setJxb(s1[0]);
+        //课程号
+        keChengInfo.setKch(s1[1].substring(s1[1].indexOf("<br>")+4,s1[1].indexOf("-")));
+        //课程名
+        keChengInfo.setKcm(s1[1].substring(s1[1].indexOf("-")+1));
+        //上课地点
         if (isbaohan("综合实验楼",s1[2])){
-            stuKeChengInfo.setSkdd(s1[2].substring(s1[2].indexOf("综合实验楼"),s1[2].length()-2));
+            keChengInfo.setSkdd(s1[2].substring(s1[2].indexOf("综合实验楼"),s1[2].length()-2));
         }else {
-            stuKeChengInfo.setSkdd(s1[2].substring(s1[2].indexOf("：")+1)); //上课地点
+            keChengInfo.setSkdd(s1[2].substring(s1[2].indexOf("：")+1,s1[2].length()-1));
         }
-
-        stuKeChengInfo.setJsm(s1[6].substring(s1[6].indexOf(">")+1,s1[6].indexOf("修")-2));//教师名
-        stuKeChengInfo.setKclb(s1[6].substring(s1[6].lastIndexOf(" ")-2,s1[6].lastIndexOf(" ")));//课程类别
-        stuKeChengInfo.setCredit(s1[6].substring(s1[6].lastIndexOf(" ")+1,s1[6].indexOf("</span>")));//学分
+        //上课周数（如：1周,4-8周,10-18周 这样的字符串）
+        keChengInfo.setSkzs(s1[3].substring(s1[3].indexOf("<br>")+4));
         //上课节数
         if (isbaohan("3节连上",s1[4])){
-            stuKeChengInfo.setcTimes("3");
+            keChengInfo.setcTimes("3");
         }else if(isbaohan("4节连上",s1[4])){
-            stuKeChengInfo.setcTimes("4");
+            keChengInfo.setcTimes("4");
         }else {
-            stuKeChengInfo.setcTimes("2");
+            keChengInfo.setcTimes("2");
+        }
+        //教师名
+        keChengInfo.setJsm(s1[6].substring(s1[6].indexOf(">")+1,s1[6].indexOf("修")-2));
+        //课程类别
+        keChengInfo.setKclb(s1[6].substring((s1[6].indexOf("修")-1),s1[6].indexOf("修")+1));
+        //学分，如果是学生进行该步骤
+        if ("s".equals(type)){
+            keChengInfo.setCredit(s1[6].substring(s1[6].lastIndexOf(" ")+1,s1[6].indexOf("</span>")));
+        }
+        //上课班级类别以及班级号，如果是老师进行该步骤
+        if ("t".equals(type)){
+            List<String> bjlbandbjh=new ArrayList<>();
+            for (int i=7;i<s1.length-2;i++){
+                bjlbandbjh.add(s1[i].substring(s1[i].indexOf("<br>")+4));
+            }
+            keChengInfo.setBjlbandbjh(bjlbandbjh);
         }
 
-        return stuKeChengInfo;
+        return keChengInfo;
     }
 
-
+    /**
+     * 解析课程上课周数
+     * “11111111000000000000” to  {1,2,3,4,5,6,7,8}
+     * @param zc 课程周数
+     * @return 课程周数集合
+     */
+    public static List<String> parseZCtoWeekNum(String zc) {
+        List<String> weekNumList = new ArrayList<>();
+        //1.将20位的字符串拆分位20位字节数组
+        char[] chars = zc.toCharArray();
+        System.out.println(chars.length);
+        //2.遍历这个数组，值为1就添加对应周数到weekNumList
+        for (int i=0;i<chars.length;i++){
+            if ('1'==chars[i]){
+                weekNumList.add(String.valueOf(i+1));
+            }
+        }
+        return weekNumList;
+    }
 
 
 
