@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 
 /**
- *
  * 对微信数据接口操作的工具类
  * @author 彭渝刚
  * @version 1.0.0

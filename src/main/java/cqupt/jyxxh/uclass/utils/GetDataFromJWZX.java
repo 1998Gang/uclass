@@ -1,6 +1,6 @@
 package cqupt.jyxxh.uclass.utils;
 
-import cqupt.jyxxh.uclass.pojo.EduAccount;
+
 import cqupt.jyxxh.uclass.pojo.KeChengInfo;
 import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.pojo.Teacher;

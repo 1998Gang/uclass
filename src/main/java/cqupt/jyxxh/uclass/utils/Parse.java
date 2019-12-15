@@ -297,10 +297,11 @@ public class Parse {
         }
 
 
-        assert tbodys != null;
+        /*assert tbodys != null;*/
         // 3.解析课表表格
-        for(Element tbody:tbodys){
-            //解析表格 <tr>代表上课的节数,一共8个。第3个<tr>代表午间休息，第6个<tr>代表下午大课间,无用去掉。   <td>标签代表上课的星期数
+        /*for(Element tbody:tbodys){*/
+        Element tbody = tbodys.get(0);
+        //解析表格 <tr>代表上课的节数,一共8个。第3个<tr>代表午间休息，第6个<tr>代表下午大课间,无用去掉。   <td>标签代表上课的星期数
             Elements trs= tbody.select("tr");
             trs.remove(2);
             trs.remove(4);
@@ -354,7 +355,7 @@ public class Parse {
                 //将具体星期的课程放入具体节数里面
                 jj.add(xx);
             }
-        }
+        /*}*/
 
         return jj;
     }
@@ -422,7 +423,6 @@ public class Parse {
         List<String> weekNumList = new ArrayList<>();
         //1.将20位的字符串拆分位20位字节数组
         char[] chars = zc.toCharArray();
-        System.out.println(chars.length);
         //2.遍历这个数组，值为1就添加对应周数到weekNumList
         for (int i=0;i<chars.length;i++){
             if ('1'==chars[i]){

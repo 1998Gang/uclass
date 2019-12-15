@@ -140,7 +140,7 @@ public class UclassUserManage {
         try {
             // 1. 获取请求参数
              code= bindInfo1.get("code");
-             ykth= bindInfo1.get("yktId");
+             ykth= bindInfo1.get("ykt");
              password= bindInfo1.get("password");
              //日志
             if (logger.isDebugEnabled()){
@@ -200,10 +200,10 @@ public class UclassUserManage {
 
         }catch (Exception e){
 
-            //不支持的用户类型 403
+            //不支持的用户类型 401，如非教师非学生用户
             if ("Unsupported academic administration account".equals(e.getLocalizedMessage())){
                 logger.error("用户：[{}]绑定失败！统一认证码:[{}]是不支持的用户类型！",openid,ykth);
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("不支持的教务账户类型");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("不支持的教务账户类型");
             }
 
             logger.error("【绑定接口（bind）】出现未知错误！统一认证码[{}]",ykth,e);
