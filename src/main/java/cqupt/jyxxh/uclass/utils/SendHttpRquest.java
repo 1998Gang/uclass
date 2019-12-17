@@ -69,7 +69,7 @@ public  class SendHttpRquest {
     }
 
     /**
-     * 访问指定url，获取html页面
+     * 访问指定url(带参数)，获取html页面
      * @param url  访问地址
      * @param param  参数列表
      * @return  html页面（字符串形式）
@@ -94,6 +94,41 @@ public  class SendHttpRquest {
              if (logger.isDebugEnabled()){
                  logger.debug("【网络请求工具类（getHtmlFromHttp）】获取html页面成功");
              }
+        }else {
+            //4.2 不为200
+            if (logger.isDebugEnabled()){
+                logger.debug("【【网络请求工具类（getHtmlFromHttp）】获取html失败");
+            }
+        }
+        //5.返回获取的html界面，以字符串方式
+        return html;
+    }
+
+
+    /**
+     * 访问指定url，获取html页面
+     * @param url 访问地址
+     * @return html页面（字符串）
+     * @throws IOException 发起请求异常
+     */
+    public static String getHtmlFromHttp(String url) throws IOException {
+        String html=null;
+
+        //1.生成httpclient
+        CloseableHttpClient httpClient= HttpClients.createDefault();
+        CloseableHttpResponse response;
+        //2.创建get请求
+        HttpGet httpGet=new HttpGet(url);
+        //3.发送请求
+        response=httpClient.execute(httpGet);
+        //4.判断http响应码,200进行解析
+        if (response.getStatusLine().getStatusCode()== HttpStatus.SC_OK){
+            //4.1 获取响应实体
+            HttpEntity entity = response.getEntity();
+            html = EntityUtils.toString(entity, "utf-8");
+            if (logger.isDebugEnabled()){
+                logger.debug("【网络请求工具类（getHtmlFromHttp）】获取html页面成功");
+            }
         }else {
             //4.2 不为200
             if (logger.isDebugEnabled()){

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * 获取用户课表
@@ -61,6 +62,15 @@ public class KebiaoService {
         }
 
         return kebiao;
+    }
+
+    /**
+     * 获取教务时间，匹配课表
+     * @return Map，教务时间
+     */
+    public Map<String,String> getSchoolTime(){
+
+        return getDataFromJWZX.getSchoolTime();
     }
 
 

@@ -11,12 +11,15 @@ import cqupt.jyxxh.uclass.utils.Parse;
 import cqupt.jyxxh.uclass.utils.SendHttpRquest;
 import cqupt.jyxxh.uclass.utils.yige.AuthenResult;
 import cqupt.jyxxh.uclass.utils.yige.UserAuth;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpStatus;
+import org.apache.http.*;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -30,6 +33,7 @@ import javax.naming.directory.Attributes;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.*;
 
 
@@ -226,8 +230,8 @@ public class test {
         CloseableHttpClient httpClient= HttpClients.createDefault();
         CloseableHttpResponse response;
         //2.创建get请求
-        //HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_stu.php?xh=2017214033");
-        HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_tea.php?teaId=130702");
+        HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_stu.php?xh=2017214033");
+        //HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_tea.php?teaId=130702");
         //HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/kebiao/kb_tea.php?teaId=130712");
         //        //3.发请求
         response=httpClient.execute(httpGet);
@@ -246,18 +250,19 @@ public class test {
             Document doc= Jsoup.parse(html);
 
 
-            /*//获取stuPanl
+            //获取stuPanl
             Element stuPanel=doc.getElementById("stuPanel");
             //获取tbody（教务在线学生课表的 表格）,实际tbody只有一个
-            Elements tbodys = stuPanel.getElementsByTag("tbody");*/
+            Elements tbodys = stuPanel.getElementsByTag("tbody");
 
-            //获取teaPanel
+            /*//获取teaPanel
             Element teaPanel = doc.getElementById("teaPanel");
             //获取tbody
-            Elements tbodys = teaPanel.getElementsByTag("tbody");
+            Elements tbodys = teaPanel.getElementsByTag("tbody");*/
 
 
-            for(Element tbody:tbodys){
+
+                 Element tbody=tbodys.get(0);
                 //解析表格 <tr>代表上课的节数,一共8个。第3个<tr>代表午间休息，第6个<tr>代表下午大课间,无用去掉。   <td>标签代表上课的星期数
                 Elements trs= tbody.select("tr");
                 trs.remove(2);
@@ -296,7 +301,10 @@ public class test {
                             List<String> strings = Parse.parseZCtoWeekNum(zc);
                             //解析具体的课程信息
                            /* KeChengInfo keChengInfo = parseKebiaoTostu(kbTd.html());*/
-                            KeChengInfo keChengInfo = parseTokebiaoinfo(kbTd.html(),"t");
+                            //教师
+                           /* KeChengInfo keChengInfo = parseTokebiaoinfo(kbTd.html(),"t");*/
+                            //学生
+                            KeChengInfo keChengInfo = parseTokebiaoinfo(kbTd.html(),"s");
 
                             //添加一些其他数据
                             keChengInfo.setWeekNum(strings);
@@ -317,7 +325,7 @@ public class test {
                     jj.add(xx);
                     System.out.println();
                 }
-            }
+
 
         }
     }
@@ -325,6 +333,9 @@ public class test {
     private KeChengInfo parseTokebiaoinfo(String kebiaoHtml, String type){
         KeChengInfo keChengInfo=new KeChengInfo();
         String[] s1=kebiaoHtml.split("\n");
+        /*for (String s:s1){
+            System.out.println(s);
+        }*/
 
         //教学班
         keChengInfo.setJxb(s1[0]);
@@ -355,6 +366,11 @@ public class test {
         //学分，如果是学生进行该步骤
         if ("s".equals(type)){
             keChengInfo.setCredit(s1[6].substring(s1[6].lastIndexOf(" ")+1,s1[6].indexOf("</span>")));
+            //上课状态，如  自修 重修 再修等
+            if (s1.length==11){
+                keChengInfo.setSklx(s1[8].substring(s1[8].indexOf("\">")+2,s1[8].indexOf("</")));
+            }
+
         }
         //上课班级类别以及班级号，如果是老师进行该步骤
         if ("t".equals(type)){
@@ -379,9 +395,14 @@ public class test {
     @Test
     public void testRedis(){
         Jedis jedis=new Jedis("118.25.64.213",6379);
+        jedis.auth("MtBv2omyQfTHYQpb1yLX");
 
+        jedis.select(1);
+        jedis.set("keyss","1");
+        jedis.set("keyss","2");
         Set<String> keys = jedis.keys("*");
         System.out.println(keys);
+        System.out.println(jedis.get("keyss"));
     }
 
     /**
@@ -470,30 +491,90 @@ public class test {
     @Test
     public void tes(){
 
+
+
+    }
+
+
+    @Test
+    public void ee()  {
+
+        String ok="2019-2020学年1学期 第 16 周 星期 1 2019年12月16日";
+        int indexOf = ok.indexOf("年",13);
+        String ok1=ok.substring(indexOf,indexOf+3);
+        System.out.println(indexOf);
+        System.out.println(ok1);
+
+
+
+    }
+
+
+    /**
+     * 获取校历时间
+     */
+    @Test
+    public void getSTime(){
         try {
-            ee("2");
-        } catch (Exception e) {
-            String localizedMessage = e.getLocalizedMessage();
-            System.out.println(localizedMessage);
+            String htmlFromHttp = SendHttpRquest.getHtmlFromHttp("http://jwzx.cqupt.edu.cn/");
+            Map<String, String> map = Parse.parseHtmlToSchoolTime(htmlFromHttp);
+
+            System.out.println(map);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
     }
 
 
-    public String ee(String s) throws Exception {
+    @Test
+    public void loginJWZX() throws IOException {
+        //创建一个httpclient对象
+        CloseableHttpClient httpClient = HttpClients.createDefault();
 
-        switch (s){
-            case "1":{
 
-                return "ok";
-            }
+        // 1.get请求https://ids.cqupt.edu.cn/authserver/login?service=http%3A%2F%2Fjwzx.cqupt.edu.cn%2Ftysfrz%2Findex.php页面，用统一身份验证登陆的界面
+        // 1.1 创建get请求获取cookie
+        HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/student/skjh.php");
+        httpGet.setHeader("Cookie","PHPSESSID=ST-177733-HYLFA53m3TdVvS7UjfVb-NlvE-ids1-1576575462421");
+        // 1.2 发起请求
+        CloseableHttpResponse execute1 = httpClient.execute(httpGet);
 
-            default:{
-                Exception bzcyh = new Exception("bzcyh");
-                throw bzcyh;
 
-            }
-        }
+
+        StatusLine statusLine = execute1.getStatusLine();
+
+        System.out.println("==============="+statusLine);
+        HttpEntity entity = execute1.getEntity();
+        System.out.println("==============="+entity);
+        String s = EntityUtils.toString(entity, "utf-8");
+        System.out.println(s);
+
+        Header[] allHeaders = execute1.getAllHeaders();
+        System.out.println("===============header");
+        /*for (Header header:allHeaders){
+            System.out.println(header);
+            System.out.println(Arrays.toString(header.getElements()));
+        }*/
+
+
+
+        /*//发起post请求
+        HttpPost httpPost=new HttpPost("https://ids.cqupt.edu.cn/authserver/login?service=http%3A%2F%2Fjwzx.cqupt.edu.cn%2Ftysfrz%2Findex.php");
+        //设置参数
+        List<NameValuePair> nameValuePairs=new ArrayList<>();
+        nameValuePairs.add(new BasicNameValuePair("suername","1655728"));
+        nameValuePairs.add(new BasicNameValuePair("passeord","98LD99LP"));
+        //创建form表单
+        UrlEncodedFormEntity urlEncodedFormEntity=new UrlEncodedFormEntity(nameValuePairs,"utf-8");
+        //将form表单添加到post请求里面
+        httpPost.setEntity(urlEncodedFormEntity);
+        httpPost.setHeader("Cookie","JSESSIONID=0000J9XetLMYckAt-Icm8LsySNg:199j8h2se");
+
+        //发起请求
+        CloseableHttpResponse execute = httpClient.execute(httpPost);
+        //获取相应信息
+        System.out.println("=====status=====:"+execute.getStatusLine());*/
 
     }
 

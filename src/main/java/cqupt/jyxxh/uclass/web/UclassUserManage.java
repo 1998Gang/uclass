@@ -140,7 +140,7 @@ public class UclassUserManage {
         try {
             // 1. 获取请求参数
              code= bindInfo1.get("code");
-             ykth= bindInfo1.get("ykt");
+             ykth= bindInfo1.get("ykth");
              password= bindInfo1.get("password");
              //日志
             if (logger.isDebugEnabled()){

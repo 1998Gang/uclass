@@ -15,6 +15,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 从教务在线获取数据的工具类
@@ -41,6 +42,9 @@ public class GetDataFromJWZX {
 
     @Value("${URLTeaKebiaoFromJWZX}")
     private String URL_TEAKEBIAO_FROM_JWZX;       //从教务在线获取教师课表URL
+
+    @Value("${JWZXURL}")
+    private String JWZX_URL;
 
 
 
@@ -167,8 +171,6 @@ public class GetDataFromJWZX {
         //解析并返回
         return Parse.parseHtmlToKebiaoInfo(stuKebiaoHtml, "s");
     }
-
-
     /**
      * 通过教师号获取教师课表
      * @param teaId 教师号
@@ -186,5 +188,27 @@ public class GetDataFromJWZX {
 
         //解析并返回
         return Parse.parseHtmlToKebiaoInfo(teaKebiaoHtml,"t");
+    }
+
+
+    /**
+     * 获取重庆邮电大学，校历时间。
+     * @return 时间的map集合
+     */
+    public Map<String,String> getSchoolTime(){
+        Map<String,String> sTime=null;
+        try {
+            // 1.请求教务在线的主页
+            String JWZXhtml = SendHttpRquest.getHtmlFromHttp(JWZX_URL);
+            // 2.解析获取时间
+            sTime = Parse.parseHtmlToSchoolTime(JWZXhtml);
+            // 3.返回
+            return sTime;
+
+        }catch (Exception ignored){
+
+        }
+
+        return sTime;
     }
 }

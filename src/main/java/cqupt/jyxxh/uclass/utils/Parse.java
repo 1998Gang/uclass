@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 用于解析相关数据的工具类
@@ -298,8 +299,8 @@ public class Parse {
 
 
         /*assert tbodys != null;*/
-        // 3.解析课表表格
-        /*for(Element tbody:tbodys){*/
+        // 3.解析课表表格,因为课表只有一个body（第一个），所有这里直接用索引0来获取body。
+
         Element tbody = tbodys.get(0);
         //解析表格 <tr>代表上课的节数,一共8个。第3个<tr>代表午间休息，第6个<tr>代表下午大课间,无用去掉。   <td>标签代表上课的星期数
             Elements trs= tbody.select("tr");
@@ -361,9 +362,9 @@ public class Parse {
     }
 
     /**
-     * 解析教务在线上html上的课程的具体信息(学生端),
+     * 解析教务在线上html上的课程的具体信息(),
      *
-     * @param kebiaoHtml 课程详细信息的html数据
+     * @param kebiaoHtml 课程详细信息的html数据(具体的 某一节的信息。)
      * @param type  操作的用户类型 “s” 是学生，"t"是老师
      * @return kechengInfo 课程的详细信息
      */
@@ -400,6 +401,10 @@ public class Parse {
         //学分，如果是学生进行该步骤
         if ("s".equals(type)){
             keChengInfo.setCredit(s1[6].substring(s1[6].lastIndexOf(" ")+1,s1[6].indexOf("</span>")));
+            //上课状态，如  自修 重修 再修等
+            if (s1.length==11){
+                keChengInfo.setSklx(s1[8].substring(s1[8].indexOf("\">")+2,s1[8].indexOf("</")));
+            }
         }
         //上课班级类别以及班级号，如果是老师进行该步骤
         if ("t".equals(type)){
@@ -430,6 +435,48 @@ public class Parse {
             }
         }
         return weekNumList;
+    }
+
+
+    /**
+     * 解析教务在线首页html代码，获取校历时间
+     * @param html 教务在线首页html代码
+     * @return 时间map集合
+     */
+    public static Map<String,String> parseHtmlToSchoolTime(String html){
+        Map<String,String> sTime= new HashMap<>();
+
+        // 1.转换html字符串为Document对象
+        Document doc = Jsoup.parse(html);
+        // 2.获取header标签,教务在线的头，包含教务时间。
+        Element header = doc.getElementById("header");
+        // 3.获取时间内容（字符串）    如： 2019-2020学年1学期 第 16 周 星期 1 2019年12月16日
+        String time = header.text();
+        // 4.使用正则解析该字符串
+        // 4.1 学年
+        String xuenian=time.substring(0,time.indexOf("学"));
+        sTime.put("学年",xuenian);
+        // 4.2 学期
+        String xueqi=time.substring(time.indexOf("学年")+2,time.indexOf("学期"));
+        sTime.put("学期",xueqi);
+        // 4.3 周
+        String week=time.substring(time.indexOf("第")+2,time.indexOf("周")-1);
+        sTime.put("周",week);
+        // 4.4 星期
+        String workDay=time.substring(time.indexOf("星期")+3,time.indexOf("星期")+4);
+        sTime.put("星期",workDay);
+        // 4.5 年
+        String year =time.substring(time.indexOf("年",20)-4,time.indexOf("年",20));
+        sTime.put("年",year);
+        // 4.6 月
+        String month=time.substring(time.indexOf("月")-2,time.indexOf("月"));
+        sTime.put("月",month);
+        // 4.7 日
+        String day=time.substring(time.indexOf("月")+1,time.indexOf("日"));
+        sTime.put("日",day);
+
+        return sTime;
+
     }
 
 

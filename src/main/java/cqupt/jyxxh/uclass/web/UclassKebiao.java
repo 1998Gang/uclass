@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * 根据教师号或者学号获取课表数据
@@ -25,7 +26,7 @@ import java.util.ArrayList;
 @Controller
 public class UclassKebiao {
 
-    Logger logger= LoggerFactory.getLogger(UclassKebiao.class);
+    private Logger logger= LoggerFactory.getLogger(UclassKebiao.class);
 
     @Autowired
     private KebiaoService kebiaoService;     //获取课表课表
@@ -83,6 +84,27 @@ public class UclassKebiao {
         }
 
 
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+
+    /**
+     * 获取教务时间
+     * @return 时间map集合{"学期":"1","年":"2019","学年":"2019-2020","日":"16","周":"16","月":"12","星期":"1"}
+     */
+    @RequestMapping(value = "schooltime",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
+    public ResponseEntity<Map<String,String>> SchoolTime(){
+        Map<String,String> sTime=null;
+        try {
+            // 1.获取教务时间
+             sTime = kebiaoService.getSchoolTime();
+             // 2.获取成功，响应200.
+             return ResponseEntity.status(HttpStatus.OK).body(sTime);
+
+        }catch (Exception e){
+            logger.error("【课表接口（SchoolTime）】教务时间获取失败！");
+        }
+
+        // 未知错误响应500
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
 
