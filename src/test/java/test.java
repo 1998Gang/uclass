@@ -533,48 +533,171 @@ public class test {
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
 
-        // 1.get请求https://ids.cqupt.edu.cn/authserver/login?service=http%3A%2F%2Fjwzx.cqupt.edu.cn%2Ftysfrz%2Findex.php页面，用统一身份验证登陆的界面
-        // 1.1 创建get请求获取cookie
-        HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/student/skjh.php");
-        httpGet.setHeader("Cookie","PHPSESSID=ST-177733-HYLFA53m3TdVvS7UjfVb-NlvE-ids1-1576575462421");
-        // 1.2 发起请求
-        CloseableHttpResponse execute1 = httpClient.execute(httpGet);
 
 
 
-        StatusLine statusLine = execute1.getStatusLine();
 
-        System.out.println("==============="+statusLine);
-        HttpEntity entity = execute1.getEntity();
-        System.out.println("==============="+entity);
-        String s = EntityUtils.toString(entity, "utf-8");
-        System.out.println(s);
+        // 1.访问统一认证登陆网页,获取后续post登陆验证所需参数
+        String cookie1=null;
+        HttpGet httpGet_authserver_login=new HttpGet("https://ids.cqupt.edu.cn/authserver/login?service=http%3A%2F%2Fjwzx.cqupt.edu.cn%2Ftysfrz%2Findex.php");
+        CloseableHttpResponse authserver_login = httpClient.execute(httpGet_authserver_login);
+        // 获取cookie
+        Header[] cookies = authserver_login.getHeaders("Set-Cookie");
+        for (Header header:cookies){
+            HeaderElement[] elements = header.getElements();
+            for (HeaderElement headerElement:elements){
+                String name = headerElement.getName();
+                String value = headerElement.getValue();
+                cookie1=name+"="+value;
+            }
+        }
+        //获取It\execution\_eventId\rmShown,这四个参数数据将在验证统一身份时，作为表单参数一起提交。
+        Map<String,String> form=new HashMap<>();
 
-        Header[] allHeaders = execute1.getAllHeaders();
-        System.out.println("===============header");
-        /*for (Header header:allHeaders){
-            System.out.println(header);
-            System.out.println(Arrays.toString(header.getElements()));
-        }*/
+        HttpEntity authserver_loginEntity = authserver_login.getEntity();
+        String s = EntityUtils.toString(authserver_loginEntity);
+        Document parse = Jsoup.parse(s);
+        Elements input = parse.getElementsByTag("input");
+        for (Element element:input){
+            String name = element.attr("name");
+            String value = element.attr("value");
+
+            if ("lt".equals(name)||"execution".equals(name)||"_eventId".equals(name)||"rmShown".equals(name)){
+                form.put(name,value);
+            }
+
+        }
+
+
+        System.out.println("========第一次请求统一身份验证=========："+cookie1);
+
+
+        // 2.再次访问，这一次使用post，同时将第一次访问获取的cookie添加在请求头里面，同时添加统一认证身份
+
+        //开始之前定义一个字符串，用来存post请求后，身份验证成功重定向的地址。
+        String location=null;
+
+        HttpPost httpPost_authserver_login=new HttpPost("https://ids.cqupt.edu.cn/authserver/login?service=http%3A%2F%2Fjwzx.cqupt.edu.cn%2Ftysfrz%2Findex.php");
+        // 2.1 设置参数
+        List<NameValuePair> basicNameValuePairList=new ArrayList<>();
+        basicNameValuePairList.add(new BasicNameValuePair("username","1655728"));
+        basicNameValuePairList.add(new BasicNameValuePair("password","98LD99LP"));
+        basicNameValuePairList.add(new BasicNameValuePair("lt",form.get("lt")));
+        basicNameValuePairList.add(new BasicNameValuePair("execution",form.get("execution")));
+        basicNameValuePairList.add(new BasicNameValuePair("_eventId",form.get("_eventId")));
+        basicNameValuePairList.add(new BasicNameValuePair("rmShown",form.get("rmShown")));
+
+        System.out.println(basicNameValuePairList);
+        // 2.2创建from表单实体
+        UrlEncodedFormEntity urlEncodedFormEntity=new UrlEncodedFormEntity(basicNameValuePairList,"utf-8");
+        // 2.3将from表单添加到post请求里
+
+
+        httpPost_authserver_login.setEntity(urlEncodedFormEntity);
+        // 2.4 设置相应头，cookie
+        httpPost_authserver_login.setHeader("Cookie",cookie1);
+        httpPost_authserver_login.setHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+
+        HttpEntity entity1 = httpPost_authserver_login.getEntity();
+        System.out.println(entity1);
+        Header[] allHeaders = httpPost_authserver_login.getAllHeaders();
+        System.out.println(Arrays.toString(allHeaders));
+        String method = httpPost_authserver_login.getMethod();
+        System.out.println("=========method======:"+method);
+
+        // 2.5 发起请求
+        CloseableHttpResponse execute = httpClient.execute(httpPost_authserver_login);
+        // 2.6 判断响应状态码，如果为302说明身份验证成功，进行跳转了，如果为200说明身份验证失败。
+        int statusCode = execute.getStatusLine().getStatusCode();
+        System.out.println(statusCode);
+        if (statusCode==HttpStatus.SC_MOVED_TEMPORARILY){
+            //身份验证成功，获取重定向的url地址。响应头名称为location
+            Header[] locations = execute.getHeaders("Location");
+            for (Header header:locations){
+                //获取Location中的元素
+                HeaderElement[] elements = header.getElements();
+                for (HeaderElement headerElement:elements){
+                    String name = headerElement.getName();
+                    String value = headerElement.getValue();
+                    location=name+"="+value;
+                }
+            }
+        }
+        System.out.println("========身份验证成功获取的location=========："+location);
 
 
 
-        /*//发起post请求
-        HttpPost httpPost=new HttpPost("https://ids.cqupt.edu.cn/authserver/login?service=http%3A%2F%2Fjwzx.cqupt.edu.cn%2Ftysfrz%2Findex.php");
-        //设置参数
-        List<NameValuePair> nameValuePairs=new ArrayList<>();
-        nameValuePairs.add(new BasicNameValuePair("suername","1655728"));
-        nameValuePairs.add(new BasicNameValuePair("passeord","98LD99LP"));
-        //创建form表单
-        UrlEncodedFormEntity urlEncodedFormEntity=new UrlEncodedFormEntity(nameValuePairs,"utf-8");
-        //将form表单添加到post请求里面
-        httpPost.setEntity(urlEncodedFormEntity);
-        httpPost.setHeader("Cookie","JSESSIONID=0000J9XetLMYckAt-Icm8LsySNg:199j8h2se");
 
-        //发起请求
-        CloseableHttpResponse execute = httpClient.execute(httpPost);
-        //获取相应信息
-        System.out.println("=====status=====:"+execute.getStatusLine());*/
+
+
+        // 3.首次访问教务在线首页获取无登陆状态时的cookie，该cookie用于最后一步身份验证成功后，验证表示登陆身份的cookie。
+
+        String first_PHPSESSION=null;
+        // 3.1创建get请求
+        HttpGet httpGet_first_jwzx=new HttpGet("http://jwzx.cqupt.edu.cn/");
+        // 3.2 发起get请求
+        CloseableHttpResponse jwzx_cqupt_edu_cn = httpClient.execute(httpGet_first_jwzx);
+        // 获取响应状态码，为200在继续后续动作
+        if (HttpStatus.SC_OK==jwzx_cqupt_edu_cn.getStatusLine().getStatusCode()){
+            // 3.3 获取相应的cookie
+            Header[] setCookieHeaders = jwzx_cqupt_edu_cn.getHeaders("Set-Cookie");
+            // 3.4 通过Set-Cookie头过去cookie值
+            for (Header header:setCookieHeaders){
+                HeaderElement[] elements = header.getElements();
+                for (HeaderElement headerElement:elements){
+                    String name = headerElement.getName();
+                    String value = headerElement.getValue();
+                    first_PHPSESSION=name+"="+value;
+                }
+            }
+        }
+        System.out.println("========第一次请求教务在线获取的cookie=========："+first_PHPSESSION);
+
+        // 4.访问重定向的地址，GET请求，获取身份验证成功后，代表用户身份的Cookie
+
+
+        // 3.1 定义一个字符串变量，用来存储身份验证成功的Cookie,PHPSESSION，现在可以通过该Cookie以成功登陆的身份来访问教务在线，获取教务数据。
+        String success_PHPSESSION=null;
+        // 3.2 创建一get请求,地址为第二次POST请求成功后，获得location，重定向地址。
+        HttpGet httpGet_tysfrz_index=new HttpGet(location);
+       /* httpGet_tysfrz_index.getParams().setParameter("http.protocol.allow-circular-redirects",true);
+        httpGet_tysfrz_index.getParams().setParameter("http.protocol.max-redirects",200);*/
+        // 3.3 添加header，设置请求体cookie，PHPSESSION（该PHPSESSION为无登陆状态下首次访问教务在线首页获取的cookie）
+        httpGet_tysfrz_index.setHeader("Cookie",first_PHPSESSION);
+
+        httpGet_tysfrz_index.setHeader("Upgrade-Insecure-Requests","1");
+        httpGet_tysfrz_index.setHeader("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0");
+        // 3.4 发出请求
+        CloseableHttpResponse tydfrz_index = httpClient.execute(httpGet_tysfrz_index);
+        // 3.5 获取响应状态，如果为302为成功，如果为200为失败。
+        int statusCode1 = tydfrz_index.getStatusLine().getStatusCode();
+        System.out.println(statusCode1);
+        if (statusCode1==HttpStatus.SC_MOVED_TEMPORARILY){
+            //成功，获取认证成功后返回的代表合法身份的cookie
+            Header[] setCookies = tydfrz_index.getHeaders("Set-Cookie");
+            for (Header setcookie:setCookies){
+                HeaderElement[] elements = setcookie.getElements();
+                for (HeaderElement headerElement:elements){
+                    String name = headerElement.getName();
+                    String value = headerElement.getValue();
+                    success_PHPSESSION=name+"="+value;
+                }
+            }
+        }
+
+        // 5.通过验证成功后返回的cookie去访问教务在线，获取授课计划html页面
+        HttpGet httpGet_sjkh = new HttpGet("http://jwzx.cqupt.edu.cn/student/skjh.php");
+        // 5.0 为get请求设置请求头，cookie
+        httpGet_sjkh.setHeader("Cookie",success_PHPSESSION);
+        // 5.1 发起请求
+        CloseableHttpResponse skjh_response = httpClient.execute(httpGet_sjkh);
+        // 5.2 获取响应状态码，为200在继续
+        if (HttpStatus.SC_OK==skjh_response.getStatusLine().getStatusCode()){
+            HttpEntity entity = skjh_response.getEntity();
+            String skjh_html = EntityUtils.toString(entity, "utf-8");
+            System.out.println(skjh_html);
+        }
+
 
     }
 
