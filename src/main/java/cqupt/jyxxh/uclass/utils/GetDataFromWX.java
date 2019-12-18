@@ -43,7 +43,7 @@ public class GetDataFromWX {
         //访问参数拼接
         String param="appid="+APPID+"&secret="+ APPSERCET +"&js_code="+code+"&grant_type=authorization_code";
         //发起访问 返回json字符串
-        String result=SendHttpRquest.getJsonfromhttp(url,param);
+        String result=SendHttpRquest.getJson(url,param);
         //创建jackson核心对象
         ObjectMapper objectMapper=new ObjectMapper();
         //解析json字符串，返回指定键的值

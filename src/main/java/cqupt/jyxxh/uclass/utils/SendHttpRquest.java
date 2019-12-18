@@ -31,6 +31,8 @@ public  class SendHttpRquest {
 
     final static Logger logger= LoggerFactory.getLogger(SendHttpRquest.class);
 
+    //httplient对象
+    private static CloseableHttpClient httpClient= HttpClients.createDefault();
 
     /**
      * 访问指定的接口获得json数据
@@ -42,7 +44,7 @@ public  class SendHttpRquest {
      * @param param    访问参数列表（完整）              appid=APPID&secret=SECRET&js_code=JSCODE&grant_type=authorization_code
      * @return        访问结果，json字符串
      */
-    public static String getJsonfromhttp(String url,String param)  {
+    public static String getJson(String url, String param)  {
         //定义访问的返回值
         String json=null;
         //声明URL对象
@@ -75,12 +77,11 @@ public  class SendHttpRquest {
      * @return  html页面（字符串形式）
      * @throws IOException   创建get请求，参数异常。
      */
-    public static String getHtmlFromHttp(String url,String param) throws IOException {
+    public static String getHtmlWithParam(String url, String param) throws IOException {
 
         String html=null;
 
-        //1.生成httpclient
-        CloseableHttpClient httpClient= HttpClients.createDefault();
+        //1.定义请求响应结果
         CloseableHttpResponse response;
         //2.创建get请求
         HttpGet httpGet=new HttpGet(url+"?"+param);
@@ -92,12 +93,12 @@ public  class SendHttpRquest {
             HttpEntity entity = response.getEntity();
              html = EntityUtils.toString(entity, "utf-8");
              if (logger.isDebugEnabled()){
-                 logger.debug("【网络请求工具类（getHtmlFromHttp）】获取html页面成功");
+                 logger.debug("【网络请求工具类（getHtmlWithParam）】获取html页面成功");
              }
         }else {
             //4.2 不为200
             if (logger.isDebugEnabled()){
-                logger.debug("【【网络请求工具类（getHtmlFromHttp）】获取html失败");
+                logger.debug("【网络请求工具类（getHtmlWithParam）】获取html失败");
             }
         }
         //5.返回获取的html界面，以字符串方式
@@ -106,16 +107,56 @@ public  class SendHttpRquest {
 
 
     /**
-     * 访问指定url，获取html页面
+     * 访问指定url，带cookie。
+     * @param url 访问地址
+     * @param cookie cookie
+     * @return html页面（字符串形式）
+     * @throws IOException 发起请求异常
+     */
+    public static String getHtmlWithCookie(String url,String cookie) throws IOException {
+
+        String html=null;
+
+
+        //1.创建get请求
+        HttpGet httpGet=new HttpGet(url);
+        //2.为get请求设置cookie
+        httpGet.setHeader("Cookie",cookie);
+        //3.发起请求
+        CloseableHttpResponse response = httpClient.execute(httpGet);
+        //4.判断响应代码,如果为200,进行下一步。
+        if (HttpStatus.SC_OK==response.getStatusLine().getStatusCode()){
+            //4.1将请求结果（html页面）转换为string类型
+            html = EntityUtils.toString(response.getEntity(), "utf-8");
+
+            //日志
+            if (logger.isDebugEnabled()){
+                logger.debug("【网络请求工具类（getHtmlWithCookie）】获取html页面成功");
+            }
+        }else {
+            //4.2,请求失败
+            if (logger.isInfoEnabled()){
+                logger.debug("【网络请求工具类（getHtmlWithCookie）】获取html失败");
+            }
+        }
+
+
+        //5.返回
+        return html;
+    }
+
+
+    /**
+     * 访问指定url，获取html页面,不许要参数
      * @param url 访问地址
      * @return html页面（字符串）
      * @throws IOException 发起请求异常
      */
-    public static String getHtmlFromHttp(String url) throws IOException {
+    public static String getHtml(String url) throws IOException {
         String html=null;
 
         //1.生成httpclient
-        CloseableHttpClient httpClient= HttpClients.createDefault();
+
         CloseableHttpResponse response;
         //2.创建get请求
         HttpGet httpGet=new HttpGet(url);
@@ -127,12 +168,12 @@ public  class SendHttpRquest {
             HttpEntity entity = response.getEntity();
             html = EntityUtils.toString(entity, "utf-8");
             if (logger.isDebugEnabled()){
-                logger.debug("【网络请求工具类（getHtmlFromHttp）】获取html页面成功");
+                logger.debug("【网络请求工具类（getHtml）】获取html页面成功");
             }
         }else {
             //4.2 不为200
             if (logger.isDebugEnabled()){
-                logger.debug("【【网络请求工具类（getHtmlFromHttp）】获取html失败");
+                logger.debug("【【网络请求工具类（getHtml）】获取html失败");
             }
         }
         //5.返回获取的html界面，以字符串方式

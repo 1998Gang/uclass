@@ -281,7 +281,7 @@ public class Parse {
         Document doc= Jsoup.parse(html);
 
         // 2.获取tbody（教务在线学生课表的 表格）,实际tbody只有一个
-        Elements tbodys=null ;
+        Elements tbodys=null;
         switch (type){
             case "s":{
                 Element stuPanel=doc.getElementById("stuPanel");
@@ -298,9 +298,9 @@ public class Parse {
         }
 
 
-        /*assert tbodys != null;*/
-        // 3.解析课表表格,因为课表只有一个body（第一个），所有这里直接用索引0来获取body。
 
+        // 3.解析课表表格,因为课表只有一个body（第一个），所有这里直接用索引0来获取body。
+        assert tbodys != null;
         Element tbody = tbodys.get(0);
         //解析表格 <tr>代表上课的节数,一共8个。第3个<tr>代表午间休息，第6个<tr>代表下午大课间,无用去掉。   <td>标签代表上课的星期数
             Elements trs= tbody.select("tr");
@@ -356,7 +356,7 @@ public class Parse {
                 //将具体星期的课程放入具体节数里面
                 jj.add(xx);
             }
-        /*}*/
+
 
         return jj;
     }
@@ -486,7 +486,7 @@ public class Parse {
     /**
      * 获取字符串的编码格
      * @param str 字符串
-     * @return
+     * @return 编码类型
      */
     public static String getEncoding(String str){
         String encode;
@@ -498,7 +498,7 @@ public class Parse {
                 return encode;
             }
         }
-        catch(Exception ex) {}
+        catch(Exception ignored) {}
 
         encode = "ASCII";
         try
@@ -507,7 +507,7 @@ public class Parse {
                 return "字符串<< " + str + " >>中仅由数字和英文字母组成，无法识别其编码格式";
             }
         }
-        catch(Exception ex) {}
+        catch(Exception ignored) {}
 
         encode = "ISO-8859-1";
         try
@@ -516,7 +516,7 @@ public class Parse {
                 return encode;
             }
         }
-        catch(Exception ex) {}
+        catch(Exception ignored) {}
 
         encode = "GB2312";
         try
@@ -525,7 +525,7 @@ public class Parse {
                 return encode;
             }
         }
-        catch(Exception ex) {}
+        catch(Exception ignored) {}
 
         encode = "UTF-8";
         try
@@ -534,7 +534,7 @@ public class Parse {
                 return encode;
             }
         }
-        catch(Exception ex) {}
+        catch(Exception ignored) {}
 
         /*
          *......待完善
@@ -544,5 +544,33 @@ public class Parse {
     }
 
 
+    public static Map<String, String> parseHtmlToCJZC(String cjzcHtml) {
+        Map<String,String> cjzc=new HashMap<>();
+        // 1.jsoup解析
+        Document doc = Jsoup.parse(cjzcHtml);
+        // 2.获取html页面 所有<tbody>标签
+        Elements tbodys = doc.getElementsByTag("tbody");
+        // 3.存放数据的标签是第一个，也是唯一一个tbody，所有直接根据索引获取
+        Element tbody = tbodys.get(0);
+        // 4.获取tbody标签内的所有<tr>标签，<tr>标签代表一门课程的数据。
+        Elements trs = tbody.getElementsByTag("tr");
+        // 5.遍历所有<tr>标签，取出数据。
+        for (Element tr:trs){
+            //5.1 获取<tr>标签里的<td>标签，<td>代表具体数据，第一个<td>是教学班，第五个<td>是课程分类（理论|实验实践），第六个<td>是成绩组成（字符串）
+            Elements tds = tr.getElementsByTag("td");
 
+            //教学班
+            String jxb=tds.get(0).text();
+            //课程分类
+            String kcfl=tds.get(4).text();
+            //成绩组成
+            String cjzcString=tds.get(5).text();
+
+            //5.2将这些数据放到map集合中，课程分类与成绩组成为value，教学班为key
+            cjzc.put(jxb,"["+kcfl+"]"+cjzcString);
+        }
+
+
+        return cjzc;
+    }
 }
