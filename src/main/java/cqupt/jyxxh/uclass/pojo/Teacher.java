@@ -1,11 +1,13 @@
 package cqupt.jyxxh.uclass.pojo;
 
+import java.io.Serializable;
+
 /**
  * @author 彭渝刚
  * @version 1.0.0
  * @date created in 21:53 2019/11/2
  */
-public class Teacher implements EduAccount {
+public class Teacher implements EduAccount, Serializable {
 
     private String teaId;//教师的教师号
     private String teaName;//教师的name
@@ -14,7 +16,8 @@ public class Teacher implements EduAccount {
     private String zc;//教师的职称
     private String jysm;//教师的教研室
     private String yxm;//教师的院系名
-    private String lxyx;//教师的联系邮箱
+    private String email;//教师的联系邮箱
+    private String phone;//电话号码
 
     @Override
     public String toString() {
@@ -26,7 +29,8 @@ public class Teacher implements EduAccount {
                 ", zc='" + zc + '\'' +
                 ", jysm='" + jysm + '\'' +
                 ", yxm='" + yxm + '\'' +
-                ", lxyx='" + lxyx + '\'' +
+                ", email='" + email + '\'' +
+                ", phone='" + phone + '\'' +
                 '}';
     }
 
@@ -101,11 +105,19 @@ public class Teacher implements EduAccount {
         this.yxm = yxm;
     }
 
-    public String getLxyx() {
-        return lxyx;
+    public String getEmail() {
+        return email;
     }
 
-    public void setLxyx(String lxyx) {
-        this.lxyx = lxyx;
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 }

@@ -39,11 +39,11 @@ public class UclassKebiao {
      * @return  以json数组形式返回完整的课表信息
      */
     @RequestMapping(value = "teakebiao",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
-    public ResponseEntity<ArrayList<ArrayList<ArrayList<KeChengInfo>>>> getTeaKebiao(@RequestParam("teaId") String teaId){
+    public ResponseEntity<String> getTeaKebiao(@RequestParam("teaId") String teaId){
 
         try {
             //1.获取课表
-            ArrayList<ArrayList<ArrayList<KeChengInfo>>> teaKebiao = kebiaoService.getKebiao(teaId, "t");
+            String teaKebiao = kebiaoService.getKebiao(teaId, "t");
 
             //日志
             if (logger.isInfoEnabled()){
@@ -65,11 +65,11 @@ public class UclassKebiao {
      * @return 以json数组形式返回完整课表信息
      */
     @RequestMapping(value = "stukebiao",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
-    public ResponseEntity<ArrayList<ArrayList<ArrayList<KeChengInfo>>>> getStuKebiao(@RequestParam("xh") String xh){
+    public ResponseEntity<String> getStuKebiao(@RequestParam("xh") String xh){
 
         try {
             // 1.获取课表
-            ArrayList<ArrayList<ArrayList<KeChengInfo>>> stuKebiao = kebiaoService.getKebiao(xh,"s");
+            String stuKebiao = kebiaoService.getKebiao(xh,"s");
 
 
             //日志

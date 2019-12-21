@@ -23,6 +23,4 @@
     <!--3.开启注解事务-->
     <tx:annotation-driven transaction-manager="dataSourceTransactionManager"/>
 
-
-
 </beans>

@@ -1,5 +1,7 @@
 package cqupt.jyxxh.uclass.pojo;
 
+import java.io.Serializable;
+
 /**
  * 学生信息类
  *
@@ -8,7 +10,7 @@ package cqupt.jyxxh.uclass.pojo;
  * @version 1.0.0
  * @date created in 22:45 2019/11/1
  */
-public class Student implements EduAccount {
+public class Student implements EduAccount, Serializable {
 
     private String xh;//学号 主键
     private String xm;//姓名
@@ -21,7 +23,8 @@ public class Student implements EduAccount {
     private String xjzt;//学籍状态
     private String mz;//民族
     private String csrq;//出生日期
-    private String dhhm;//电话号码
+    private String stu_phone;//电话号
+    private String stu_email;//邮箱
 
     @Override
     public String toString() {
@@ -37,9 +40,15 @@ public class Student implements EduAccount {
                 ", xjzt='" + xjzt + '\'' +
                 ", mz='" + mz + '\'' +
                 ", csrq='" + csrq + '\'' +
-                ", dhhm='" + dhhm + '\'' +
+                ", stu_phone='" + stu_phone + '\'' +
+                ", stu_email='" + stu_email + '\'' +
+                ", phone='" + phone + '\'' +
+                ", email='" + email + '\'' +
                 '}';
     }
+
+    private String phone;//电话号码
+    private String email;//邮箱
 
     public String getXh() {
         return xh;
@@ -144,11 +153,19 @@ public class Student implements EduAccount {
         this.csrq = csrq;
     }
 
-    public String getDhhm() {
-        return dhhm;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setDhhm(String dhhm) {
-        this.dhhm = dhhm;
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

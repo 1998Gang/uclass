@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 【工具类】
  * 用于解析相关数据的工具类
  * 解析工具类，所有方法均为静态方法。
- *
  *
  * @author 彭渝刚
  * @version 1.0.0
@@ -30,7 +30,7 @@ import java.util.Map;
  */
 public class Parse {
 
-    final static Logger logger= LoggerFactory.getLogger(Parse.class);  //日志
+    private final static Logger logger= LoggerFactory.getLogger(Parse.class);  //日志
 
 
 
@@ -49,12 +49,12 @@ public class Parse {
             //接收传入的attributes（LDAP查询的返回值，转化为字符串用于后续解析，同时去掉字符串前后的 “{” “}” 符号,以及字符串中的空格。
             String ldapBack=attributes.toString().substring(1,attributes.toString().length()-1).replace(" ","");
             //将转化后的字符串 以“，”分割开放入数组
-            String ldapBackArry[]=ldapBack.split(",");
+            String[] ldapBackArry = ldapBack.split(",");
             //循环数组 并再次解析键与值
-            for (int i=0;i<ldapBackArry.length;i++){
-                String key=ldapBackArry[i].substring(0,ldapBackArry[i].indexOf("="));
-                String value=ldapBackArry[i].substring(ldapBackArry[i].indexOf(":")+1);
-                attrsMap.put(key,value);
+            for (String s : ldapBackArry) {
+                String key = s.substring(0, s.indexOf("="));
+                String value = s.substring(s.indexOf(":") + 1);
+                attrsMap.put(key, value);
             }
         }catch (Exception e){
             logger.error("【解析操作（ParseAttributes）】解析失败，未知错误",e);
@@ -76,7 +76,7 @@ public class Parse {
     public static String decodeUnicode(String theString) {
         char aChar;
         int len = theString.length();
-        StringBuffer outBuffer = new StringBuffer(len);
+        StringBuilder outBuffer = new StringBuilder(len);
         for (int x = 0; x < len;) {
             aChar = theString.charAt(x++);
             if (aChar == '\\') {
@@ -398,13 +398,17 @@ public class Parse {
         keChengInfo.setJsm(s1[6].substring(s1[6].indexOf(">")+1,s1[6].indexOf("修")-2));
         //课程类别
         keChengInfo.setKclb(s1[6].substring((s1[6].indexOf("修")-1),s1[6].indexOf("修")+1));
-        //学分，如果是学生进行该步骤
+        //如果是学生进行该步骤
         if ("s".equals(type)){
+            //学分
             keChengInfo.setCredit(s1[6].substring(s1[6].lastIndexOf(" ")+1,s1[6].indexOf("</span>")));
             //上课状态，如  自修 重修 再修等
             if (s1.length==11){
                 keChengInfo.setSklx(s1[8].substring(s1[8].indexOf("\">")+2,s1[8].indexOf("</")));
             }
+            //成绩组成，根据教学班获取
+
+
         }
         //上课班级类别以及班级号，如果是老师进行该步骤
         if ("t".equals(type)){

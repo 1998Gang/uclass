@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * 用户信息接口 学生类、老师类都实现该接口,方便返回信息。
  *
  */
-public interface EduAccount {
+public interface EduAccount  {
 
     /**
      * 获取子类的类型 t为老师 s为学生

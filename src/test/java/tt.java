@@ -35,8 +35,11 @@ public class tt {
     @Test
     public void skjhParse() throws IOException {
         GetDataFromJWZX getDataFromJWZX=new GetDataFromJWZX();
-        Map<String, String> cjzcByTYSF = getDataFromJWZX.getCjzcByPhpsessid("PHPSESSID=ST-188066-InxA69KP1d6rUUMC6GtB-RbyM-ids1-1576676660345");
+        Map<String, String> cjzcByTYSF = getDataFromJWZX.getCjzcByPhpsessid("2017214033","98LD99LP");
         System.out.println(cjzcByTYSF);
     }
+
+
+
 
 }

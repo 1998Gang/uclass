@@ -46,7 +46,7 @@
     </dependency>
 
 
-    <!--3.数据库连接池-->
+    <!--3.(mysql)数据库连接池-->
     <dependency>
       <groupId>com.alibaba</groupId>
       <artifactId>druid</artifactId>
@@ -74,7 +74,7 @@
       <artifactId>mybatis</artifactId>
       <version>3.4.4</version>
     </dependency>
-    <!--6.2 mybatis与spring整合包-->
+    <!--6.2  mybatis与spring整合包-->
     <dependency>
       <groupId>org.mybatis</groupId>
       <artifactId>mybatis-spring</artifactId>

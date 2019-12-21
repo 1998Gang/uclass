@@ -9,8 +9,6 @@ import cqupt.jyxxh.uclass.utils.GetDataFromWX;
 
 import cqupt.jyxxh.uclass.utils.Parse;
 import cqupt.jyxxh.uclass.utils.SendHttpRquest;
-import cqupt.jyxxh.uclass.utils.yige.AuthenResult;
-import cqupt.jyxxh.uclass.utils.yige.UserAuth;
 import org.apache.http.*;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -37,30 +35,7 @@ import java.util.*;
 
 public class test {
 
-    /**
-     * 使用LDAP验证统一身份
-     */
-    @Test
-    public  void yige() {
 
-        AuthenResult authenResult=UserAuth.authen("7800004","SSD");
-        Attributes attrs = authenResult.getAttrs();
-        HashMap<String, String> stringStringHashMap = Parse.ParseAttributes(attrs);
-        System.out.println(stringStringHashMap);
-        HashMap<String,String> attrsMap=new HashMap<>();
-        String ldapBack=attrs.toString().substring(1,attrs.toString().length()-1).replace(" ","");
-        String[] ldapBackArry = ldapBack.split(",");
-
-        for (String s : ldapBackArry) {
-            String key = s.substring(0, s.indexOf("="));
-            String value = s.substring(s.indexOf(":") + 1);
-            attrsMap.put(key, value);
-        }
-
-        System.out.println(attrsMap);
-
-
-    }
 
     /**
      * 测试GetinfoFromWx
@@ -81,38 +56,6 @@ public class test {
 
     }
 
-    @Test
-    public void getEduAccount(){
-        AuthenResult authenResult=UserAuth.authen("0101303","SSD");
-        Attributes attrs = authenResult.getAttrs();
-        HashMap<String, String> stringStringHashMap = Parse.ParseAttributes(attrs);
-        String cn = stringStringHashMap.get("cn");
-
-        String encoding = Parse.getEncoding(cn);
-        System.out.println(encoding);
-
-
-
-
-
-
-        SendHttpRquest sendHttpRquest=new SendHttpRquest();
-        String JsonInfo = sendHttpRquest.getJson("http://jwzx.cqupt.edu.cn/data/json_TeacherSearch.php","searchKey="+encoding);
-        System.out.println(JsonInfo);
-
-        //4.1.4 将josn数据解析为Teacher对象
-        List<Teacher> teachers = Parse.ParseJsonToTeacher(JsonInfo);
-        for (Teacher teacher:teachers){
-            //判断教师姓名，与教师所属学院，同时符合的为正确的教师
-            if (Parse.isbaohan("经管", teacher.getYxm())){
-                System.out.println(teacher);
-            }
-        }
-
-
-
-
-    }
 
 
     public  static boolean isbaobao(String A,String B){
@@ -396,11 +339,18 @@ public class test {
         jedis.auth("MtBv2omyQfTHYQpb1yLX");
 
         jedis.select(1);
-        jedis.set("keyss","1");
-        jedis.set("keyss","2");
-        Set<String> keys = jedis.keys("*");
+        /*for (int i=1;i<100;i++){
+            jedis.set("keyss"+i,String.valueOf(i));
+        }*/
+
+
+        Set<String> keys = jedis.keys("key*");
         System.out.println(keys);
-        System.out.println(jedis.get("keyss"));
+
+        for (String s:keys){
+            System.out.println(jedis.get(s));
+        }
+
     }
 
     /**
@@ -414,7 +364,7 @@ public class test {
         jedisPoolConfig.setMaxTotal(20);
         jedisPoolConfig.setMaxIdle(10);
         //3.创建连接池对象
-        JedisPool jedisPool=new JedisPool("118.25.64.213",6379);
+        JedisPool jedisPool=new JedisPool(jedisPoolConfig,"118.25.64.213",6379);
         Jedis jedis = jedisPool.getResource();
         jedis.set("jedispool","123");
         String jedispool = jedis.get("jedispool");
@@ -530,12 +480,6 @@ public class test {
         //创建一个httpclient对象
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
-
-
-
-
-
-
         // 1.访问统一认证登陆网页,获取后续post登陆验证所需参数
         String cookie1=null;
         HttpGet httpGet_authserver_login=new HttpGet("https://ids.cqupt.edu.cn/authserver/login?service=http%3A%2F%2Fjwzx.cqupt.edu.cn%2Ftysfrz%2Findex.php");
@@ -544,9 +488,12 @@ public class test {
         Header[] cookies = authserver_login.getHeaders("Set-Cookie");
         for (Header header:cookies){
             HeaderElement[] elements = header.getElements();
+            System.out.println(elements.length);
             for (HeaderElement headerElement:elements){
+
                 String name = headerElement.getName();
                 String value = headerElement.getValue();
+                System.out.println(name+value);
                 cookie1=name+"="+value;
             }
         }
@@ -603,6 +550,7 @@ public class test {
             for (Header header:locations){
                 //获取Location中的元素
                 HeaderElement[] elements = header.getElements();
+                System.out.println(elements.length);
                 for (HeaderElement headerElement:elements){
                     String name = headerElement.getName();
                     String value = headerElement.getValue();
@@ -622,18 +570,9 @@ public class test {
         // 3.上一步获取的重定向地址
         HttpGet httpGet_ticket=new HttpGet(location);
 
-        //httpGet_ticket.setHeader("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0");
-        //httpGet_ticket.setHeader("Upgrade-Insecure-Requests","1");
-       // httpGet_ticket.setHeader("Host","jwzx.cqupt.edu.cn");
-        //httpGet_ticket.setHeader("Connection", "keep-alive");
-        //httpGet_ticket.setHeader("Accept-Language","zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2");
-        //httpGet_ticket.setHeader("Accept-Encoding","gzip, deflate");
-        httpGet_ticket.setHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-
-
 
         CloseableHttpResponse ticket = httpClient.execute(httpGet_ticket);
-        int statusCode_ticket = ticket.getStatusLine().getStatusCode();
+        /*int statusCode_ticket = ticket.getStatusLine().getStatusCode();
         System.out.println("=========ticket=========："+statusCode_ticket);
         Header[] allHeaders11 = ticket.getAllHeaders();
         for (Header header:allHeaders11){
@@ -643,7 +582,7 @@ public class test {
                 System.out.print(element+" ");
             }
             System.out.println();
-        }
+        }*/
 
 
 
@@ -657,7 +596,19 @@ public class test {
         skjh.getStatusLine().getStatusCode();
         HttpEntity entity = skjh.getEntity();
         String skjh_html = EntityUtils.toString(entity, "utf-8");
-        System.out.println(skjh_html);
+
+        //循环打印输出
+        Map<String, String> map = Parse.parseHtmlToCJZC(skjh_html);
+        Set<String> strings = map.keySet();
+        for (String ss:strings){
+            String s1 = map.get(ss);
+
+            System.out.println(s1);
+        }
+        System.out.println(map);
+
+
+
 
 
     }

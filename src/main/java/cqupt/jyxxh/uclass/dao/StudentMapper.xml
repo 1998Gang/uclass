@@ -12,8 +12,8 @@
     <!--2.insertStudent,插入条学生信息-->
     <insert id="insertStudent" parameterType="Student" >
         insert into
-        uclass_students_info(xh,xm,xb,ykth,yxm,zym,nj,bj,xjzt,mz,csrq,dhhm)
-        values(#{xh},#{xm},#{xb},#{ykth},#{yxm},#{zym},#{nj},#{bj},#{xjzt},#{mz},#{csrq},#{dhhm})
+        uclass_students_info(xh,xm,xb,ykth,yxm,zym,nj,bj,xjzt,mz,csrq,stu_phone,stu_email)
+        values(#{xh},#{xm},#{xb},#{ykth},#{yxm},#{zym},#{nj},#{bj},#{xjzt},#{mz},#{csrq},#{stu_phone},#{stu_email})
     </insert>
 
 

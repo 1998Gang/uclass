@@ -15,10 +15,10 @@
         delete from uclass_teacher_info where teaId='${value}'
     </delete>
 
-    <!--3.插入一条新教务账号数据-->
+    <!--3.插入一条新教师教务账号数据-->
     <insert id="insertTeacher" parameterType="Teacher">
-        insert into uclass_teacher_info(teaId,teaName,xb,ykth,zc,jysm,yxm)
-        values (#{teaId},#{teaName},#{xb},#{ykth},#{zc},#{jysm},#{yxm})
+        insert into uclass_teacher_info(teaId,teaName,xb,ykth,zc,jysm,yxm,email,phone)
+        values (#{teaId},#{teaName},#{xb},#{ykth},#{zc},#{jysm},#{yxm},#{email},#{phone})
     </insert>
 
     <!--4.根据一卡通号查询数据条数（不是0，就是1），用来验证数据库中有没有这个教务用户-->

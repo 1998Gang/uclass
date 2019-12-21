@@ -89,13 +89,13 @@ public class EduAccountService {
             case "16":
             case "72": {
                 eduAccount = getDataFromJWZX.getStudentInfoByTYSH(ykth, password);
+                System.out.println("====getEduAccountInfoByYkth====="+(Student)eduAccount);
                 break;
             }
             // 4.3
             default:{
                 //不支持的教务账户，抛出异常！
-                Exception bzcjwzh = new Exception("Unsupported academic administration account");
-                throw bzcjwzh;
+                throw new Exception("Unsupported academic administration account");
             }
         }
         return eduAccount;

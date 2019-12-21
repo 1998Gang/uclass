@@ -31,6 +31,7 @@ public class GetDataFromJWZX {
     @Autowired
     private Authentication authentication;           //统一身份认证相关操作工具类
 
+
     @Value("${URLTeaInfoFromJWZX}")
     private  String URL_TEAINFO_FROM_JWZX;            //去教务在线请求教师信息的URL
 
@@ -49,6 +50,8 @@ public class GetDataFromJWZX {
     @Value("${URLStuSkjhFromJWZX}")
     private String URL_STUSKJH_FROM_JWZX;                //去教务在线获取学生课程成绩组成的URL
 
+    @Value("${URLAuthserverLoginToJWZX}")
+    private String URL_AUTHSERVER_LOGIN_TO_JWZX;         //统一身份认证平台URL（登陆教务在线）
 
 
     /**
@@ -217,20 +220,23 @@ public class GetDataFromJWZX {
 
 
     /**
-     * 获取成绩组成，通过访问教务在线的cookie值。
-     * @param phpsessid 模拟登陆教务在线成功后，获取的的cookie值，PHPSESSID。
-     * @return Map<String,String> 成绩组成的mao集合，key是[课程号]，value是[成绩组成]
-     * @throws IOException httpclient发起网络请求的异常（继续向上抛出）
+     * 获取学生所有课程的成绩组成
+     * @param ykth 一卡通号
+     * @param password 密码
+     * @return Map集合，key是教学班，value是成绩组成
+     * @throws IOException http请求异常
      */
-    public Map<String,String> getCjzcByPhpsessid(String phpsessid) throws IOException {
-        Map<String,String> cjzc=new HashMap<>();
+    public Map<String,String> getCjzcByPhpsessid(String ykth,String password) throws IOException {
+        Map<String,String> cjzc;
 
+        // 1.获取模拟登陆后代表用户登陆状态的cookie （PHPSESSID）
+        String phpsessid = SimulationLogin.getPhpsessid(URL_AUTHSERVER_LOGIN_TO_JWZX, ykth, password);
 
-            // 1.发起http请求（get）获取教务在 线上授课计划页的html代码
-            String cjzcHtml = SendHttpRquest.getHtmlWithCookie(URL_STUSKJH_FROM_JWZX, phpsessid);
-            System.out.println(cjzcHtml);
-            // 2.解析html
-            cjzc = Parse.parseHtmlToCJZC(cjzcHtml);
+        // 2.发起http请求（get）获取教务在 线上授课计划页的html代码
+        String cjzcHtml = SendHttpRquest.getHtmlWithCookie("http://jwzx.cqupt.edu.cn/student/skjh.php", phpsessid);
+        System.out.println(cjzcHtml);
+        // 3.解析html
+        cjzc = Parse.parseHtmlToCJZC(cjzcHtml);
 
 
         return cjzc;

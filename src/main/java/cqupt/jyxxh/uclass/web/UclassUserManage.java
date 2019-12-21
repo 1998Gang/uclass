@@ -158,18 +158,8 @@ public class UclassUserManage {
                 return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("绑定失败，可能是无效code");
             }
 
-            // 3. 根据openid获取用户信息，并判断该用户是否存在绑定
-            UclassUser uclassuser = userService.getUser(openid);
-            if ("y".equals(uclassuser.getIs_bind())){
-                // 4.1 用户已经存在绑定,响应409.
-                //日志
-                if (logger.isDebugEnabled()){
-                    logger.debug("【绑定接口（UclassUserManage.bind）】绑定失败!用户openid：[{}],已经绑定教务账号",openid);
-                }
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("该微信用户已经绑定了教务账号");
-            }
 
-            // 4.判断用户输入的统一身份是否正确
+            // 3.判断用户输入的统一身份是否正确
             boolean istrue = authentication.ldapCheck(ykth, password);
             if (!istrue){
                 // 4.1 用户输入的统一身份不正确，响应403
@@ -183,6 +173,19 @@ public class UclassUserManage {
                 return  ResponseEntity.status(HttpStatus.FORBIDDEN).body("统一身份验证失败");
             }
 
+
+            // 4. 根据openid获取用户信息，并判断该用户是否存在绑定
+            UclassUser uclassuser = userService.getUser(openid);
+            if ("y".equals(uclassuser.getIs_bind())){
+                // 4.1 用户已经存在绑定,删除绑定。
+                userService.deleteBind(uclassuser);
+                //日志
+                if (logger.isDebugEnabled()){
+                    logger.debug("【绑定接口（UclassUserManage.bind）】删除旧绑定账户成功!用户openid：[{}]",openid);
+                }
+
+            }
+
             // 5.给用户添加教务账户绑定
             boolean isSetBind = userService.setBind(uclassuser, ykth,password);
             if (isSetBind) {
@@ -190,6 +193,7 @@ public class UclassUserManage {
                 if (logger.isInfoEnabled()) {
                     logger.info("用户：[{}]绑定成功！统一认证码：[{}]", openid, ykth);
                 }
+
                 return ResponseEntity.status(HttpStatus.OK).body("绑定成功！");
             }else {
                 //日志

@@ -2,10 +2,14 @@ package cqupt.jyxxh.uclass.utils;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -15,8 +19,11 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 
-
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -35,7 +42,7 @@ public  class SendHttpRquest {
     private static CloseableHttpClient httpClient= HttpClients.createDefault();
 
     /**
-     * 访问指定的接口获得json数据
+     * GET请求，访问指定的接口获得json数据
      *
      *例如：https://api.weixin.qq.com/sns/jscode2session?appid=APPID&secret=SECRET&js_code=JSCODE&grant_type=authorization_code
      *
@@ -71,7 +78,7 @@ public  class SendHttpRquest {
     }
 
     /**
-     * 访问指定url(带参数)，获取html页面
+     * GET请求，访问指定url(带参数)，获取html页面
      * @param url  访问地址
      * @param param  参数列表
      * @return  html页面（字符串形式）
@@ -105,9 +112,42 @@ public  class SendHttpRquest {
         return html;
     }
 
+    /**
+     * 访问指定url，获取html页面,不许要参数
+     * @param url 访问地址
+     * @return html页面（字符串）
+     * @throws IOException 发起请求异常
+     */
+    public static String getHtml(String url) throws IOException {
+        String html=null;
+
+        //1.生成httpclient
+
+        CloseableHttpResponse response;
+        //2.创建get请求
+        HttpGet httpGet=new HttpGet(url);
+        //3.发送请求
+        response=httpClient.execute(httpGet);
+        //4.判断http响应码,200进行解析
+        if (response.getStatusLine().getStatusCode()== HttpStatus.SC_OK){
+            //4.1 获取响应实体
+            HttpEntity entity = response.getEntity();
+            html = EntityUtils.toString(entity, "utf-8");
+            if (logger.isDebugEnabled()){
+                logger.debug("【网络请求工具类（getHtml）】获取html页面成功");
+            }
+        }else {
+            //4.2 不为200
+            if (logger.isDebugEnabled()){
+                logger.debug("【【网络请求工具类（getHtml）】获取html失败");
+            }
+        }
+        //5.返回获取的html界面，以字符串方式
+        return html;
+    }
 
     /**
-     * 访问指定url，带cookie。
+     * GET请求，访问指定url，携带cookie，获取html页面。。
      * @param url 访问地址
      * @param cookie cookie
      * @return html页面（字符串形式）
@@ -145,42 +185,65 @@ public  class SendHttpRquest {
         return html;
     }
 
-
     /**
-     * 访问指定url，获取html页面,不许要参数
-     * @param url 访问地址
-     * @return html页面（字符串）
-     * @throws IOException 发起请求异常
+     * GET请求，访问指定url，获取请求响应。
+     * @param url 请求地址
+     * @return response,响应对象
      */
-    public static String getHtml(String url) throws IOException {
-        String html=null;
-
-        //1.生成httpclient
-
+    public static CloseableHttpResponse getResponse(String url) throws IOException {
         CloseableHttpResponse response;
-        //2.创建get请求
+
+        // 1.创建一个get请求。
         HttpGet httpGet=new HttpGet(url);
-        //3.发送请求
-        response=httpClient.execute(httpGet);
-        //4.判断http响应码,200进行解析
-        if (response.getStatusLine().getStatusCode()== HttpStatus.SC_OK){
-            //4.1 获取响应实体
-            HttpEntity entity = response.getEntity();
-            html = EntityUtils.toString(entity, "utf-8");
-            if (logger.isDebugEnabled()){
-                logger.debug("【网络请求工具类（getHtml）】获取html页面成功");
-            }
+
+        // 2.发起请求
+         response = httpClient.execute(httpGet);
+
+        // 3.判断响应状态码，如果为200，请求成功，返回该响应体对象。
+        if (200==response.getStatusLine().getStatusCode()){
+            return response;
         }else {
-            //4.2 不为200
-            if (logger.isDebugEnabled()){
-                logger.debug("【【网络请求工具类（getHtml）】获取html失败");
-            }
+            return null;
         }
-        //5.返回获取的html界面，以字符串方式
-        return html;
+
     }
 
 
+    /**
+     * POST请求，访问学校统一认证平台，校验用户账户,获取响应体对象。
+     *
+     * @param url  学校统一认证平台（跳转教务在线）
+     * @param jssessionid 第一次访问统一认证平台获取的cookie
+     * @param form 第一次访问统一认证平台获取的form表单数据，需要与账户密码一起提交。
+     * @param ykth 一卡通号号（统一认证码）
+     * @param password  统一认证密码
+     */
+    public static CloseableHttpResponse postResponse(String url, String jssessionid, Map<String, String> form, String ykth, String password) throws IOException {
 
 
+        // 1.创建一个POST请求
+        HttpPost httpPost=new HttpPost(url);
+
+        // 2.设置请求头数据，cookie
+        httpPost.setHeader("Cookie",jssessionid);
+
+        // 3.设置请求参数。表单数据，请求参数。
+        List<NameValuePair> basicNameValuePairList=new ArrayList<>();
+        basicNameValuePairList.add(new BasicNameValuePair("username",ykth));//统一认证码
+        basicNameValuePairList.add(new BasicNameValuePair("password",password));//密码
+        basicNameValuePairList.add(new BasicNameValuePair("lt",form.get("lt")));
+        basicNameValuePairList.add(new BasicNameValuePair("execution",form.get("execution")));
+        basicNameValuePairList.add(new BasicNameValuePair("_eventId",form.get("_eventId")));
+        basicNameValuePairList.add(new BasicNameValuePair("rmShown",form.get("rmShown")));
+        //      3.2创建from表单实体
+        UrlEncodedFormEntity urlEncodedFormEntity=new UrlEncodedFormEntity(basicNameValuePairList,"utf-8");
+        //       3.3将from表单添加到post请求里
+        httpPost.setEntity(urlEncodedFormEntity);
+
+        // 4.发起请求
+        CloseableHttpResponse response = httpClient.execute(httpPost);
+
+        return response;
+
+    }
 }
