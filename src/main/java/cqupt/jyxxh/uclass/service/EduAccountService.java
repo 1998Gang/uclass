@@ -119,10 +119,10 @@ public class EduAccountService {
                 // 根据ykth判断u课堂数据库中是否存在该教务账户数据（教师）
                 boolean isture = isEduAccountInDB(uclassUser.getBind_ykth());
                 if (isture){
-                    //数据库中有,通过绑定的教师号去拿。
+                    //数据库中有,通过绑定的教师号去数据库中拿。
                     eduAccount = teacherMapper.queryTeacherByTeaId(uclassUser.getBind_number());
                 }else {
-                    //数据库中没有，通过绑定的教师号去拿。
+                    //数据库中没有，通过绑定的教师号去教务在线爬取。
                     eduAccount = getDataFromJWZX.getTeacherInfoByTeaId(uclassUser.getBind_number());
                 }
 
@@ -133,10 +133,10 @@ public class EduAccountService {
                 //根据ykth判断u课堂数据库中是否存在该教务账户数据（学生）
                 boolean istrue = isEduAccountInDB(uclassUser.getBind_ykth());
                 if (istrue){
-                    //数据库中有
+                    //数据库中有，通过用户绑定的学号去数据库获取。
                     eduAccount = studentMapper.queryStudentByXh(uclassUser.getBind_number());
                 }else {
-                    //数据库中没有，根据学号去教务在线拿
+                    //数据库中没有，根据用户绑定的学号去教务在线爬取。
                     eduAccount = getDataFromJWZX.getStudentInfoByXh(uclassUser.getBind_number());
                 }
                 break;

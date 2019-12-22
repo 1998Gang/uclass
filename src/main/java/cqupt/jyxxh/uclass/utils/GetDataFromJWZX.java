@@ -180,7 +180,7 @@ public class GetDataFromJWZX {
     /**
      * 通过教师号获取教师课表
      * @param teaId 教师号
-     * @return ArrayList<ArrayList<ArrayList<KeChengInfo>>> 课表数组
+     * @return String json字符串，课表数组
      */
     public ArrayList<ArrayList<ArrayList<KeChengInfo>>> getTeaKebiaoByTeaId(String teaId){
         String teaKebiaoHtml=null;

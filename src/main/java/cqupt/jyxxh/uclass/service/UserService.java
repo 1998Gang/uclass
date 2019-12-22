@@ -129,7 +129,7 @@ public class UserService {
                 break;
             }
             case 0:{
-                // 2.2 新建用户，向数据库插入新用户数据
+                // 2.2 新建一个用户，并向数据库插入新用户数据
                 uclassUser=new UclassUser();
                 uclassUser.setOpenid(openid);              //用户openid
                 uclassUser.setIs_bind(NO_BIND);                //用户是否绑定 n 未绑定（新建用户）

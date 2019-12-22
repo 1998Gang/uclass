@@ -3,21 +3,19 @@ package cqupt.jyxxh.uclass.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 import cqupt.jyxxh.uclass.pojo.KeChengInfo;
 import cqupt.jyxxh.uclass.utils.GetDataFromJWZX;
-import cqupt.jyxxh.uclass.utils.Parse;
-import cqupt.jyxxh.uclass.utils.SendHttpRquest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 获取用户课表
@@ -29,6 +27,8 @@ import java.util.Set;
 
 @Service
 public class KebiaoService {
+
+    Logger logger= LoggerFactory.getLogger(KebiaoService.class);
 
     @Autowired
     private GetDataFromJWZX getDataFromJWZX;    //去教务在线获取数据的工具类
@@ -53,25 +53,35 @@ public class KebiaoService {
      * @return ArrayList<ArrayList<ArrayList<KeChengInfo>>>
      */
     public String getKebiao(String number, String type) throws JsonProcessingException {
-        Jedis resource = jedisPool.getResource();
 
-               //课表 list嵌套
+        //课表 json格式字符串
         String kebiao=null;
 
-        // 判断缓存有没有
+        //实例化json操作对象
         ObjectMapper objectMapper=new ObjectMapper();
-        resource.auth("root");
-        Boolean exists = resource.exists("kebiao_" + number);
+
+        //获取jedis,并选择第二个库（课表缓存都放在第二个库）。
+        Jedis jedis = jedisPool.getResource();
+        jedis.auth("root");
+        jedis.select(1);
 
 
-        if (exists){
-            kebiao = resource.get("kebiao_" + number);
-            System.out.println("从redis取");
-            return kebiao;
+        //1.判断缓存中是否存在该用户课表，如果有就从缓存取。
+        try{
+            Boolean exists = jedis.exists("kebiao_" + number);
+            if (exists){
+                //存在从缓存取
+                kebiao = jedis.get("kebiao_" + number);
+                jedis.close();
+                return kebiao;
+            }
+        }catch (Exception e){
+            logger.debug("【课表缓存（KebiaoService.getkebiao）】出现未知错误！");
         }
 
 
-        //1.根据学号或者教师号去获取教务在线的课表页（html）
+
+        //2.根据学号或者教师号去获取教务在线的课表页（html）
         switch (type){
             //学生
             case "s":{
@@ -79,7 +89,10 @@ public class KebiaoService {
                 ArrayList<ArrayList<ArrayList<KeChengInfo>>> stukebiaoByXh = getDataFromJWZX.getStukebiaoByXh(number);
 
                  kebiao = objectMapper.writeValueAsString(stukebiaoByXh);
-                resource.set("kebiao_"+number,kebiao);
+
+                 //放进缓存
+                jedis.set("kebiao_"+number,kebiao);
+                jedis.close();
                 break;
             }
             //老师
@@ -87,7 +100,9 @@ public class KebiaoService {
                 ArrayList<ArrayList<ArrayList<KeChengInfo>>> teaKebiaoByTeaId = getDataFromJWZX.getTeaKebiaoByTeaId(number);
                 kebiao = objectMapper.writeValueAsString(teaKebiaoByTeaId);
 
-                resource.set("kebiao_"+number,kebiao);
+                //放进缓存
+                jedis.set("kebiao_"+number,kebiao);
+                jedis.close();
                 break;
             }
 

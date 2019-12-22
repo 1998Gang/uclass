@@ -21,9 +21,12 @@ import java.util.Map;
  *  小程序登陆入口
  *  使用RestFul风格
  *
- *  login方法（GET请求）：请求用户数据，如果数据库有该用户数据，返回用户数据，视为登陆成功。
- *  bind方法（POST请求）：新建用户数据，在数据库新建用户数据，创建成功，视为绑定成功。
- *  delete方法（DELETE请求）：删除用户数据，将数据库中存在的用户数据删除，视为解绑。  PS：调用该接口时，请求方法为POST，添加请求参数，_method=DELETE,将post请求转换为delete请求。
+ *  login方法（GET请求）：接收code，换openid，判断用户是否绑定了教务账户？
+ *                                        如果已经绑定就返回教务账户数据，视为登陆成功。
+ *                                        如果没有绑定教务账户，响应402，视为登陆失败。
+ *
+ *  bind方法（POST请求）：接收code、ykth、password。为用户绑定教务账户。
+ *                                        如果同一个用户，多次绑定。只要教务账户账号密码正确，会绑定后一次请求的教务账户。
  *
  *
  * @author 彭渝刚
@@ -47,10 +50,10 @@ public class UclassUserManage {
     private  EduAccountService EduAccountService;         //教务账户信息操作类
 
     @Autowired
-    private  Authentication authentication;                //统一身份验证工具类
+    private  Authentication authentication;                //验证统一身份的工具类
 
     @Autowired
-    private GetDataFromWX getDataFromWX;
+    private GetDataFromWX getDataFromWX;                   //从微信获取数据的工具类
 
 
 
@@ -85,7 +88,7 @@ public class UclassUserManage {
                 return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(null);
             }
 
-            // 2.通过openid获取用户实体
+            // 2.通过openid获取用户实体数据
             UclassUser uclassUser = userService.getUser(openid);
 
             // 3.判断该用户是否绑定了教务账户
@@ -113,10 +116,11 @@ public class UclassUserManage {
 
             }
         }catch ( Exception e){
-            e.printStackTrace();
+            //日志
+            logger.error("【登陆接口（UclassUserManage.login）】出现未知错误！",e);
         }
 
-        //出现位置异常，响应500
+        //出现未知异常，响应500
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
 
@@ -218,73 +222,4 @@ public class UclassUserManage {
     }
 
 
-    /**
-     * 删除用户绑定数据
-     *
-     * 前端切换绑定操作，调用本方法 delete（DELETE请求），先删除用户绑定数据，在调用 bind（POST请求）添加新绑定
-     *
-     * @param deleteInfo 微信小程序临时身份验证码
-     * @return 请求结果提示信息
-     */
-    @RequestMapping(method = RequestMethod.DELETE,produces = "application/json;charset=utf-8")
-    public ResponseEntity<String> delete(@RequestBody Map<String,String> deleteInfo){
-
-        String code;
-
-        try{
-            // 1.获取参数code
-            code =deleteInfo.get("code");
-            //日志
-            if (logger.isDebugEnabled()){
-                logger.debug("【删除绑定接口】接收参数code：[{}]",code);
-            }
-
-
-            // 2.根据code换取openid，去除引号
-            String openid= getDataFromWX.getOpenid(code);
-            // 判断oepnid是否符合要求
-            if (null==openid||"".equals(openid)){
-                //日志
-                if (logger.isInfoEnabled()){
-                    logger.info("【删除绑定接口】openid获取失败！ 可能是无效code:[{}]",code);
-                }
-                // openid换取失败，可能原因是code不正确，http响应状态码 415
-                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("删除绑定失败！可能因为code不合法，code："+code);
-
-            }
-
-            // 3.根据openid获取用户实体
-            UclassUser uclassUser = userService.getUser(openid);
-            //获取姓名，学号或者教师号，一卡通号 用于日志书写
-            String name=uclassUser.getBind_name();
-            String bind_number = uclassUser.getBind_number();
-            String bind_ykth = uclassUser.getBind_ykth();
-
-            // 4.删除用户绑定的教务账户
-            boolean istrue = userService.deleteBind(uclassUser);
-            if (istrue){
-                //日志
-                if (logger.isInfoEnabled()){
-                    logger.info("用户；[{}]删除绑定成功！删除的教务账户：[{},{},{}]",openid,name,bind_number,bind_ykth);
-                }
-                //删除绑定成功，响应200
-                return ResponseEntity.status(HttpStatus.OK).body("删除绑定成功！");
-            }else {
-                //日志
-                if (logger.isInfoEnabled()){
-                    logger.info("用户；[{}]删除绑定失败！教务账户：[{},{},{}]",openid,uclassUser.getBind_name(),uclassUser.getBind_number(),uclassUser.getBind_ykth());
-                }
-                //删除绑定失败，响应409
-                return  ResponseEntity.status(HttpStatus.CONFLICT).body("删除绑定失败！");
-            }
-
-
-        }catch (Exception e){
-            logger.error("【删除用户接口（deldete）】删除用户绑定操作出错！",e);
-        }
-
-        // 4.服务器内部错误 响应 500
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("删除失败！服务器端内部未知错误！");
-
-    }
 }
