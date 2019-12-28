@@ -26,15 +26,16 @@ public class SimulationLogin {
 
 
     /**
+     *获取用户成功登陆教务在线后代表登陆状态的 cookie ，这个cookie可以用于继续模拟用户访问教务在线获取数据。有效时间一个是30分钟。
      *
      * @param url  登陆教务在线URL（统一认证平台方式）https://ids.cqupt.edu.cn/authserver/login?service=http%3A%2F%2Fjwzx.cqupt.edu.cn%2Ftysfrz%2Findex.php
      * @param ykth 一卡通号
      * @param password 密码
-     * @return PHPSESSID ，模拟登陆成功后，代表用户的登陆状态的cookie
+     * @return String  模拟登陆成功后，代表用户的登陆状态的cookie ("PHPSESSID=ST-225477-knWmfbSib4wz2mQ2d2eY-NlvE-ids1-1577527149129")
      * @throws IOException 发起http请求的相关异常
      */
     public static String getPhpsessid(String url, String ykth, String password) throws IOException {
-        //1.模拟登陆教务在线后，获得的cookie值，PHPSESSID.
+        //1.模拟登陆教务在线后，获得的cookie值，PHPSESSID.(格式：PHPSESSID=************************* )
         String phpsessid;
 
         // 2.第一次GET请求学校统一认证平台，获取cookie值（JSESSIONID），以及表单值（lt、execution、_eventId、rmShown）。用于第二次POST请求。
@@ -58,7 +59,7 @@ public class SimulationLogin {
             HeaderElement[] elements = locations[0].getElements();
             //该头的元素也只有一个，直接用索引0获取数据.name是”http://jwzx.cqupt.edu.cn/tysfrz/index.php?ticket“ value是PHPSESSID”ST-192565-QbzPDtIP3vcpQkb4gUCa-NlvE-ids1-1576923576219“
             String name = elements[0].getName();
-            //value其实就是验证成功（模拟登陆成功）后的PHPSESSID，但是此时这个PHPSESSID还不能用，还需要请求location，做以下验证。
+            //value其实就是验证成功（模拟登陆成功）后的PHPSESSID的值，但是此时这个PHPSESSID还不能用。还需要向“location”这个地址发起一次GET请求，做一下验证。
             String value = elements[0].getValue();
              location=name+"="+value;
 
@@ -67,14 +68,14 @@ public class SimulationLogin {
             return null;
         }
 
-        // 4.第三次GET请求，身份验证成功后的重定向地址（location）。验证第二步POST请求成功后的地址。
+        // 4.第三次GET请求，地址是第二步POST请求成功后重定向的地址（location）。请求一次这个地址，成功后，获取的PHPSWSSID才能生效。
         CloseableHttpResponse response = SendHttpRquest.getResponse(location);
 
 
+        // 5.至此，模拟登陆完成。返回PHPSESSID，用于访问教务在线。PHPSESSID=ST-225477-knWmfbSib4wz2mQ2d2eY-NlvE-ids1-1577527149129
+        String phpsessidValue=location.substring(location.indexOf("="));
 
-        // 5.至此，模拟登陆完成。返回PHPSESSID，用于访问教务在线。
-        phpsessid=location.substring(location.indexOf("="));
-        return phpsessid;
+        return "PHPSESSID"+phpsessidValue;
     }
 
 
@@ -93,9 +94,8 @@ public class SimulationLogin {
         // 2.4 elements也只有一个,name是cookie的名（JSSESSIONID），value是值（）
         String name = elements[0].getName();
         String value = elements[0].getValue();
-        String jssession=name+value;
         // 2.5 返回
-        return jssession;
+        return name+"="+value;
     }
 
     /**

@@ -9,6 +9,7 @@ import cqupt.jyxxh.uclass.utils.GetDataFromWX;
 
 import cqupt.jyxxh.uclass.utils.Parse;
 import cqupt.jyxxh.uclass.utils.SendHttpRquest;
+import cqupt.jyxxh.uclass.utils.SimulationLogin;
 import org.apache.http.*;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -599,18 +600,30 @@ public class test {
 
         //循环打印输出
         Map<String, String> map = Parse.parseHtmlToCJZC(skjh_html);
-        Set<String> strings = map.keySet();
-        for (String ss:strings){
-            String s1 = map.get(ss);
-
-            System.out.println(s1);
-        }
         System.out.println(map);
 
+    }
 
+    /**
+     * 验证SimulationLodin工具类，模拟登陆是否好使
+     */
+    @Test
+    public void getCjzcBySimulationLogin() throws IOException {
 
+        String phpsessid = SimulationLogin.getPhpsessid("https://ids.cqupt.edu.cn/authserver/login?service=http%3A%2F%2Fjwzx.cqupt.edu.cn%2Ftysfrz%2Findex.php", "1655728", "98LD99LP");
+        assert phpsessid !=null;
 
+        CloseableHttpClient build = HttpClients.custom().build();
+        HttpGet httpGet=new HttpGet("http://jwzx.cqupt.edu.cn/student/skjh.php");
+        httpGet.setHeader("Cookie",phpsessid);
+        CloseableHttpResponse skjh = build.execute(httpGet);
+        skjh.getStatusLine().getStatusCode();
+        HttpEntity entity = skjh.getEntity();
+        String skjh_html = EntityUtils.toString(entity, "utf-8");
 
+        //循环打印输出
+        Map<String, String> map = Parse.parseHtmlToCJZC(skjh_html);
+        System.out.println(map);
     }
 
 }
