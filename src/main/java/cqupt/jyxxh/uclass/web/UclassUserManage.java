@@ -28,7 +28,6 @@ import java.util.Map;
  *  bind方法（POST请求）：接收code、ykth、password。为用户绑定教务账户。
  *                                        如果同一个用户，多次绑定。只要教务账户账号密码正确，会绑定后一次请求的教务账户。
  *
- *
  * @author 彭渝刚
  * @version 1.0.0
  * @date created in 23:29 2019/11/5

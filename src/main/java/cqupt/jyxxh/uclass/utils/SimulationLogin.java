@@ -35,7 +35,7 @@ public class SimulationLogin {
      * @throws IOException 发起http请求的相关异常
      */
     public static String getPhpsessid(String url, String ykth, String password) throws IOException {
-        //1.模拟登陆教务在线后，获得的cookie值，PHPSESSID.(格式：PHPSESSID=************************* )
+        //1.模拟登陆教务在线后，获得的cookie值，PHPSESSID.
         String phpsessid;
 
         // 2.第一次GET请求学校统一认证平台，获取cookie值（JSESSIONID），以及表单值（lt、execution、_eventId、rmShown）。用于第二次POST请求。

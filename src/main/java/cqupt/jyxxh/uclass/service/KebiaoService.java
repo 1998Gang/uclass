@@ -34,7 +34,7 @@ public class KebiaoService {
     private GetDataFromJWZX getDataFromJWZX;    //去教务在线获取数据的工具类
 
     @Autowired
-    private JedisPool jedisPool;
+    private JedisPool jedisPool;                 //redis连接池
 
     @Value("${URLStuKebiaoFromJWZX}")
     private String URL_STUKEBIAO_FROM_JWZX;       //从教务在线获取学生课表的URL
@@ -105,8 +105,6 @@ public class KebiaoService {
                 jedis.close();
                 break;
             }
-
-
         }
 
         return kebiao;
