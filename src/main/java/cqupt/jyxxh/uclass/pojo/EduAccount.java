@@ -34,5 +34,16 @@ public interface EduAccount  {
      */
     String getYkth();
 
+    /**
+     * 设置教务账户的密码
+     * @param password 密码
+     */
+    void setPassword(String password);
+
+    /**
+     * 设置教务账户的一卡通
+     * @param ykth 一卡通号
+     */
+    void setYkth(String ykth);
 
 }

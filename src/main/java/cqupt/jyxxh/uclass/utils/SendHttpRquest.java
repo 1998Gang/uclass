@@ -3,6 +3,8 @@ package cqupt.jyxxh.uclass.utils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -19,7 +21,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +39,7 @@ public  class SendHttpRquest {
 
     final static Logger logger= LoggerFactory.getLogger(SendHttpRquest.class);
 
-    //httplient对象
-    private static CloseableHttpClient httpClient= HttpClients.createDefault();
+
 
     /**
      * GET请求，访问指定的接口获得json数据
@@ -88,6 +88,8 @@ public  class SendHttpRquest {
 
         String html=null;
 
+        CloseableHttpClient httpClient= HttpClients.createDefault();
+
         //1.定义请求响应结果
         CloseableHttpResponse response;
         //2.创建get请求
@@ -119,6 +121,9 @@ public  class SendHttpRquest {
      * @throws IOException 发起请求异常
      */
     public static String getHtml(String url) throws IOException {
+
+        CloseableHttpClient httpClient= HttpClients.createDefault();
+
         String html=null;
 
         //1.生成httpclient
@@ -155,6 +160,8 @@ public  class SendHttpRquest {
      */
     public static String getHtmlWithCookie(String url,String cookie) throws IOException {
 
+        CloseableHttpClient httpClient= HttpClients.createDefault();
+
         String html=null;
 
         //1.创建get请求
@@ -190,6 +197,9 @@ public  class SendHttpRquest {
      * @return response,响应对象
      */
     public static CloseableHttpResponse getResponse(String url) throws IOException {
+
+        CloseableHttpClient httpClient= HttpClients.createDefault();
+
         CloseableHttpResponse response;
 
         // 1.创建一个get请求。
@@ -219,9 +229,14 @@ public  class SendHttpRquest {
      */
     public static CloseableHttpResponse postResponse(String url, String jssessionid, Map<String, String> form, String ykth, String password) throws IOException {
 
+        CloseableHttpClient httpClient= HttpClients.createDefault();
 
         // 1.创建一个POST请求
         HttpPost httpPost=new HttpPost(url);
+
+        //设置cookie策略，这一步我也不知道什么原理，反正没有这一段会有一个警告。
+        RequestConfig defaultConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
+        httpPost.setConfig(defaultConfig);
 
         // 2.设置请求头数据，cookie
         httpPost.setHeader("Cookie",jssessionid);

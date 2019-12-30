@@ -37,4 +37,14 @@
     <select id="queryYkthAndPassByXh" parameterType="String" resultType="String">
         select concat(ykth,'_',password) from uclass_students_info where xh=#{value}
     </select>
+
+    <!--7.addPasswordBYkth，根据一卡通号为学生账户添加密码-->
+    <select id="addPasswordBYkth" parameterType="Student">
+        update uclass_students_info set password=#{password} where xh=#{xh}
+    </select>
+
+    <!--8.deletePassword，根据一卡通号，删除学生账户的密码-->
+    <select id="deletePassword" parameterType="String">
+        update uclass_students_info set password='' WHERE ykth=#{value}
+    </select>
 </mapper>

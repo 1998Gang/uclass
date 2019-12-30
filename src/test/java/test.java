@@ -628,7 +628,6 @@ public class test {
         System.out.println(s);
         Map map1 = objectMapper.readValue(s, Map.class);
         System.out.println(map1);
-        System.out.println(map1.get("A13191A1100010057"));
 
 
 

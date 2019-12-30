@@ -47,13 +47,16 @@ public class Student implements EduAccount, Serializable {
                 ", csrq='" + csrq + '\'' +
                 ", stu_phone='" + stu_phone + '\'' +
                 ", stu_email='" + stu_email + '\'' +
-                ", phone='" + phone + '\'' +
-                ", email='" + email + '\'' +
                 '}';
     }
 
-    private String phone;//电话号码
-    private String email;//邮箱
+
+    //返回用户类型，返回数据为s，代表是学生。很重要！！！
+    @Override
+    public String getAccountType() {
+        return "s";
+    }
+
 
     public String getXh() {
         return xh;
@@ -79,10 +82,7 @@ public class Student implements EduAccount, Serializable {
         this.xb = xb;
     }
 
-    @Override
-    public String getAccountType() {
-        return "s";
-    }
+
 
     @Override
     public String getName() {
@@ -98,6 +98,7 @@ public class Student implements EduAccount, Serializable {
         return ykth;
     }
 
+    @Override
     public void setYkth(String ykth) {
         this.ykth = ykth;
     }
@@ -106,10 +107,11 @@ public class Student implements EduAccount, Serializable {
         return password;
     }
 
+    @Override
     public void setPassword(String password) {
+
         this.password = password;
     }
-
 
 
     public String getYxm() {

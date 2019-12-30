@@ -16,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * 教务账户的操作类
@@ -56,7 +59,7 @@ public class EduAccountService {
      * @return EduAccount 教务账号实体对象
      */
     public EduAccount getEduAccountFromJWZX(String ykth, String password) throws Exception {
-        EduAccount eduAccount =null;
+        EduAccount eduAccount ;
 
 
 
@@ -94,6 +97,9 @@ public class EduAccountService {
             case "16":
             case "72": {
                 eduAccount = getDataFromJWZX.getStudentInfoByTYSH(ykth, password);
+                if (eduAccount==null){
+                    throw new Exception("Unsupported academic administration account");
+                }
                 break;
             }
 
@@ -103,6 +109,7 @@ public class EduAccountService {
                 throw new Exception("Unsupported academic administration account");
             }
         }
+
         return eduAccount;
     }
 
@@ -252,5 +259,90 @@ public class EduAccountService {
         }
 
         return eduAccount;
+    }
+
+    /**
+     * 通过学号获取学生的一卡通号和密码
+     * @param xh 学号
+     * @return map集合，装ykth号和密码
+     */
+    public Map<String,String> getStuYkthandPassword(String xh){
+        Map<String,String> yp=new HashMap<>();
+
+        //获取一卡通号和密码，获取的格式是：一卡通号_密码
+        String ykyhAndPassword = studentMapper.queryYkthAndPassByXh(xh);
+        // TODO 密码解密（通过学号去数据库获取的一卡通号和密码）
+
+        //解析
+        String ykth=ykyhAndPassword.substring(0,ykyhAndPassword.indexOf("_"));
+        String password=ykyhAndPassword.substring(ykyhAndPassword.indexOf("_")+1);
+        //装入集合
+        yp.put("ykth",ykth);
+        yp.put("password",password);
+
+        return yp;
+    }
+
+
+    /**
+     * 给指定的教务账户添加密码（加密之后的）
+     * @param eduAccount 教务账户实体
+     * @return boolean
+     */
+    public boolean addPassword(EduAccount eduAccount) {
+        boolean flage=true;
+
+        //获取要添加密码的教务账户的类型
+        String accountType = eduAccount.getAccountType();
+
+        try {
+            switch (accountType){
+                case "t":{
+                    //教师
+                    teacherMapper.addPassword((Teacher) eduAccount);
+                }
+                case "s":{
+                    //学生
+                    studentMapper.addPassword((Student) eduAccount);
+                }
+
+            }
+        }catch (Exception e){
+            //添加失败
+            flage=false;
+            logger.error("【教务账户（EduAccountService.addPassword）】添加密码出错！一卡通号：[{}]",eduAccount.getYkth());
+        }
+
+        return flage;
+    }
+
+
+    /**
+     * 删除指定教务账户的密码
+     * @param ykth 一卡通号
+     * @param user_type 教务账户的类型，‘s’为学生，‘t’为老师
+     * @return boolean
+     */
+    public boolean deletePassword(String ykth, String user_type) {
+        boolean flage = true;
+
+        try{
+            switch (user_type){
+                case "s":{
+                    //学生
+                    studentMapper.deletePassword(ykth);
+                }
+                case "t":{
+                    //教师
+                    teacherMapper.deletePassword(ykth);
+                }
+            }
+        }catch (Exception e){
+            flage=false;
+            logger.error("【教务账户（EduAccountService.deletePassword）】删除密码出错！一卡通号：[{}]",ykth);
+        }
+
+
+        return flage;
     }
 }

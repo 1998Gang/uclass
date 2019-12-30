@@ -273,6 +273,8 @@ public class Parse {
      */
     public static ArrayList<ArrayList<ArrayList<KeChengInfo>>> parseHtmlToKebiaoInfo(String html, String type,Map cjzcs){
 
+
+
         //解析后的数据以嵌套集合的方式返回，定义三层集合
         ArrayList<ArrayList<ArrayList<KeChengInfo>>> jj=new ArrayList<>();//最外层，代表整个课表，装具体的上课节数（12节、34节 、....11 12节）
         ArrayList<ArrayList<KeChengInfo>> xx;                //第二层，代表具体的上课节数，装具体节数的星期数（星期一....星期天）
@@ -410,7 +412,10 @@ public class Parse {
                 keChengInfo.setXklx(s1[8].substring(s1[8].indexOf("\">")+2,s1[8].indexOf("</")));
             }
             //成绩组成，根据教学班获取
-            keChengInfo.setCjzc((String) cjzcs.get(s1[0]));
+            if (null!=cjzcs){
+                keChengInfo.setCjzc((String) cjzcs.get(s1[0]));
+            }
+
 
         }
         //上课班级类别以及班级号，如果是老师进行该步骤

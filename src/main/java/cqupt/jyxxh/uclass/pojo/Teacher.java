@@ -39,6 +39,12 @@ public class Teacher implements EduAccount, Serializable {
                 '}';
     }
 
+    //返回类型，返回t代表是老师。
+    @Override
+    public String getAccountType() {
+        return "t";
+    }
+
     public String getTeaId() {
         return teaId;
     }
@@ -63,10 +69,7 @@ public class Teacher implements EduAccount, Serializable {
         this.xb = xb;
     }
 
-    @Override
-    public String getAccountType() {
-        return "t";
-    }
+
 
     @Override
     public String getName() {
@@ -82,17 +85,21 @@ public class Teacher implements EduAccount, Serializable {
         return ykth;
     }
 
+    @Override
+    public void setPassword(String password) {
+        this.password=password;
+    }
+
+    @Override
     public void setYkth(String ykth) {
         this.ykth = ykth;
     }
 
     public String getPassword() {
+
         return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
 
     public String getZc() {
         return zc;

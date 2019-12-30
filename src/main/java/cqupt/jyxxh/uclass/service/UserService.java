@@ -149,7 +149,7 @@ public class UserService {
 
     /**
      * 为用户绑定教务账号
-     * @param uclassUser 用户实体
+     * @param uclassUser 用户实体（未绑定教务账户的）
      * @param ykth   统一身份认证码、一卡通号
      * @return boolean，绑定是否成功
      */
@@ -167,10 +167,20 @@ public class UserService {
             if (isIn){
                 //2.1.1数据库中有，通过一卡通号从数据库获取数据。
                  eduAccount = eduAccountService.getEduAccountFromDB(ykth);
+                 //2.1.2为该教务账户添加统一身份认证密码，并更新数据库。因为从数据库中获取的教务账户此时是无统一认证码密码的（解除绑定时候，保留基本数据，但会删除密码）。
+                // todo 密码加密，往数据库添加时，给密码加密。（setBind）
+                eduAccount.setPassword(password);
+                //2.1.3 将教务数据更新到数据库
+                eduAccountService.addPassword(eduAccount);
+
             }else {
                 //2.2.1 数据库中没有，通过统一身份认证码（一卡通号）获取教务账号实体
                 eduAccount = eduAccountService.getEduAccountFromJWZX(ykth,password);
-                //2.2.2将教务账户数据插入到数据库中.
+                // 2.2.2为教务账户添加一卡通号，和密码。
+                // todo 密码加密，（去教务在线获取回来的教务账户实体,添加密码与一卡通号）
+                eduAccount.setPassword(password);
+                eduAccount.setYkth(ykth);
+                //2.2.3将教务账户数据插入到数据库中.
                 eduAccountService.insertEduAccountToDB(eduAccount);
             }
 
@@ -211,7 +221,12 @@ public class UserService {
         boolean flage;
 
         try {
-            // 1.删除用户的绑定数据（更改用户实体（uclassUser）数据）
+            // 1.删除用户绑定的教务账户的密码.
+            String bind_ykth = uclassUser.getBind_ykth();
+            String user_type = uclassUser.getUser_type();
+            eduAccountService.deletePassword(bind_ykth,user_type);
+
+            // 2.删除用户的绑定数据（更改用户实体（uclassUser）数据）
             uclassUser.setIs_bind(NO_BIND); //将是否绑定教务账户的标识改为n
             uclassUser.setUser_type("");//绑定教务用户类型为空
             uclassUser.setBind_name("");//绑定的教务用户的姓名为空
@@ -219,7 +234,7 @@ public class UserService {
             uclassUser.setBind_number("");//绑定的教务账户的学号或者教师号为空
             uclassUser.setLast_use_time(new Date());//该账户最后一次操作时间
 
-            // 2.将更改后的数据持久化到数据库
+            // 3.将更改后的数据持久化到数据库
             uclassUserMapper.updateUser(uclassUser);
 
             // 3.更改标识符(删除绑定成功)
@@ -228,7 +243,6 @@ public class UserService {
             flage=false;
             logger.error("【删除绑定操作（deleteBind）】未知错误！");
         }
-
         return flage;
     }
 }

@@ -43,4 +43,19 @@ public interface TeacherMapper {
      * @return  teacher 教务账号（教师）实体
      */
     Teacher queryTeacherByYkth(String ykth);
+
+
+    /**
+     * 给教师账户添加密码
+     * @param eduAccount 教师账户实体
+     */
+    void addPassword(Teacher eduAccount);
+
+
+    /**
+     * 根据一卡通号删除教师账户的密码
+     * @param ykth 一卡通号
+     */
+    void deletePassword(String ykth);
+
 }

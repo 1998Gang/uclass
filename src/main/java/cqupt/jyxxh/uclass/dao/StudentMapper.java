@@ -54,5 +54,17 @@ public interface StudentMapper {
      * @return list集合
      */
     String queryYkthAndPassByXh(String xh);
-    //TODO 如果没有密码，返回值为空
+
+    /**
+     * 为学生账户添加密码
+     * @param eduAccount 学生账户实体（包含密码，加密之后的）
+     */
+    void addPassword(Student eduAccount);
+
+
+    /**
+     * 根据一卡通号，删除学生账号的密码
+     * @param ykth 一卡通号
+     */
+    void deletePassword(String ykth);
 }

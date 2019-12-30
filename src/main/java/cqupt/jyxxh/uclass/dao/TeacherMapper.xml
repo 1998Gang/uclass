@@ -30,4 +30,14 @@
     <select id="queryTeacherByYkth" parameterType="String" resultType="Teacher">
         select * from uclass_teacher_info where ykth=#{value}
     </select>
+
+    <!--6.addPassword，给教师账户添加密码（加密之后的密码）-->
+    <select id="addPassword" parameterType="Teacher">
+        UPDATE uclass_teacher_info SET password=#{password} WHERE teaId=#{teaId}
+    </select>
+
+    <!--7.deletePassword，删除教师账户的密码，根据一卡通号-->
+    <select id="deletePassword" parameterType="String">
+        UPDATE uclass_teacher_info SET password='' WHERE ykth=#{value}
+    </select>
 </mapper>

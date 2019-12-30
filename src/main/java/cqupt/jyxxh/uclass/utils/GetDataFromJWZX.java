@@ -2,10 +2,10 @@ package cqupt.jyxxh.uclass.utils;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cqupt.jyxxh.uclass.dao.StudentMapper;
 import cqupt.jyxxh.uclass.pojo.KeChengInfo;
 import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.pojo.Teacher;
+import cqupt.jyxxh.uclass.service.EduAccountService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ public class GetDataFromJWZX {
     private Authentication authentication;           //统一身份认证相关操作工具类
 
     @Autowired
-    private StudentMapper studentMapper;
+    private EduAccountService eduAccountService;     //教务账户操作类
 
     @Autowired
     private JedisPool jedisPool;                     //jedis连接池
@@ -143,7 +143,7 @@ public class GetDataFromJWZX {
      */
     public Teacher getTeacherInfoByTYSH(String ykth,String password){
 
-        Teacher teacher=null;
+        Teacher teacher;
 
         // 1.通过统一身份验证系统（LDAP），获取简单是账户数据，当作去教务在线获取详细数据的参数。
         Attributes attributes = authentication.getAttributes(ykth, password);
@@ -160,13 +160,6 @@ public class GetDataFromJWZX {
 
         // 5. 以教师姓名为参数去教务在线查询教师的json数据
         teacher = getTeacherInfoByTeaName(jsxm, yxm);
-
-        // 6.表示确实查到了教师数据，就添加一卡通号,和密码（密码需要加密）。
-        if (null!=teacher){
-            //TODO 需要加密
-            teacher.setPassword(password);
-            teacher.setYkth(ykth);
-        }
 
         return teacher;
     }
@@ -190,25 +183,22 @@ public class GetDataFromJWZX {
 
         // 4.通过学号获取学生数据,并添加一卡通号。
         student = getStudentInfoByXh(xh);
-        student.setYkth(ykth);
-        //TODO 需要加密
-        student.setPassword(password);
 
         return student;
     }
 
 
     /**
-         * 通过学号获取课表
-         * @param xh 学号
-         * @return ArrayList<ArrayList<ArrayList<KeChengInfo>>> 课表数组
-         */
-        public ArrayList<ArrayList<ArrayList<KeChengInfo>>> getStukebiaoByXh(String xh) throws IOException {
+     * 通过学号获取课表
+     * @param xh 学号
+     * @return ArrayList<ArrayList<ArrayList<KeChengInfo>>> 课表数组
+     */
+    public ArrayList<ArrayList<ArrayList<KeChengInfo>>> getStukebiaoByXh(String xh) throws IOException {
             // jackson操作对象
             ObjectMapper objectMapper = new ObjectMapper();
 
         // 1.在获取课表之前，先获取成绩组成。
-        Map cjzcs;
+        Map cjzcs=null;
         // 1.1 先判断缓存有没有。获取jedis，并添加密码，选择第三个reids库。
         try{
             Jedis jedis1 = jedisPool.getResource();
@@ -218,12 +208,20 @@ public class GetDataFromJWZX {
                 //缓存有，从缓存取。
                 String s = jedis1.get("cjzc_" + xh);
                 cjzcs = objectMapper.readValue(s, Map.class);
+                jedis1.close();
+            }else {
+                // 1.2 缓存没有，通过学号去教务在线取。
+                cjzcs = getCjzcByXh(xh);
+                //将map集合转为json字符串
+                String s = objectMapper.writeValueAsString(cjzcs);
+                //放入缓存,并设置一个过期时间（25天）
+                jedis1.set("cjzc_"+xh,s);
+                jedis1.expire("cjzc_"+xh,2160000);
+                jedis1.close();
             }
         }catch (Exception e){
-            logger.error("【GetDataFromJWZX.getStukebiaoByXh】获取成绩组成缓存出错！");
+            logger.error("【获取课表（GetDataFromJWZX.getStukebiaoByXh）】获取成绩组成出错！");
         }
-        // 1.2 缓存没有，通过学号去教务在线取。
-         cjzcs = getCjzcByXh(xh);
 
 
         // 2.发起http请求，获取教务在线的课表ktml代码
@@ -275,27 +273,22 @@ public class GetDataFromJWZX {
      */
     public Map<String,String> getCjzcByXh(String xh) throws IOException {
 
-        //TODO 测试点，删
-        System.out.println("getCjzcByXh"+xh);
+
         Map<String,String> cjzc;
 
         // 1.根据学号获取一卡通号和密码。
-        String s = studentMapper.queryYkthAndPassByXh(xh);
-        String ykth=s.substring(0,s.indexOf("_"));
-        String password=s.substring(s.indexOf("_"));
+        Map<String, String> ykthandPassword = eduAccountService.getStuYkthandPassword(xh);
 
 
         // 1.获取模拟登陆后代表用户登陆状态的cookie （PHPSESSID）
-        String phpsessid = SimulationLogin.getPhpsessid(URL_AUTHSERVER_LOGIN_TO_JWZX, ykth, password);
+        String phpsessid = SimulationLogin.getPhpsessid(URL_AUTHSERVER_LOGIN_TO_JWZX, ykthandPassword.get("ykth"), ykthandPassword.get("password"));
 
         // 2.发起http请求（get）获取教务在 线上授课计划页的html代码
         String cjzcHtml = SendHttpRquest.getHtmlWithCookie(URL_STUSKJH_FROM_JWZX, phpsessid);
-        System.out.println(cjzcHtml);
+
         // 3.解析html
         cjzc = Parse.parseHtmlToCJZC(cjzcHtml);
 
-        //TODO 测试点 要删
-        System.out.println(cjzc);
         return cjzc;
     }
 
