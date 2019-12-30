@@ -3,8 +3,9 @@
 
 
 
+import checkers.oigj.quals.O;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cqupt.jyxxh.uclass.pojo.KeChengInfo;
-import cqupt.jyxxh.uclass.pojo.Teacher;
 import cqupt.jyxxh.uclass.utils.GetDataFromWX;
 
 import cqupt.jyxxh.uclass.utils.Parse;
@@ -27,7 +28,6 @@ import org.junit.Test;
 import redis.clients.jedis.*;
 
 
-import javax.naming.directory.Attributes;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
@@ -310,7 +310,7 @@ public class test {
             keChengInfo.setCredit(s1[6].substring(s1[6].lastIndexOf(" ")+1,s1[6].indexOf("</span>")));
             //上课状态，如  自修 重修 再修等
             if (s1.length==11){
-                keChengInfo.setSklx(s1[8].substring(s1[8].indexOf("\">")+2,s1[8].indexOf("</")));
+                keChengInfo.setXklx(s1[8].substring(s1[8].indexOf("\">")+2,s1[8].indexOf("</")));
             }
 
         }
@@ -623,7 +623,18 @@ public class test {
 
         //循环打印输出
         Map<String, String> map = Parse.parseHtmlToCJZC(skjh_html);
-        System.out.println(map);
+        ObjectMapper objectMapper= new ObjectMapper();
+        String s = objectMapper.writeValueAsString(map);
+        System.out.println(s);
+        Map map1 = objectMapper.readValue(s, Map.class);
+        System.out.println(map1);
+        System.out.println(map1.get("A13191A1100010057"));
+
+
+
+
+
+        /* System.out.println(map);*/
     }
 
 }

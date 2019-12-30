@@ -74,7 +74,7 @@ public class Authentication {
         if (password==null|| password.equals("")){
             //日志
             if (logger.isDebugEnabled()){
-                logger.debug("【身份验证（LDAP）】 验证失败！ 密码为空串或为空");
+                logger.debug("【身份验证（Authentication.ldapCheck）】 验证失败！ 密码为空串或为空，统一认证码：[{}],",ykth);
             }
             return false;
         }
@@ -98,7 +98,7 @@ public class Authentication {
             flage=true;
         } catch (NamingException e) {
             //账号密码错误，[LDAP: error code 49 - Invalid Credentials]
-            logger.error("【身份验证（Authentication.ldapCheck）】身份验证错误！账号或密码不正确，统一认证码:[{}]", ykth);
+            logger.error("【身份验证（Authentication.ldapCheck）】身份验证失败！账号或密码不正确，统一认证码:[{}]", ykth);
             flage=false;
 
         }
@@ -165,6 +165,8 @@ public class Authentication {
 
     /**
      * 获取统一认证通过后 获取姓名 学院等信息
+     *
+     * 确保调用该方法之前，调用过ldapCheck()
      *
      * @return Attributes
      */

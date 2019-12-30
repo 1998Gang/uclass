@@ -59,8 +59,8 @@ public class UclassUserManage {
 
     /**
      * 用户登陆，调用此方法。
-     * 登陆成功，返回绑定的教务账户信息。
-     * 登陆失败，会自动创建一个新用户，未绑定教务账户。
+     * 登陆成功，返回绑定的教务账户信息。响应200。
+     * 登陆失败，会自动创建一个新用户（未绑定教务账户）。响应错误代码。
      *
      * @param code   微信小程序临时身份验证码
      * @return 返回值为EduAccount实体，教务账户信息，（学生或者老师）
@@ -151,7 +151,7 @@ public class UclassUserManage {
             }
 
             // 2. 通过code获取openid，并校验该openid是否合法。
-             openid = getDataFromWX.getOpenid(code);
+            openid = getDataFromWX.getOpenid(code);
             if (null==openid||openid.equals("")){
                 //日志
                 if (logger.isDebugEnabled()){
@@ -171,7 +171,7 @@ public class UclassUserManage {
                     logger.debug("【绑定接口（UclassUserManage.bind）】绑定失败!用户openid：[{}]的统一身份：[{}]验证失败",openid,ykth);
                 }
                 if (logger.isInfoEnabled()){
-                    logger.info("用户：[{}]绑定失！身份验证失败，统一身份：[{}]！",openid,ykth);
+                    logger.info("用户：[{}]绑定失！身份验证失败，一卡通号：[{}]！",openid,ykth);
                 }
                 return  ResponseEntity.status(HttpStatus.FORBIDDEN).body("统一身份验证失败");
             }
@@ -180,17 +180,16 @@ public class UclassUserManage {
             // 4. 根据openid获取用户信息，并判断该用户是否存在绑定
             UclassUser uclassuser = userService.getUser(openid);
             if ("y".equals(uclassuser.getIs_bind())){
-                // 4.1 用户已经存在绑定,删除绑定。
+                // 4.1 用户已经存在绑定,删除旧绑定。
                 userService.deleteBind(uclassuser);
                 //日志
                 if (logger.isDebugEnabled()){
                     logger.debug("【绑定接口（UclassUserManage.bind）】删除旧绑定账户成功!用户openid：[{}]",openid);
                 }
-
             }
 
             // 5.给用户添加教务账户绑定
-            boolean isSetBind = userService.setBind(uclassuser, ykth,password);
+            boolean isSetBind = userService.setBind(uclassuser, ykth, password);
             if (isSetBind) {
                 //日志
                 if (logger.isInfoEnabled()) {

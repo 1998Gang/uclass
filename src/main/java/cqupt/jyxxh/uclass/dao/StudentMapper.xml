@@ -31,4 +31,10 @@
     <select id="queryStudentByYkth" parameterType="String" resultType="Student">
         select * from uclass_students_info where ykth=#{value}
     </select>
+
+
+    <!--6.queryYkthAndPassByXh，通过学号获取一卡通号，和密码。格式：ykth_password-->
+    <select id="queryYkthAndPassByXh" parameterType="String" resultType="String">
+        select concat(ykth,'_',password) from uclass_students_info where xh=#{value}
+    </select>
 </mapper>

@@ -1,5 +1,7 @@
 package cqupt.jyxxh.uclass.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 
 /**
@@ -13,6 +15,8 @@ public class Teacher implements EduAccount, Serializable {
     private String teaName;//教师的name
     private String xb;//性别
     private String ykth;//一卡通号
+    @JsonIgnore
+    private String password;//一卡通密码
     private String zc;//教师的职称
     private String jysm;//教师的教研室
     private String yxm;//教师的院系名
@@ -26,6 +30,7 @@ public class Teacher implements EduAccount, Serializable {
                 ", teaName='" + teaName + '\'' +
                 ", xb='" + xb + '\'' +
                 ", ykth='" + ykth + '\'' +
+                ", password='" + password + '\'' +
                 ", zc='" + zc + '\'' +
                 ", jysm='" + jysm + '\'' +
                 ", yxm='" + yxm + '\'' +
@@ -79,6 +84,14 @@ public class Teacher implements EduAccount, Serializable {
 
     public void setYkth(String ykth) {
         this.ykth = ykth;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getZc() {

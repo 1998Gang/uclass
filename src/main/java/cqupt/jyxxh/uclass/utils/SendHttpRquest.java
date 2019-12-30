@@ -60,20 +60,20 @@ public  class SendHttpRquest {
             //实例化URL对象
             urlReal = new URL(url+"?"+param);
 
-            //使用Jsoup,请求时间10秒，
+            //使用Jsoup,最长时间10秒。
             Document document = Jsoup.parse(urlReal, 10000);
 
             //获取body中的json数据
             json= document.body().text();
 
+            //转码并返回
             return Parse.decodeUnicode(json);
 
-
         }catch (Exception e){
-            e.printStackTrace();
+            //日志
+            logger.error("【HTTP请求JSON（SendHttpRquest.getJson）】请求失败！请求超时！");
         }
 
-        //对获取的返回值进行转码
         return json;
     }
 
@@ -105,7 +105,7 @@ public  class SendHttpRquest {
         }else {
             //4.2 不为200
             if (logger.isDebugEnabled()){
-                logger.debug("【网络请求工具类（getHtmlWithParam）】获取html失败");
+                logger.debug("【网络请求工具类（getHtmlWithParam）】获取html页面失败");
             }
         }
         //5.返回获取的html界面，以字符串方式
@@ -156,7 +156,6 @@ public  class SendHttpRquest {
     public static String getHtmlWithCookie(String url,String cookie) throws IOException {
 
         String html=null;
-
 
         //1.创建get请求
         HttpGet httpGet=new HttpGet(url);

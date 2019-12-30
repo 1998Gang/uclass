@@ -55,10 +55,14 @@ public class EduAccountService {
      * @param password   统一身份认证密码
      * @return EduAccount 教务账号实体对象
      */
-    public EduAccount getEduAccountInfoByYkth(String ykth, String password) throws Exception {
+    public EduAccount getEduAccountFromJWZX(String ykth, String password) throws Exception {
         EduAccount eduAccount =null;
 
-        // 1.验证统一身份是否正确
+
+
+        //这里似乎不需要在验证身份，因为走到这一步，就代表身份演出是成功了的。
+
+        /*// 1.验证统一身份是否正确
         boolean istrue = authentication.ldapCheck(ykth, password);
         // 不正确
         if (!istrue){
@@ -67,7 +71,7 @@ public class EduAccountService {
                 logger.info("【教务账号获取(UserBindInfoService.getBindInfofromYkth)】获取教务账号失败！因为统一身份认证失败！");
             }
             return eduAccount;
-        }
+        }*/
 
         // 2.根据统一身份认证码(一卡通号)判断该教务账户是教师账户还是学生账
         //   01开头为教师
@@ -79,6 +83,7 @@ public class EduAccountService {
             case "01":{
                 eduAccount = getDataFromJWZX.getTeacherInfoByTYSH(ykth, password);
 
+                //有一些一卡通号是01开头的账户，并不是教师，教务在线查不到教务账户数据。抛出异常
                 if (eduAccount==null){
                     throw new Exception("Unsupported academic administration account");
                 }
@@ -89,10 +94,10 @@ public class EduAccountService {
             case "16":
             case "72": {
                 eduAccount = getDataFromJWZX.getStudentInfoByTYSH(ykth, password);
-                System.out.println("====getEduAccountInfoByYkth====="+(Student)eduAccount);
                 break;
             }
-            // 4.3
+
+            // 4.3 一些非学生非老师的账户
             default:{
                 //不支持的教务账户，抛出异常！
                 throw new Exception("Unsupported academic administration account");
@@ -106,7 +111,7 @@ public class EduAccountService {
      * @param uclassUser 用户实体
      * @return EduAccount 教务账号信息
      */
-    public EduAccount getUserEduAccountInfo(UclassUser uclassUser){
+    public EduAccount getUserEduAccountInfo(UclassUser uclassUser) throws Exception {
         EduAccount eduAccount =null;
 
         // 1.获取用户绑定的教务账号的类型
@@ -180,7 +185,7 @@ public class EduAccountService {
      * @param ykth 统一身份认证吗（一卡通号）
      * @return boolean
      */
-    public boolean isEduAccountInDB(String ykth){
+    public boolean isEduAccountInDB(String ykth) throws Exception {
         boolean flage=false;
         // 1.获取用户类型（一卡通前两位，16开头为本科生、72开头为留学生、01开头为教师）
         String ykthStart=ykth.substring(0,2);
@@ -201,6 +206,12 @@ public class EduAccountService {
                 flage= 1 == num;
                 break;
             }
+
+            // 一些非学生非老师的账户
+            default:{
+                //不支持的教务账户，抛出异常！
+                throw new Exception("Unsupported academic administration account");
+            }
         }
 
         return flage;
@@ -211,7 +222,7 @@ public class EduAccountService {
      * @param ykth 一卡通号
      * @return eduAccount
      */
-    public EduAccount getEduAccountFromDB(String ykth) {
+    public EduAccount getEduAccountFromDB(String ykth) throws Exception {
         EduAccount eduAccount=null;
 
         //1.获取用户类型（一卡通前两位，16开头为本科生、72开头为留学生、01开头为教师）
@@ -231,9 +242,13 @@ public class EduAccountService {
                 eduAccount= studentMapper.queryStudentByYkth(ykth);
                 break;
             }
+
+            //  一些非学生非老师的账户
             default:{
-                break;
+                //不支持的教务账户，抛出异常！
+                throw new Exception("Unsupported academic administration account");
             }
+
         }
 
         return eduAccount;

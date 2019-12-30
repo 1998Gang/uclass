@@ -1,6 +1,7 @@
 package cqupt.jyxxh.uclass.service;
 
 
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cqupt.jyxxh.uclass.pojo.KeChengInfo;
@@ -14,6 +15,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -36,6 +38,9 @@ public class KebiaoService {
     @Autowired
     private JedisPool jedisPool;                 //redis连接池
 
+    @Value("${redis.password}")
+    private String redisPassword;
+
     @Value("${URLStuKebiaoFromJWZX}")
     private String URL_STUKEBIAO_FROM_JWZX;       //从教务在线获取学生课表的URL
 
@@ -52,7 +57,7 @@ public class KebiaoService {
      * @param type  类别，"s"代表学生，"t"代表老师
      * @return ArrayList<ArrayList<ArrayList<KeChengInfo>>>
      */
-    public String getKebiao(String number, String type) throws JsonProcessingException {
+    public String getKebiao(String number, String type) throws IOException {
 
         //课表 json格式字符串
         String kebiao=null;
@@ -62,15 +67,15 @@ public class KebiaoService {
 
         //获取jedis,并选择第二个库（课表缓存都放在第二个库）。
         Jedis jedis = jedisPool.getResource();
-        jedis.auth("root");
+        jedis.auth(redisPassword);
         jedis.select(1);
 
 
-        //1.判断缓存中是否存在该用户课表，如果有就从缓存取。
+        //1.判断缓存（redis）中是否存在该用户课表，如果有就从缓存（redis）取。
         try{
             Boolean exists = jedis.exists("kebiao_" + number);
             if (exists){
-                //存在从缓存取
+                //从缓存取
                 kebiao = jedis.get("kebiao_" + number);
                 jedis.close();
                 return kebiao;
@@ -87,21 +92,24 @@ public class KebiaoService {
             case "s":{
 
                 ArrayList<ArrayList<ArrayList<KeChengInfo>>> stukebiaoByXh = getDataFromJWZX.getStukebiaoByXh(number);
-
+                //将嵌套集合转位json字符串
                  kebiao = objectMapper.writeValueAsString(stukebiaoByXh);
 
-                 //放进缓存
+                 //放进缓存，并设置有效时间(24小时)。
                 jedis.set("kebiao_"+number,kebiao);
+                jedis.expire("kebiao_"+number,86400);
                 jedis.close();
                 break;
             }
             //老师
             case "t":{
                 ArrayList<ArrayList<ArrayList<KeChengInfo>>> teaKebiaoByTeaId = getDataFromJWZX.getTeaKebiaoByTeaId(number);
+                //将嵌套集合转位json字符串
                 kebiao = objectMapper.writeValueAsString(teaKebiaoByTeaId);
 
-                //放进缓存
+                //放进缓存,并设置有效时间(24小时).
                 jedis.set("kebiao_"+number,kebiao);
+                jedis.expire("kebiao_"+number,86400);
                 jedis.close();
                 break;
             }

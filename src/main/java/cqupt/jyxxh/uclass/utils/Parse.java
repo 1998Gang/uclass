@@ -1,5 +1,6 @@
 package cqupt.jyxxh.uclass.utils;
 
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cqupt.jyxxh.uclass.pojo.KeChengInfo;
@@ -195,7 +196,7 @@ public class Parse {
         List<Teacher> teaList=new ArrayList<>();
         //判断传入参数是否为空
         if(null==teaJsonInfo||"".equals(teaJsonInfo)){
-            logger.debug("【解析教师json格式信息（ParseJsonToTeacher）】 失败！参数teaJsonInfo为空");
+            logger.debug("【解析教师json格式信息（Parse.ParseJsonToTeacher）】 解析失败！参数teaJsonInfo为空");
             return teaList;
         }
         try {
@@ -267,9 +268,10 @@ public class Parse {
      *
      * @param html html字符串
      * @param type 用户类型，”s“学生，"t"老师。必填
+     * @param cjzcs map集合，装的成绩组成。  如：{SK13191A2130610002=[实验实践]考勤占30%，课堂表现占30%, A13191A1100040014=[理论]期末考试50%+网络学习30%+课程论文20%}
      * @return ArrayList<ArrayList<ArrayList<KeChengInfo>>> 嵌套的集合，最里层放的课程信息
      */
-    public static ArrayList<ArrayList<ArrayList<KeChengInfo>>> parseHtmlToKebiaoInfo(String html, String type){
+    public static ArrayList<ArrayList<ArrayList<KeChengInfo>>> parseHtmlToKebiaoInfo(String html, String type,Map cjzcs){
 
         //解析后的数据以嵌套集合的方式返回，定义三层集合
         ArrayList<ArrayList<ArrayList<KeChengInfo>>> jj=new ArrayList<>();//最外层，代表整个课表，装具体的上课节数（12节、34节 、....11 12节）
@@ -337,7 +339,7 @@ public class Parse {
                         //解析，将"10101010101010101000" to {1，3，5，7，9，11，13，15，17}
                         List<String> weekNum = Parse.parseZCtoWeekNum(zc);
                         //解析具体的课程信息，将html页面上的信息解析为 KeChengInfo。学生与老师的html页面不一样，不同的解析方式。
-                        KeChengInfo keChengInfo = parseKebiaoToKeChengInfo(kbTd.html(),type);
+                        KeChengInfo keChengInfo = parseKebiaoToKeChengInfo(kbTd.html(),type,cjzcs);
                         //补充数据
                         keChengInfo.setWeek(zc); //上课周数
                         keChengInfo.setWeekNum(weekNum);//上课周数（具体数字）
@@ -366,9 +368,10 @@ public class Parse {
      *
      * @param kebiaoHtml 课程详细信息的html数据(具体的 某一节的信息。)
      * @param type  操作的用户类型 “s” 是学生，"t"是老师
+     * @param cjzcs map集合，装的是成绩组成。key是教学班，value是成绩组成描述的字符串。如：{SK13191A2130610002=[实验实践]考勤占30%，课堂表现占30%, A13191A1100040014=[理论]期末考试50%+网络学习30%+课程论文20%}
      * @return kechengInfo 课程的详细信息
      */
-    private static KeChengInfo parseKebiaoToKeChengInfo(String kebiaoHtml, String type){
+    private static KeChengInfo parseKebiaoToKeChengInfo(String kebiaoHtml, String type,Map cjzcs){
         KeChengInfo keChengInfo=new KeChengInfo();
         String[] s1=kebiaoHtml.split("\n");
 
@@ -402,12 +405,12 @@ public class Parse {
         if ("s".equals(type)){
             //学分
             keChengInfo.setCredit(s1[6].substring(s1[6].lastIndexOf(" ")+1,s1[6].indexOf("</span>")));
-            //上课状态，如  自修 重修 再修等
+            //选课类型，如  自修 重修 再修等
             if (s1.length==11){
-                keChengInfo.setSklx(s1[8].substring(s1[8].indexOf("\">")+2,s1[8].indexOf("</")));
+                keChengInfo.setXklx(s1[8].substring(s1[8].indexOf("\">")+2,s1[8].indexOf("</")));
             }
             //成绩组成，根据教学班获取
-
+            keChengInfo.setCjzc((String) cjzcs.get(s1[0]));
 
         }
         //上课班级类别以及班级号，如果是老师进行该步骤

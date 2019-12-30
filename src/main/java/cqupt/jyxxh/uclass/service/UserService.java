@@ -165,11 +165,11 @@ public class UserService {
 
             // 2.判断，如果数据库中有就在数据库中取，如果没有就取教务在线爬取并存入本地数据库。
             if (isIn){
-                //2.1.1数据库中有
+                //2.1.1数据库中有，通过一卡通号从数据库获取数据。
                  eduAccount = eduAccountService.getEduAccountFromDB(ykth);
             }else {
                 //2.2.1 数据库中没有，通过统一身份认证码（一卡通号）获取教务账号实体
-                eduAccount = eduAccountService.getEduAccountInfoByYkth(ykth,password);
+                eduAccount = eduAccountService.getEduAccountFromJWZX(ykth,password);
                 //2.2.2将教务账户数据插入到数据库中.
                 eduAccountService.insertEduAccountToDB(eduAccount);
             }
@@ -194,7 +194,7 @@ public class UserService {
             }
             flage=false;
 
-            //捕获异常，抛出！
+            //捕获异常，抛出！(这里捕获的异常是捕获的  不支持账户的异常。)  重要！！！！
             throw e;
         }
 

@@ -1,5 +1,7 @@
 package cqupt.jyxxh.uclass.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 
 /**
@@ -16,6 +18,8 @@ public class Student implements EduAccount, Serializable {
     private String xm;//姓名
     private String xb;//性别
     private String ykth;//一卡通号码  统一认证吗
+    @JsonIgnore
+    private String password;//一卡通密码
     private String yxm;//学院
     private String zym;//专业
     private String nj;//年级
@@ -33,6 +37,7 @@ public class Student implements EduAccount, Serializable {
                 ", xm='" + xm + '\'' +
                 ", xb='" + xb + '\'' +
                 ", ykth='" + ykth + '\'' +
+                ", password='" + password + '\'' +
                 ", yxm='" + yxm + '\'' +
                 ", zym='" + zym + '\'' +
                 ", nj='" + nj + '\'' +
@@ -97,6 +102,16 @@ public class Student implements EduAccount, Serializable {
         this.ykth = ykth;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+
+
     public String getYxm() {
         return yxm;
     }
@@ -153,19 +168,21 @@ public class Student implements EduAccount, Serializable {
         this.csrq = csrq;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getStu_phone() {
+        return stu_phone;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setStu_phone(String stu_phone) {
+        this.stu_phone = stu_phone;
     }
 
-    public String getEmail() {
-        return email;
+    public String getStu_email() {
+        return stu_email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setStu_email(String stu_email) {
+        this.stu_email = stu_email;
     }
+
+
 }

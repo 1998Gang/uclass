@@ -2,6 +2,8 @@ package cqupt.jyxxh.uclass.dao;
 
 import cqupt.jyxxh.uclass.pojo.Student;
 
+import java.util.List;
+
 /**
  *学生信息操作接口
  */
@@ -45,4 +47,12 @@ public interface StudentMapper {
      * @return  student 教务账户（学生）实体
      */
     Student queryStudentByYkth(String ykth);
+
+    /**
+     * 根据学号获取一卡通号和密码
+     * @param xh 学号
+     * @return list集合
+     */
+    String queryYkthAndPassByXh(String xh);
+    //TODO 如果没有密码，返回值为空
 }
