@@ -3,6 +3,7 @@ package cqupt.jyxxh.uclass.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cqupt.jyxxh.uclass.pojo.KbStuListData;
 import cqupt.jyxxh.uclass.pojo.KeChengInfo;
 import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.pojo.Teacher;
@@ -13,6 +14,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.lang.model.element.NestingKind;
 import javax.naming.directory.Attributes;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -252,10 +254,6 @@ public class Parse {
     }
 
 
-
-
-
-
     /**
      * 解析教务在线获取的课表html页
      *
@@ -271,7 +269,7 @@ public class Parse {
      * @param cjzcs map集合，装的成绩组成。  如：{SK13191A2130610002=[实验实践]考勤占30%，课堂表现占30%, A13191A1100040014=[理论]期末考试50%+网络学习30%+课程论文20%}
      * @return ArrayList<ArrayList<ArrayList<KeChengInfo>>> 嵌套的集合，最里层放的课程信息
      */
-    public static ArrayList<ArrayList<ArrayList<KeChengInfo>>> parseHtmlToKebiaoInfo(String html, String type,Map cjzcs){
+    public static ArrayList<ArrayList<ArrayList<KeChengInfo>>> parseHtmlToKebiaoInfo(String html, String type,Map<String,String> cjzcs){
 
 
 
@@ -467,32 +465,111 @@ public class Parse {
         // 4.使用正则解析该字符串
         // 4.1 学年
         String xuenian=time.substring(0,time.indexOf("学"));
-        sTime.put("学年",xuenian);
+        sTime.put("semester",xuenian);
         // 4.2 学期
         String xueqi=time.substring(time.indexOf("学年")+2,time.indexOf("学期"));
-        sTime.put("学期",xueqi);
+        sTime.put("semester",xueqi);
         // 4.3 周
         String week=time.substring(time.indexOf("第")+2,time.indexOf("周")-1);
-        sTime.put("周",week);
+        sTime.put("week",week);
         // 4.4 星期
         String workDay=time.substring(time.indexOf("星期")+3,time.indexOf("星期")+4);
-        sTime.put("星期",workDay);
+        sTime.put("work_day",workDay);
         // 4.5 年
         String year =time.substring(time.indexOf("年",20)-4,time.indexOf("年",20));
-        sTime.put("年",year);
+        sTime.put("year",year);
         // 4.6 月
         String month=time.substring(time.indexOf("月")-2,time.indexOf("月"));
-        sTime.put("月",month);
+        sTime.put("month",month);
         // 4.7 日
         String day=time.substring(time.indexOf("月")+1,time.indexOf("日"));
-        sTime.put("日",day);
+        sTime.put("day",day);
 
         return sTime;
 
     }
 
+    /**
+     * 解析教务在线成绩组成页
+     * @param cjzcHtml html页面string字符串
+     * @return map<String,String></> key是教学班，value是成绩组成。
+     */
+    public static Map<String, String> parseHtmlToCJZC(String cjzcHtml) {
+        Map<String,String> cjzc=new HashMap<>();
+        // 1.jsoup解析
+        Document doc = Jsoup.parse(cjzcHtml);
+        // 2.获取html页面 所有<tbody>标签
+        Elements tbodys = doc.getElementsByTag("tbody");
+        // 3.存放数据的标签是第一个，也是唯一一个tbody，所有直接根据索引获取
+        Element tbody = tbodys.get(0);
+        // 4.获取tbody标签内的所有<tr>标签，<tr>标签代表一门课程的数据。
+        Elements trs = tbody.getElementsByTag("tr");
+        // 5.遍历所有<tr>标签，取出数据。
+        for (Element tr:trs){
+            //5.1 获取<tr>标签里的<td>标签，<td>代表具体数据，第一个<td>是教学班，第五个<td>是课程分类（理论|实验实践），第六个<td>是成绩组成（字符串）
+            Elements tds = tr.getElementsByTag("td");
 
+            //教学班
+            String jxb=tds.get(0).text();
+            //课程分类
+            String kcfl=tds.get(4).text();
+            //成绩组成
+            String cjzcString=tds.get(5).text();
 
+            //5.2将这些数据放到map集合中，课程分类与成绩组成为value，教学班为key
+            cjzc.put(jxb,"["+kcfl+"]"+cjzcString);
+        }
+
+        return cjzc;
+    }
+
+    /**
+     * 解析教务在线学生名单页
+     * @param stuListHtml html页面string字符串
+     * @return list<Student></>
+     */
+    public static List<Student> parseHtmlToStuList(String stuListHtml) {
+        List<Student> stuList=new ArrayList<>();
+        // 1.jsoup解析
+        Document listHtml = Jsoup.parse(stuListHtml);
+        // 2.获取页面所以<tbody>标签，装的是名单。实际情况是只有一个tbody标签。
+        Elements tbodys = listHtml.getElementsByTag("tbody");
+        // 3.根据索引获取第一个也是唯一一个tbody标签
+        Element tbody = tbodys.get(0);
+        // 4.获取tbody中所有的<tr>标签，一个<tr>标签代表一个学生信息
+        Elements trs = tbody.getElementsByTag("tr");
+        // 5.遍历tr标签，获取学生数据。
+        for (Element tr:trs){
+            // 5.1定义一个学生对象，存放学生数据。
+            Student student=new Student();
+            // 5.2获取<tr>标签里的<td>标签
+            Elements tds = tr.getElementsByTag("td");
+
+            //学号，第二个<td>
+            student.setXh(tds.get(1).text());
+            //姓名，第三个<td>
+            student.setXm(tds.get(2).text());
+            //性别，第四个<td>
+            student.setXb(tds.get(3).text());
+            //班级，第五个<td>
+            student.setBj(tds.get(4).text());
+            //专业，第七个<td>
+            student.setZym(tds.get(6).text());
+            //学院，第八个<td>
+            student.setYxm(tds.get(7).text());
+            //年级，第九个<td>
+            student.setNj(tds.get(8).text());
+            //学籍状态，第十个<td>
+            student.setXjzt(tds.get(9).text());
+            //选课状态,第十一个<td>
+            student.setXkzt(tds.get(10).text());
+
+            //将该学生数据放入list集合
+            stuList.add(student);
+        }
+
+        return stuList;
+    }
 
 
     /**
@@ -556,33 +633,55 @@ public class Parse {
     }
 
 
-    public static Map<String, String> parseHtmlToCJZC(String cjzcHtml) {
-        Map<String,String> cjzc=new HashMap<>();
-        // 1.jsoup解析
-        Document doc = Jsoup.parse(cjzcHtml);
-        // 2.获取html页面 所有<tbody>标签
-        Elements tbodys = doc.getElementsByTag("tbody");
-        // 3.存放数据的标签是第一个，也是唯一一个tbody，所有直接根据索引获取
-        Element tbody = tbodys.get(0);
-        // 4.获取tbody标签内的所有<tr>标签，<tr>标签代表一门课程的数据。
-        Elements trs = tbody.getElementsByTag("tr");
-        // 5.遍历所有<tr>标签，取出数据。
-        for (Element tr:trs){
-            //5.1 获取<tr>标签里的<td>标签，<td>代表具体数据，第一个<td>是教学班，第五个<td>是课程分类（理论|实验实践），第六个<td>是成绩组成（字符串）
-            Elements tds = tr.getElementsByTag("td");
+    /**
+     * 解析课程学生名单，获取总人数，不同选课状态的学生人数，不同专业下不同班级的学生人数。
+     * @param stuList 学生名单
+     * @return KbStuListData
+     */
+    public static KbStuListData parseStuListToKbStuListData(List<Student> stuList) {
 
-            //教学班
-            String jxb=tds.get(0).text();
-            //课程分类
-            String kcfl=tds.get(4).text();
-            //成绩组成
-            String cjzcString=tds.get(5).text();
+        //1.总人数
+        int headcount=stuList.size();
+        //2.选课状态
+        Map<String,Integer> xkztMap=new HashMap<>();
+        //3.专业集合
+        Map<String,Map<String,Integer>> zyMap=new HashMap<>();
 
-            //5.2将这些数据放到map集合中，课程分类与成绩组成为value，教学班为key
-            cjzc.put(jxb,"["+kcfl+"]"+cjzcString);
+        //遍历学生名单。分析数据。
+        for (Student student:stuList){
+            // 2.统计选课状态
+            String xkzt = student.getXkzt();//选课状态
+            if (xkztMap.containsKey(xkzt)){
+                xkztMap.put(xkzt,xkztMap.get(xkzt)+1);
+            }else {
+                xkztMap.put(xkzt,1);
+            }
+
+            //2.统计各专业下各班级人数
+            String zym = student.getZym();//专业名
+            String bj = student.getBj();//班级号
+            //2.1创建专业
+            if (!zyMap.containsKey(zym)){
+                //2.1.1 集合中没有该专业，将该专业添加到集合。并创建一个属于该专业的班级集合。
+                Map<String,Integer> bjMap=new HashMap<>();
+                zyMap.put(zym,bjMap);
+            }
+            //2.2取出该专业下的班级集合
+            Map<String, Integer> bjMap = zyMap.get(zym);
+            //2.3往该专业下的班级集合添加数据。
+            if (bjMap.containsKey(bj)){
+                bjMap.put(bj,bjMap.get(bj)+1);
+            }else {
+                bjMap.put(bj,1);
+            }
         }
 
+        KbStuListData kbStuListData=new KbStuListData();
+        kbStuListData.setHeadcount(headcount);
+        kbStuListData.setNumberOfXkzt(xkztMap);
+        kbStuListData.setNumberOfZyAndBj(zyMap);
+        kbStuListData.setStudents(stuList);
 
-        return cjzc;
+        return kbStuListData;
     }
 }

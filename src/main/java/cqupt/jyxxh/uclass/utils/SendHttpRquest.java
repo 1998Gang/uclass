@@ -200,12 +200,14 @@ public  class SendHttpRquest {
 
         CloseableHttpClient httpClient= HttpClients.createDefault();
 
+
         CloseableHttpResponse response;
 
         // 1.创建一个get请求。
         HttpGet httpGet=new HttpGet(url);
 
         // 2.发起请求
+
          response = httpClient.execute(httpGet);
 
         // 3.判断响应状态码，如果为200，请求成功，返回该响应体对象。

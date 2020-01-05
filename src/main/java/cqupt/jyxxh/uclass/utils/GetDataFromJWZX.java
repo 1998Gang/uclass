@@ -6,6 +6,7 @@ import cqupt.jyxxh.uclass.pojo.KeChengInfo;
 import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.pojo.Teacher;
 import cqupt.jyxxh.uclass.service.EduAccountService;
+import cqupt.jyxxh.uclass.service.RedisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import redis.clients.jedis.JedisPool;
 
 import javax.naming.directory.Attributes;
 import java.io.IOException;
+import java.lang.invoke.StringConcatFactory;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -43,10 +45,7 @@ public class GetDataFromJWZX {
     private EduAccountService eduAccountService;     //教务账户操作类
 
     @Autowired
-    private JedisPool jedisPool;                     //jedis连接池
-
-    @Value("${redis.password}")
-    private String redisPassword;                     //redis连接密码
+    private RedisService redisService;               //redis操作类
 
 
     @Value("${URLTeaInfoFromJWZX}")
@@ -70,6 +69,8 @@ public class GetDataFromJWZX {
     @Value("${URLAuthserverLoginToJWZX}")
     private String URL_AUTHSERVER_LOGIN_TO_JWZX;         //统一身份认证平台URL（登陆教务在线）
 
+    @Value("${URLKbStuListFromJWZX}")
+    private String URL_KESTULIST_FROM_JWZX;              //去教务在线获取教学班学生名单的URL，参数 jxb=教学班号
 
     /**
      * 根据学号去教务在线获取学生数据
@@ -85,7 +86,6 @@ public class GetDataFromJWZX {
         return Parse.ParseJsonToStudent(studentJson);
 
     }
-
     /**
      * 根据教师号去教务在线获取教师数据
      * @param teaId 教师号
@@ -104,7 +104,6 @@ public class GetDataFromJWZX {
 
         return teacher;
     }
-
     /**
      * 根据教师姓名，学院名去教务在线获取教师数据
      * @param jsxm 教师姓名
@@ -194,37 +193,34 @@ public class GetDataFromJWZX {
      * @return ArrayList<ArrayList<ArrayList<KeChengInfo>>> 课表数组
      */
     public ArrayList<ArrayList<ArrayList<KeChengInfo>>> getStukebiaoByXh(String xh) throws IOException {
-            // jackson操作对象
-            ObjectMapper objectMapper = new ObjectMapper();
 
-        // 1.在获取课表之前，先获取成绩组成。
-        Map cjzcs=null;
-        // 1.1 先判断缓存有没有。获取jedis，并添加密码，选择第三个reids库。
+        // jackson操作对象
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // 1.在获取课表之前先获取成绩组成
+        Map<String,String> cjzcs=new HashMap<>();
+        // 1.1操作redis的key
+        String key="cjzc_"+xh;
+        // 1.2先去redis中拿数据。
         try{
-            Jedis jedis1 = jedisPool.getResource();
-            jedis1.auth(redisPassword);
-            jedis1.select(2);
-            if (jedis1.exists("cjzc_"+xh)){
-                //缓存有，从缓存取。
-                String s = jedis1.get("cjzc_" + xh);
-                cjzcs = objectMapper.readValue(s, Map.class);
-                jedis1.close();
-            }else {
-                // 1.2 缓存没有，通过学号去教务在线取。
+            String data = redisService.getCjzc(key);
+            if ("false".equals(data)){
+                //从redis获取数据失败。1.缓存中没有该key的数据。或者 2.操作redis时出现未知错误。
+                //缓存没有，就去教务在线获取
                 cjzcs = getCjzcByXh(xh);
-                //将map集合转为json字符串
-                String s = objectMapper.writeValueAsString(cjzcs);
-                //放入缓存,并设置一个过期时间（25天）
-                jedis1.set("cjzc_"+xh,s);
-                jedis1.expire("cjzc_"+xh,2160000);
-                jedis1.close();
+                //教务在线获取成功后，将数据存入redis中。
+                //将教务在线获取map集合转为json字符串。
+                String cjzcJson = objectMapper.writeValueAsString(cjzcs);
+                redisService.setCjzc(key,cjzcJson);
+            }else {
+                //从redis获取数据成功,将json字符串转为map集合
+                cjzcs = objectMapper.readValue(data, Map.class);
             }
         }catch (Exception e){
             logger.error("【获取课表（GetDataFromJWZX.getStukebiaoByXh）】获取成绩组成出错！");
         }
 
-
-        // 2.发起http请求，获取教务在线的课表ktml代码
+        // 2.发起http请求，获取教务在线的课表页的Html代码
         String stuKebiaoHtml=null;
         try {
              stuKebiaoHtml= SendHttpRquest.getHtmlWithParam(URL_STUKEBIAO_FROM_JWZX, "xh=" + xh);
@@ -232,11 +228,9 @@ public class GetDataFromJWZX {
             e.printStackTrace();
         }
 
-        //解析并返回，带参数”s“表示这个是学生的课表。
+        //解析并返回，带参数”s“表示这个是学生的课表,第三个参数是成绩组成。
         return Parse.parseHtmlToKebiaoInfo(stuKebiaoHtml, "s",cjzcs);
     }
-
-
     /**
      * 通过教师号获取教师课表
      * @param teaId 教师号
@@ -245,7 +239,7 @@ public class GetDataFromJWZX {
     public ArrayList<ArrayList<ArrayList<KeChengInfo>>> getTeaKebiaoByTeaId(String teaId){
 
         //这里定义一个空map集合，因为parseHtmlToKebiaoInfo需要一个map作为参数。在获取教师课表这个方法内，cjzcs无其他意义。
-        Map cjzcs=new HashMap();
+        Map<String,String> cjzcs=new HashMap<>();
 
         //教务在线课表页的html代码，字符串表示。
         String teaKebiaoHtml=null;
@@ -261,10 +255,6 @@ public class GetDataFromJWZX {
         //解析并返回,带参数”t“表示这是老师的课表。
         return Parse.parseHtmlToKebiaoInfo(teaKebiaoHtml,"t",cjzcs);
     }
-
-
-
-
     /**
      * 获取学生所有课程的成绩组成
      * @param xh 学号
@@ -292,6 +282,24 @@ public class GetDataFromJWZX {
         return cjzc;
     }
 
+
+    /**
+     * 通过教学班获取上课学生名单
+     * @param jxb 教学班
+     * @return list<Student></Student>
+     */
+    public List<Student>getKbStuList(String jxb) throws IOException {
+        List<Student> stuList;
+
+        //发起http请求，请求教务在线学生名单页。
+        String param="jxb="+jxb;
+        //学生名单页的html
+        String stuListHtml = SendHttpRquest.getHtmlWithParam(URL_KESTULIST_FROM_JWZX, param);
+        //解析html
+        stuList = Parse.parseHtmlToStuList(stuListHtml);
+        return stuList;
+    }
+
     /**
      * 获取重庆邮电大学，校历时间。
      * @return 时间的map集合
@@ -312,6 +320,8 @@ public class GetDataFromJWZX {
 
         return sTime;
     }
+
+
 
 
 

@@ -41,7 +41,6 @@ public class UclassUserManage {
     private final Logger logger= LoggerFactory.getLogger(UclassUserManage.class);    //日志（slf4j搭配logback）
 
 
-
     @Autowired
     private  UserService userService;                     //用户信息操作类
 
@@ -218,6 +217,4 @@ public class UclassUserManage {
         //  5，服务器内部错误，http状态码响应 500
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("绑定失败，服务器内部错误！");
     }
-
-
 }

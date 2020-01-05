@@ -78,7 +78,6 @@ public class SimulationLogin {
         return "PHPSESSID"+phpsessidValue;
     }
 
-
     /**
      * 获取第一次请求统一身份认证平台得到的cookie（JSSESSIONID）
      * @param response 第一次请求统一身份认证平台的响应体

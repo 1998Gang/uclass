@@ -17,7 +17,7 @@ public class Student implements EduAccount, Serializable {
     private String xh;//学号 主键
     private String xm;//姓名
     private String xb;//性别
-    private String ykth;//一卡通号码  统一认证吗
+    private String ykth;//一卡通号码  统一认证码
     @JsonIgnore
     private String password;//一卡通密码
     private String yxm;//学院
@@ -29,6 +29,8 @@ public class Student implements EduAccount, Serializable {
     private String csrq;//出生日期
     private String stu_phone;//电话号
     private String stu_email;//邮箱
+
+    private String xkzt; //选课状态（用于获取教学班名单时）
 
     @Override
     public String toString() {
@@ -47,6 +49,7 @@ public class Student implements EduAccount, Serializable {
                 ", csrq='" + csrq + '\'' +
                 ", stu_phone='" + stu_phone + '\'' +
                 ", stu_email='" + stu_email + '\'' +
+                ", xkzt='" + xkzt + '\'' +
                 '}';
     }
 
@@ -186,5 +189,11 @@ public class Student implements EduAccount, Serializable {
         this.stu_email = stu_email;
     }
 
+    public String getXkzt() {
+        return xkzt;
+    }
 
+    public void setXkzt(String xkzt) {
+        this.xkzt = xkzt;
+    }
 }

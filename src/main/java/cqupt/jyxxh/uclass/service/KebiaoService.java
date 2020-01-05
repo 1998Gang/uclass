@@ -36,17 +36,7 @@ public class KebiaoService {
     private GetDataFromJWZX getDataFromJWZX;    //去教务在线获取数据的工具类
 
     @Autowired
-    private JedisPool jedisPool;                 //redis连接池
-
-    @Value("${redis.password}")
-    private String redisPassword;
-
-    @Value("${URLStuKebiaoFromJWZX}")
-    private String URL_STUKEBIAO_FROM_JWZX;       //从教务在线获取学生课表的URL
-
-    @Value("${URLTeaKebiaoFromJWZX}")
-    private String URL_TEAKEBIAO_FROM_JWZX;       //从教务在线获取教师课表URL
-
+    private RedisService redisService;          //reids操作类
 
 
 
@@ -62,26 +52,24 @@ public class KebiaoService {
         //课表 json格式字符串
         String kebiao=null;
 
+        //操作redis的key
+        String key="kebiao_"+number;
+
         //实例化json操作对象
         ObjectMapper objectMapper=new ObjectMapper();
 
-        //获取jedis,并选择第二个库（课表缓存都放在第二个库）。
-        Jedis jedis = jedisPool.getResource();
-        jedis.auth(redisPassword);
-        jedis.select(1);
 
-
-        //1.判断缓存（redis）中是否存在该用户课表，如果有就从缓存（redis）取。
+        //1.先去redis中获取
         try{
-            Boolean exists = jedis.exists("kebiao_" + number);
-            if (exists){
-                //从缓存取
-                kebiao = jedis.get("kebiao_" + number);
-                jedis.close();
+            String data = redisService.getKebiao(key);
+            if (!"false".equals(data)){
+                //从缓存获取数据成功！
+                kebiao=data;
+                //直接返回。
                 return kebiao;
             }
         }catch (Exception e){
-            logger.debug("【课表缓存（KebiaoService.getkebiao）】出现未知错误！");
+            logger.debug("【获取课表缓存（KebiaoService.getkebiao）】出现未知错误！");
         }
 
 
@@ -95,10 +83,12 @@ public class KebiaoService {
                 //将嵌套集合转位json字符串
                  kebiao = objectMapper.writeValueAsString(stukebiaoByXh);
 
-                 //放进缓存，并设置有效时间(24小时)。
-                jedis.set("kebiao_"+number,kebiao);
-                jedis.expire("kebiao_"+number,86400);
-                jedis.close();
+                 //放进缓存。
+                try {
+                    boolean b = redisService.setKeBiao(key, kebiao);
+                }catch (Exception e){
+                    logger.debug("【添加学生课表缓存（KebiaoService.getkebiao）】出现未知错误！");
+                }
                 break;
             }
             //老师
@@ -107,25 +97,15 @@ public class KebiaoService {
                 //将嵌套集合转位json字符串
                 kebiao = objectMapper.writeValueAsString(teaKebiaoByTeaId);
 
-                //放进缓存,并设置有效时间(24小时).
-                jedis.set("kebiao_"+number,kebiao);
-                jedis.expire("kebiao_"+number,86400);
-                jedis.close();
+                //将结果放进缓存。
+               try {
+                    boolean b = redisService.setKeBiao(key, kebiao);
+                }catch (Exception e){
+                    logger.debug("【添加教师课表缓存（KebiaoService.getkebiao）】出现未知错误！");
+                }
                 break;
             }
         }
-
         return kebiao;
     }
-
-    /**
-     * 获取教务时间，匹配课表
-     * @return Map，教务时间
-     */
-    public Map<String,String> getSchoolTime(){
-
-        return getDataFromJWZX.getSchoolTime();
-    }
-
-
 }

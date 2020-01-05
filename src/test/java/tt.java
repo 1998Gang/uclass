@@ -12,7 +12,12 @@ import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author 彭渝刚
@@ -37,7 +42,10 @@ public class tt {
 
     @Test
     public void skjhParse() throws IOException {
-
+        HttpClient httpClient=HttpClient.newHttpClient();
+        HttpRequest httpRequest=HttpRequest.newBuilder().uri(URI.create("http://jwzx.cqupt.edu.cn/kebiao/kb_stuList.php?jxb=A13191A2130440002")).build();
+        CompletableFuture<HttpResponse<String>> httpResponseCompletableFuture = httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString());
+        System.out.println(httpResponseCompletableFuture);
     }
 
 

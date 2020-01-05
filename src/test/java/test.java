@@ -4,8 +4,14 @@
 
 
 import checkers.oigj.quals.O;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.deser.std.JsonNodeDeserializer;
+import com.fasterxml.jackson.databind.util.JSONPObject;
+import cqupt.jyxxh.uclass.pojo.KbStuListData;
 import cqupt.jyxxh.uclass.pojo.KeChengInfo;
+import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.utils.GetDataFromWX;
 
 import cqupt.jyxxh.uclass.utils.Parse;
@@ -31,6 +37,7 @@ import redis.clients.jedis.*;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -439,7 +446,10 @@ public class test {
 
     @Test
     public void tes(){
+        JedisPoolConfig jedisPoolConfig=new JedisPoolConfig();
 
+
+        JedisPool jedisPool=new JedisPool(jedisPoolConfig,"12",2,1000,"jkl");
 
 
     }
@@ -468,6 +478,11 @@ public class test {
             String htmlFromHttp = SendHttpRquest.getHtml("http://jwzx.cqupt.edu.cn/");
             Map<String, String> map = Parse.parseHtmlToSchoolTime(htmlFromHttp);
 
+            Date date=new Date();
+            System.out.println(date);
+            SimpleDateFormat simpleDateFormat=new SimpleDateFormat("yyyy-MM-dd");
+            String format = simpleDateFormat.format(date);
+            System.out.println(format);
             System.out.println(map);
         } catch (IOException e) {
             e.printStackTrace();
@@ -628,12 +643,76 @@ public class test {
         System.out.println(s);
         Map map1 = objectMapper.readValue(s, Map.class);
         System.out.println(map1);
-
-
-
-
-
         /* System.out.println(map);*/
     }
+
+
+    /**
+     * 根据教学班获取学生列表
+     * @throws IOException
+     */
+    @Test
+    public void getstuList() throws IOException {
+        String htmlWithParam = SendHttpRquest.getHtmlWithParam("http://jwzx.cqupt.edu.cn/kebiao/kb_stuList.php", "jxb=A13191A2130440002");
+
+        //学生列表
+        List<Student> students = Parse.parseHtmlToStuList(htmlWithParam);
+        //1.总人数
+        int headcount=students.size();
+        //2.选课状态
+        Map<String,Integer> xkztMap=new HashMap<>();
+        //3.专业集合
+        Map<String,Map<String,Integer>> zyMap=new HashMap<>();
+
+
+        for (Student student:students){
+
+            // 2.统计选课状态
+            String xkzt = student.getXkzt();//选课状态
+            if (xkztMap.containsKey(xkzt)){
+                xkztMap.put(xkzt,xkztMap.get(xkzt)+1);
+            }else {
+                xkztMap.put(xkzt,1);
+            }
+
+            //2.统计各专业下各班级人数
+            String zym = student.getZym();//专业名
+            String bj = student.getBj();//班级号
+            //2.1创建专业
+            if (!zyMap.containsKey(zym)){
+                //2.1.1 集合中没有该专业，将该专业添加到集合。并创建一个属于该专业的班级集合。
+                Map<String,Integer> bjMap=new HashMap<>();
+                zyMap.put(zym,bjMap);
+            }
+            //2.2取出该专业下的班级集合
+            Map<String, Integer> bjMap = zyMap.get(zym);
+            //2.3往该专业下的班级集合添加数据。
+            if (bjMap.containsKey(bj)){
+                bjMap.put(bj,bjMap.get(bj)+1);
+            }else {
+                bjMap.put(bj,1);
+            }
+        }
+
+        //1.输出
+        System.out.println("========总人数=======");
+        System.out.println(headcount);
+        System.out.println("========选课状态=======");
+        System.out.println(xkztMap);
+        System.out.println("========各专业下各班级人数统计=======");
+        System.out.println(zyMap);
+
+
+        KbStuListData kbStuListData=new KbStuListData();
+        kbStuListData.setHeadcount(headcount);
+        kbStuListData.setNumberOfXkzt(xkztMap);
+        kbStuListData.setNumberOfZyAndBj(zyMap);
+        kbStuListData.setStudents(students);
+
+        ObjectMapper obj=new ObjectMapper();
+        String s = obj.writeValueAsString(kbStuListData);
+        System.out.println(s);
+    }
+
 
 }
