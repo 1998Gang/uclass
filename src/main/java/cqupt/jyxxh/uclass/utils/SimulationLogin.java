@@ -41,6 +41,12 @@ public class SimulationLogin {
     @Autowired
     private RedisService redisService;                 //操作redis的类
 
+    @Autowired
+    private Authentication authentication;              //验证统一身份的操作类
+
+    @Autowired
+    private EduAccountService eduAccountService;        //教务账户操作类
+
 
     /**
      *获取用户成功登陆教务在线后代表登陆状态的 cookie ，这个cookie可以用于继续模拟用户访问教务在线获取数据。有效时间应该是30分钟。
@@ -51,6 +57,16 @@ public class SimulationLogin {
      * @throws IOException 发起http请求的相关异常
      */
     public  String getPhpsessid(String ykth, String password) throws Exception {
+
+        //在模拟登陆之前，再验证一下账户密码。因为调用模拟登陆
+        if (!authentication.ldapCheck(ykth,password)){
+            //统一身份验证失败
+            //抛出异常,身份过期。
+            // 同时删除该用户的教务账户。
+            // 这样在下一次用户登陆的时候，就会被判定出来，身份过期，需要重新绑定了。
+            eduAccountService.deleteEduAccount(ykth);
+            throw new Exception("Identity is overdue");
+        }
 
         // 模拟登陆教务在线后，获得的cookie值，PHPSESSID.
         String phpsessid;
@@ -80,7 +96,7 @@ public class SimulationLogin {
         Map<String,String> form=getForm(responseFirst);
 
         // 3.第二次POST请求学校统一认证平台，获取身份校验成功后的重定向地址location。需要账号密码，以及第一次GET请求得到的Cookie值，还有表单值。
-        String location;
+        String location = null;
         // 3.1 获取相应实体
         CloseableHttpResponse responseSeconed = SendHttpRquest.postResponse(URL_AUTHSERVER_LOGIN_TO_JWZX, jssessionid, form, ykth, password);
         // 3.2判断响应状态码，200说明账号密码不正确。302说明账号密码正确，可以进行下一步
@@ -96,16 +112,6 @@ public class SimulationLogin {
             //拼装url
              location=name+"="+value;
 
-        }else {
-            //账号验证失败,返回“false”字符串。
-            //在此处发生的帐号验证失败不对，一般说明是用户更改了统一身份认证的密码，旧密码失效！
-
-            //抛出异常,身份过期，需要重新绑定。
-            // 同时删除该用户的教务账户。
-            // 这样在下一次用户登陆的时候，就会被判定出来，身份过期，需要重新绑定了。
-            EduAccountService eduAccountService=new EduAccountService();
-            eduAccountService.deleteEduAccount(ykth);
-            throw new Exception("Identity is overdue");
         }
 
         // 4.第三次GET请求，地址是第二步POST请求成功后重定向的地址（location）。请求一次这个地址，成功后，获取的PHPSWSSID才能生效。
@@ -113,6 +119,7 @@ public class SimulationLogin {
 
 
         // 5.至此，模拟登陆完成。返回PHPSESSID，用于访问教务在线。phpsessidValue =  “=ST-225477-knWmfbSib4wz2mQ2d2eY-NlvE-ids1-1577527149129”
+        if (location == null) throw new AssertionError();
         String phpsessidValue=location.substring(location.indexOf("="));
 
         //拼装一下phpsessid。完整的要返回的phpsessid是 “PHPSESSID=ST-225477-knWmfbSib4wz2mQ2d2eY-NlvE-ids1-1577527149129”
