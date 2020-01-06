@@ -42,9 +42,6 @@ public class SimulationLogin {
     private RedisService redisService;                 //操作redis的类
 
     @Autowired
-    private Authentication authentication;              //验证统一身份的操作类
-
-    @Autowired
     private EduAccountService eduAccountService;        //教务账户操作类
 
 
@@ -58,15 +55,6 @@ public class SimulationLogin {
      */
     public  String getPhpsessid(String ykth, String password) throws Exception {
 
-        //在模拟登陆之前，再验证一下账户密码。因为调用模拟登陆
-        if (!authentication.ldapCheck(ykth,password)){
-            //统一身份验证失败
-            //抛出异常,身份过期。
-            // 同时删除该用户的教务账户。
-            // 这样在下一次用户登陆的时候，就会被判定出来，身份过期，需要重新绑定了。
-            eduAccountService.deleteEduAccount(ykth);
-            throw new Exception("Identity is overdue");
-        }
 
         // 模拟登陆教务在线后，获得的cookie值，PHPSESSID.
         String phpsessid;
@@ -96,7 +84,7 @@ public class SimulationLogin {
         Map<String,String> form=getForm(responseFirst);
 
         // 3.第二次POST请求学校统一认证平台，获取身份校验成功后的重定向地址location。需要账号密码，以及第一次GET请求得到的Cookie值，还有表单值。
-        String location = null;
+        String location ;
         // 3.1 获取相应实体
         CloseableHttpResponse responseSeconed = SendHttpRquest.postResponse(URL_AUTHSERVER_LOGIN_TO_JWZX, jssessionid, form, ykth, password);
         // 3.2判断响应状态码，200说明账号密码不正确。302说明账号密码正确，可以进行下一步
@@ -111,7 +99,14 @@ public class SimulationLogin {
             String value = elements[0].getValue();
             //拼装url
              location=name+"="+value;
-
+        }else {
+            //进入这里，一般说明模拟登陆时，身份认证没通过。（应该是因为用户更改了密码）
+            //为什么不在此方法开始时就做一次身份认证？（因为绝大多数时候，密码都是正确的，极少时候会有密码错误。如果每次都调用一下身份验证，有点浪费资源）
+            //抛出异常,身份过期。
+            // 同时删除该用户的教务账户。
+            // 这样在下一次用户登陆的时候，就会被判定出来，身份过期，需要重新绑定了。
+            eduAccountService.deleteEduAccount(ykth);
+            throw new Exception("Identity is overdue");
         }
 
         // 4.第三次GET请求，地址是第二步POST请求成功后重定向的地址（location）。请求一次这个地址，成功后，获取的PHPSWSSID才能生效。
@@ -119,7 +114,6 @@ public class SimulationLogin {
 
 
         // 5.至此，模拟登陆完成。返回PHPSESSID，用于访问教务在线。phpsessidValue =  “=ST-225477-knWmfbSib4wz2mQ2d2eY-NlvE-ids1-1577527149129”
-        if (location == null) throw new AssertionError();
         String phpsessidValue=location.substring(location.indexOf("="));
 
         //拼装一下phpsessid。完整的要返回的phpsessid是 “PHPSESSID=ST-225477-knWmfbSib4wz2mQ2d2eY-NlvE-ids1-1577527149129”
