@@ -53,12 +53,11 @@ public class ComponentService {
         SimpleDateFormat simpleDateFormat= new SimpleDateFormat("yyyy-MM-dd");
         String nowData = simpleDateFormat.format(date);
 
-        //操作redis的key
-        String key ="schooltime_"+nowData;
+
 
         //1.去redis缓存拿教务时间
         try {
-            String data = redisService.getSchoolTime(key);
+            String data = redisService.getSchoolTime(nowData);
             if (!"false".equals(data)){
                 //缓存中有
                 schoolTime=data;
@@ -78,7 +77,7 @@ public class ComponentService {
             schoolTime = objectMapper.writeValueAsString(schoolTimeMap);
             //2.3将教务时间放入redis缓存
             try {
-                redisService.setSchoolTime(key,schoolTime);
+                redisService.setSchoolTime(nowData,schoolTime);
             }catch (Exception e){
                 logger.error("【获取教务时间（ComponentService.getSchoolTime）】将教务时间添加到缓存出现未知错误！");
             }
@@ -92,28 +91,25 @@ public class ComponentService {
     /**
      * 获取解析之后的教学班学生名单。（名单人数，所含专业、班级等，不同选课状态的学生。）
      * @param jxb 教学班
-     * @return String
+     * @return KbStuListData类的json字符串
      */
-    public String getKbStuListData(String jxb)  {
+    public KbStuListData getKbStuListData(String jxb)  {
         //教学班学生名单数据。
-        String stuListData=null;
-
+        KbStuListData kbStuListData=null;
         //json操作对象
         ObjectMapper objectMapper=new ObjectMapper();
 
-        //操作redsi的key
-        String key = "stulistdata_"+jxb;
 
         // 1.先从缓存中取
         try {
             //1.1 从缓存获取数据
-            String data = redisService.getStuListData(key);
+            String data = redisService.getStuListData(jxb);
             //1.2 判断
             if (!"false".equals(data)){
-                //缓存中有
-                stuListData=data;
+                //将json字符串转为KbStuListData对象
+                kbStuListData = objectMapper.readValue(data, KbStuListData.class);
                 //直接返回数据
-                return stuListData;
+                return kbStuListData;
             }
         }catch (Exception e){
             logger.error("【获取学生名单(ComponentService.getKbStuListData)】从缓存获取数据出现未知错误！");
@@ -126,21 +122,24 @@ public class ComponentService {
             List<Student> stuList = getDataFromJWZX.getKbStuList(jxb);
 
             //2.2.解析名单，获取该名单的具体数据,。
-            KbStuListData kbStuListData = Parse.parseStuListToKbStuListData(stuList);
+            kbStuListData = Parse.parseStuListToKbStuListData(stuList);
 
-            //2.3 将KbStuListData转换为json字符串格式。
-            stuListData = objectMapper.writeValueAsString(kbStuListData);
+            //2.3 将KbStuListData对象转换为json字符串格式。
+            String data = objectMapper.writeValueAsString(kbStuListData);
 
             //2.4将数据添加到缓存
             try {
-                redisService.setStuListData(key,stuListData);
+                redisService.setStuListData(jxb,data);
             }catch (Exception e){
                 logger.error("【获取学生名单(ComponentService.getKbStuListData)】将数据添加到缓存出现未知错误！");
             }
+
+            // 2.5 返回数据
+            return kbStuListData;
         } catch (IOException e) {
             logger.error("【获取学生名单（ComponentService.getKbStuListData）】出现未知错误！");
         }
 
-        return stuListData;
+        return kbStuListData;
     }
 }

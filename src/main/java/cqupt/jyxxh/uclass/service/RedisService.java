@@ -1,11 +1,16 @@
 package cqupt.jyxxh.uclass.service;
 
+import cqupt.jyxxh.uclass.pojo.KbStuListData;
+import cqupt.jyxxh.uclass.pojo.Student;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * redis操作类
@@ -25,11 +30,15 @@ public class RedisService {
 
     /**
      * 向redis中存储课表（课表在第二个数据库）
-     * @param key key（格式：kebiao_number,number为学号或者教师号)
-     * @param kebiao 课表实体，嵌套的json字符串
+     * @param number （number为学号或者教师号)
+     * @param kebiao  课表实体，嵌套的json字符串
      * @return boolea
      */
-    public boolean setKeBiao(String key,String kebiao){
+    public boolean setKeBiao(String number,String kebiao){
+
+        //操作redis的key
+        String key="kebiao_"+number;
+
         try {
             // 1.获取一个redis连接
             Jedis jedisKebiao = jedisPool.getResource();
@@ -52,10 +61,13 @@ public class RedisService {
     /**
      * 从缓存获取课表（第二个reids数据库）
      * 返回false说明数据获取失败，（1.缓存中没有该数据。2.出现未知错误。）
-     * @param key key（格式：kebiao_number,number为学号或者教师号)
+     * @param number （number为学号或者教师号)
      * @return 课表的json字符串数据，或者“false”
      */
-    public String getKebiao(String key){
+    public String getKebiao(String number){
+
+        //操作redis的key
+        String key="kebiao_"+number;
         try{
             // 1.获取一个redis连接
             Jedis jedisGetKebiao = jedisPool.getResource();
@@ -81,12 +93,17 @@ public class RedisService {
         }
     }
 
+
+
     /**
      * 添加成绩组成到缓存（redis第3个数据库）
-     * @param key key（格式：cjzc_number，number是学号）
+     * @param xh 学号（xh是学号）
      * @param cjzc 成绩组成json字符串
      */
-    public boolean setCjzc(String key, String cjzc){
+    public boolean setCjzc(String xh, String cjzc){
+
+        // 操作redis的key
+        String key="cjzc_"+xh;
         try{
             // 1.获取一个redis连接
             Jedis jedisCjzc = jedisPool.getResource();
@@ -110,10 +127,14 @@ public class RedisService {
     /**
      * 从缓存获取成绩组成（redis第3个数据库）
      * 返回false说明数据获取失败，（1.缓存中没有该数据。2.出现未知错误。）
-     * @param key key格式：cjzc_number，number是学号）
+     * @param xh （xh是学号）
      * @return 成绩组成json字符串或者“false”
      */
-    public String getCjzc(String key){
+    public String getCjzc(String xh){
+
+        // 操作redis的key
+        String key="cjzc_"+xh;
+
         try{
             // 1.获取redis连接
             Jedis jedisGetcjzc = jedisPool.getResource();
@@ -139,14 +160,20 @@ public class RedisService {
         }
     }
 
+
+
     /**
      * 添加课堂学生名单数据到缓存（redis第4个数据库）
      *
-     * @param key key（格式："stulistdata_”+jxb，jxb是教学班号）
+     * @param jxb 教学班号
      * @param stuListData json字符串格式的数据。
      * @return boolean
      */
-    public boolean setStuListData(String key,String stuListData){
+    public boolean setStuListData(String jxb,String stuListData){
+
+        //操作redsi的key
+        String key = "stulistdata_"+jxb;
+
         try {
             // 1.获取redis连接
             Jedis jedisSetlistData = jedisPool.getResource();
@@ -170,10 +197,13 @@ public class RedisService {
     /**
      * 从缓存获取上课学生数据（redis第4个数据库）
      * 返回false说明数据获取失败，（1.缓存中没有该数据。2.出现未知错误。）
-     * @param key key （格式："stulistdata_”+jxb，jxb是教学班号）
+     * @param jxb  教学班号
      * @return 学生数据的json字符串格式数据
      */
-    public String getStuListData(String key) {
+    public String getStuListData(String jxb) {
+
+        //操作redsi的key
+        String key = "stulistdata_"+jxb;
         try{
             // 1.获取jedis连接
             Jedis jedisGetStuListData = jedisPool.getResource();
@@ -200,13 +230,19 @@ public class RedisService {
         }
     }
 
+
+
     /**
      * 设置教务时间缓存（redis第一个数据库，默认）
-     * @param key key（格式："schooltime_"+nowData，nowData是当天的日期，yyyy-MM-dd）
+     * @param nowData 当前日期（nowData是当天的日期，yyyy-MM-dd）
      * @param schooleTime json格式数据
      * @return boolean
      */
-    public boolean setSchoolTime(String key,String schooleTime){
+    public boolean setSchoolTime(String nowData,String schooleTime){
+
+        //操作redis的key
+        String key ="schooltime_"+nowData;
+
         try {
             // 1.获取redis连接，不选择数据库，使用默认的第一个数据库。
             Jedis jediSetSchoolTime = jedisPool.getResource();
@@ -228,10 +264,14 @@ public class RedisService {
 
     /**
      * 获取教务时间（redis第1个数据库，默认）
-     * @param key key（格式："schooltime_"+nowData，nowData是当天的日期，yyyy-MM-dd）
+     * @param nowData 当天日期（nowData是当天的日期，yyyy-MM-dd）
      * @return 教务时间的json数据
      */
-    public String getSchoolTime(String key) {
+    public String getSchoolTime(String nowData) {
+
+        //操作redis的key
+        String key ="schooltime_"+nowData;
+
         try {
             //1.获取redis连接,不选择数据库，使用默认的第一个数据库。
             Jedis jedsiGetSchoooltime = jedisPool.getResource();
@@ -253,6 +293,104 @@ public class RedisService {
             //日志
             logger.error("从缓存获取教务时间数据出现未知错误！key:[{}]",key);
             return "false";
+        }
+    }
+
+
+    /**
+     * 查询redis中指定签到码key的集合（签到码在redis默认的第一个数据库）
+     *
+     * @param jxb 教学班
+     * @param week 周
+     * @param work_day 星期几
+     * @return 符合条件的key集合
+     */
+    public Set<String> keysQdm(String jxb, String week, String work_day) {
+
+        //操作redis的key
+        String key="(qdm)"+jxb+"<"+week+">("+work_day+")"+"*";//例：(qdm)A13191A2130440002<18>(2)*
+        try {
+            // 1. 获取一个redis连接
+            Jedis jedisKeys = jedisPool.getResource();
+            // 2. 执行查询操作
+            Set<String> keys = jedisKeys.keys(key);
+            // 3. 归还连接
+            jedisKeys.close();
+            // 4. 返回该结果集
+            return keys;
+
+        }catch (Exception e){
+            logger.error("出现未知错误");
+        }
+        return null;
+    }
+
+
+    /**
+     * 加载教学班的学生名单到缓存(redis第5个数据库)
+     * 传进来的参数jxb,week,work_day,qdcs是用于做redis的key
+     *
+     * @param jxb 教学班
+     * @param week 周数
+     * @param work_day 星期几
+     * @param qdcs 当堂课的第几次签到
+     * @param students 学生们
+     * @return boolean
+     */
+    public boolean loadStudentList(String jxb, String week, String work_day, String qdcs, List<Student> students) {
+        try {
+            //key的前缀
+            String keyFirst=jxb+"<"+week+">("+work_day+")"+"_"+qdcs+":";
+
+            // 1.获取redis连接
+            Jedis jedisLoadStuList = jedisPool.getResource();
+            // 2.选择第5个数据库
+            jedisLoadStuList.select(4);
+            // 3.循环加载list集合中的学生进缓存
+            for (Student student:students){
+                //设置学生集合
+                String key=keyFirst+student.getXh();//例：A13191A2130440002<18>(2)_1:2017214033
+                String value=student.getXh()+"_"+student.getXm()+"("+student.getBj()+")";//例:2017214033_彭渝刚(13001701)
+                jedisLoadStuList.set(key,value);
+            }
+            // 4.归还redis连接
+            jedisLoadStuList.close();
+            // 5.成功
+            return true;
+        }catch (Exception e){
+            //日志
+            logger.error("点名功能，加载学生名单进缓存失败！教学班：[{}]",jxb);
+            return false;
+        }
+    }
+
+    /**
+     * 加载签到码到缓存（redis第一个数据库，默认）
+     * @param jxb 教学班
+     * @param week 周数
+     * @param work_day 星期几
+     * @param qdcs 签到次数，这是这堂课第几次签到
+     * @param qdm 签到码
+     * @return boolean
+     */
+    public boolean loadQdmToCache(String jxb, String week, String work_day, String qdcs, String qdm) {
+
+        //操作redis的key
+        String key="(qdm)"+jxb+"<"+week+">("+work_day+")"+"_"+qdcs;//例：(qdm)A13191A2130440002<18>(2)_1
+
+        try {
+            // 1.获取redis连接
+            Jedis jedisLoadQdm = jedisPool.getResource();
+            // 2.加载签到码到缓存
+            jedisLoadQdm.set(key,qdm);
+            // 3.归还连接
+            jedisLoadQdm.close();
+            // 4.返回true
+            return true;
+        }catch (Exception e){
+            //日志
+            logger.error("签到功能，加载签到码到缓存失败");
+            return false;
         }
     }
 }

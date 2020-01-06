@@ -14,7 +14,6 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.lang.model.element.NestingKind;
 import javax.naming.directory.Attributes;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,6 +52,13 @@ public class Parse {
             String ldapBack=attributes.toString().substring(1,attributes.toString().length()-1).replace(" ","");
             //将转化后的字符串 以“，”分割开放入数组
             String[] ldapBackArry = ldapBack.split(",");
+
+            // todo 演示
+            for (String s:ldapBackArry){
+                System.out.println(s);
+            }
+
+
             //循环数组 并再次解析键与值
             for (String s : ldapBackArry) {
                 String key = s.substring(0, s.indexOf("="));
@@ -60,7 +66,7 @@ public class Parse {
                 attrsMap.put(key, value);
             }
         }catch (Exception e){
-            logger.error("【解析操作（ParseAttributes）】解析失败，未知错误",e);
+            logger.error("【解析操作（ParseAttributes）】解析失败，未知错误!错误信息：[{}]",e.getMessage());
 
         }
         return attrsMap;
@@ -344,7 +350,7 @@ public class Parse {
                         keChengInfo.setWeek(zc); //上课周数
                         keChengInfo.setWeekNum(weekNum);//上课周数（具体数字）
                         keChengInfo.setcStart(String.valueOf(j * 2 + 1)); //上课开始节数（12节的课，该数据为 1）
-                        keChengInfo.setWeekday(String.valueOf(x + 1));   //上课的工作日（星期一的课，该数据为 1）
+                        keChengInfo.setWorkday(String.valueOf(x + 1));   //上课的工作日（星期一的课，该数据为 1）
 
                         //放入集合
                         jandx.add(keChengInfo);

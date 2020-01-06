@@ -3,6 +3,7 @@ package cqupt.jyxxh.uclass.service;
 import cqupt.jyxxh.uclass.dao.UclassUserMapper;
 import cqupt.jyxxh.uclass.pojo.EduAccount;
 import cqupt.jyxxh.uclass.pojo.UclassUser;
+import cqupt.jyxxh.uclass.utils.EncryptionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +27,11 @@ public class UserService {
     @Autowired
     private  UclassUserMapper uclassUserMapper;           //用户dao操作类
 
-
     @Autowired
     private  EduAccountService eduAccountService;          //教务账号操作类
+
+    @Autowired
+    private EncryptionUtil encryptionUtil;                 //加解密工具
 
     private final  String YES_BIND="y"; //用户存在绑定了教务账号的标识
     private final  String NO_BIND="n";  //用户没绑定教务账户的标识
@@ -167,20 +170,22 @@ public class UserService {
             if (isIn){
                 //2.1.1数据库中有，通过一卡通号从数据库获取数据。
                  eduAccount = eduAccountService.getEduAccountFromDB(ykth);
-                 //2.1.2为该教务账户添加统一身份认证密码，并更新数据库。因为从数据库中获取的教务账户此时是无统一认证码密码的（解除绑定时候，保留基本数据，但会删除密码）。
-                // todo 密码加密，往数据库添加时，给密码加密。（setBind）
-                eduAccount.setPassword(password);
-                //2.1.3 将教务数据更新到数据库
+                // 2.1.2 将密码加密
+                String password_encrypt = encryptionUtil.encrypt(password);
+                //2.1.3为该教务账户添加统一身份认证密码，并更新数据库。因为从数据库中获取的教务账户此时是无统一认证码密码的（解除绑定时候，保留基本数据，但会删除密码）。
+                eduAccount.setPassword(password_encrypt);
+                //2.1.4 将教务数据更新到数据库
                 eduAccountService.addPassword(eduAccount);
 
             }else {
                 //2.2.1 数据库中没有，通过统一身份认证码（一卡通号）获取教务账号实体
                 eduAccount = eduAccountService.getEduAccountFromJWZX(ykth,password);
-                // 2.2.2为教务账户添加一卡通号，和密码。
-                // todo 密码加密，（去教务在线获取回来的教务账户实体,添加密码与一卡通号）
-                eduAccount.setPassword(password);
+                // 2.1.2 将密码加密
+                String password_encrypt = encryptionUtil.encrypt(password);
+                // 2.2.3为教务账户添加一卡通号，和密码。
+                eduAccount.setPassword(password_encrypt);
                 eduAccount.setYkth(ykth);
-                //2.2.3将教务账户数据插入到数据库中.
+                //2.2.4将教务账户数据插入到数据库中.
                 eduAccountService.insertEduAccountToDB(eduAccount);
             }
 

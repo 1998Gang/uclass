@@ -67,12 +67,12 @@ public class UclassComponents {
      * @return 名单的json数据
      */
     @RequestMapping(value = "kbstuist",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
-    public ResponseEntity<String> kbStuList(@RequestParam("jxb")String jxb){
+    public ResponseEntity<KbStuListData> kbStuList(@RequestParam("jxb")String jxb){
 
 
         try{
             //获取上课学生名单数据。string
-            String data = componentService.getKbStuListData(jxb);
+            KbStuListData data = componentService.getKbStuListData(jxb);
 
             //判断数据是否为空
             if (null==data){
@@ -81,7 +81,7 @@ public class UclassComponents {
                 if (logger.isInfoEnabled()){
                     logger.info("学生名单数据获取失败！为空！教学班：[{}]",jxb);
                 }
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("资源未找到");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
 
             //数据正常，响应200
@@ -97,6 +97,6 @@ public class UclassComponents {
         }
 
         //未知错误响应500
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("服务器端出现未知错误！");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
 }

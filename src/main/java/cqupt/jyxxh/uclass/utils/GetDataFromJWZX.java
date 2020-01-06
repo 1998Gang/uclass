@@ -199,11 +199,9 @@ public class GetDataFromJWZX {
 
         // 1.在获取课表之前先获取成绩组成
         Map<String,String> cjzcs=new HashMap<>();
-        // 1.1操作redis的key
-        String key="cjzc_"+xh;
         // 1.2先去redis中拿数据。
         try{
-            String data = redisService.getCjzc(key);
+            String data = redisService.getCjzc(xh);
             if ("false".equals(data)){
                 //从redis获取数据失败。1.缓存中没有该key的数据。或者 2.操作redis时出现未知错误。
                 //缓存没有，就去教务在线获取
@@ -211,7 +209,7 @@ public class GetDataFromJWZX {
                 //教务在线获取成功后，将数据存入redis中。
                 //将教务在线获取map集合转为json字符串。
                 String cjzcJson = objectMapper.writeValueAsString(cjzcs);
-                redisService.setCjzc(key,cjzcJson);
+                redisService.setCjzc(xh,cjzcJson);
             }else {
                 //从redis获取数据成功,将json字符串转为map集合
                 cjzcs = objectMapper.readValue(data, Map.class);

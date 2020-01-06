@@ -53,6 +53,7 @@ public class Authentication {
         /**
          * 用于开发过程教师校验,后期删除！！！
          */
+        // TODO 临时身份验证
 
         if (ykth.equals("0101303")&&password.equals("123456")){
             return true;

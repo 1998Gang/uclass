@@ -3,6 +3,7 @@ package cqupt.jyxxh.uclass.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
@@ -18,6 +19,7 @@ import java.util.Base64;
  * @version 1.0.0
  * @date created in 20:33 2020/1/5
  */
+@Component
 public class EncryptionUtil {
 
     Logger logger= LoggerFactory.getLogger(EncryptionUtil.class);

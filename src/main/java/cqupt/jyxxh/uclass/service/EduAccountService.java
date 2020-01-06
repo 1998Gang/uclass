@@ -8,6 +8,7 @@ import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.pojo.Teacher;
 import cqupt.jyxxh.uclass.pojo.UclassUser;
 import cqupt.jyxxh.uclass.utils.Authentication;
+import cqupt.jyxxh.uclass.utils.EncryptionUtil;
 import cqupt.jyxxh.uclass.utils.GetDataFromJWZX;
 
 import org.slf4j.Logger;
@@ -44,6 +45,9 @@ public class EduAccountService {
 
     @Autowired
     private GetDataFromJWZX getDataFromJWZX;     //去教务在线获取数据的工具类
+
+    @Autowired
+    private EncryptionUtil encryptionUtil;       //加解密工具
 
     @Value("${URLTeaInfoFromJWZX}")
     private  String URL_TEAINFO_FROM_JWZX;            //去教务在线请求教师信息的URL
@@ -267,20 +271,23 @@ public class EduAccountService {
      * @return map集合，装ykth号和密码
      */
     public Map<String,String> getStuYkthandPassword(String xh){
-        Map<String,String> yp=new HashMap<>();
+        Map<String,String> ykthAndPassword=new HashMap<>();
 
         //获取一卡通号和密码，获取的格式是：一卡通号_密码
         String ykyhAndPassword = studentMapper.queryYkthAndPassByXh(xh);
-        // TODO 密码解密（通过学号去数据库获取的一卡通号和密码）
 
         //解析
         String ykth=ykyhAndPassword.substring(0,ykyhAndPassword.indexOf("_"));
         String password=ykyhAndPassword.substring(ykyhAndPassword.indexOf("_")+1);
-        //装入集合
-        yp.put("ykth",ykth);
-        yp.put("password",password);
 
-        return yp;
+        //从数据库获取的密码是加密了的，现在解密.
+        String password_decrypt = encryptionUtil.decrypt(password);
+
+        //装入集合
+        ykthAndPassword.put("ykth",ykth);
+        ykthAndPassword.put("password",password_decrypt);
+
+        return ykthAndPassword;
     }
 
 
@@ -303,6 +310,7 @@ public class EduAccountService {
                 }
                 case "s":{
                     //学生
+                    assert eduAccount instanceof Student;
                     studentMapper.addPassword((Student) eduAccount);
                 }
 

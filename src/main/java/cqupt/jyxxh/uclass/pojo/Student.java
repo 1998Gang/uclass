@@ -30,6 +30,8 @@ public class Student implements EduAccount, Serializable {
     private String stu_phone;//电话号
     private String stu_email;//邮箱
 
+    private String accountType;//类型
+
     private String xkzt; //选课状态（用于获取教学班名单时）
 
     @Override
@@ -49,6 +51,7 @@ public class Student implements EduAccount, Serializable {
                 ", csrq='" + csrq + '\'' +
                 ", stu_phone='" + stu_phone + '\'' +
                 ", stu_email='" + stu_email + '\'' +
+                ", accpuntType='" + accountType + '\'' +
                 ", xkzt='" + xkzt + '\'' +
                 '}';
     }
@@ -57,9 +60,13 @@ public class Student implements EduAccount, Serializable {
     //返回用户类型，返回数据为s，代表是学生。很重要！！！
     @Override
     public String getAccountType() {
-        return "s";
+        return accountType;
     }
 
+
+    public void setAccountType(String accountType) {
+        this.accountType = "s";
+    }
 
     public String getXh() {
         return xh;

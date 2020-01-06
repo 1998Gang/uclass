@@ -31,9 +31,9 @@
 
     <!--4.redis连接池配置-->
     <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
-        <!--1.最大连接数-->
-        <property name="maxIdle" value="${redis.Maxidle}"/>
-        <!--2.最大空闲连接数-->
+        <!--1.最大空闲连接数-->
+        <property name="maxIdle" value="${redis.MaxIdle}"/>
+        <!--2.最大连接数-->
         <property name="maxTotal" value="${redis.maxTotal}"/>
     </bean>
 

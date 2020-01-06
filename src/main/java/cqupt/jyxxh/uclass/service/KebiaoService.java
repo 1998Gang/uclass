@@ -52,16 +52,12 @@ public class KebiaoService {
         //课表 json格式字符串
         String kebiao=null;
 
-        //操作redis的key
-        String key="kebiao_"+number;
-
         //实例化json操作对象
         ObjectMapper objectMapper=new ObjectMapper();
 
-
         //1.先去redis中获取
         try{
-            String data = redisService.getKebiao(key);
+            String data = redisService.getKebiao(number);
             if (!"false".equals(data)){
                 //从缓存获取数据成功！
                 kebiao=data;
@@ -85,7 +81,7 @@ public class KebiaoService {
 
                  //放进缓存。
                 try {
-                    boolean b = redisService.setKeBiao(key, kebiao);
+                    boolean b = redisService.setKeBiao(number, kebiao);
                 }catch (Exception e){
                     logger.debug("【添加学生课表缓存（KebiaoService.getkebiao）】出现未知错误！");
                 }
@@ -99,7 +95,7 @@ public class KebiaoService {
 
                 //将结果放进缓存。
                try {
-                    boolean b = redisService.setKeBiao(key, kebiao);
+                    boolean b = redisService.setKeBiao(number, kebiao);
                 }catch (Exception e){
                     logger.debug("【添加教师课表缓存（KebiaoService.getkebiao）】出现未知错误！");
                 }
