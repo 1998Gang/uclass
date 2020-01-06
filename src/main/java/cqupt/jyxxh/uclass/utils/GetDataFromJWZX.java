@@ -12,14 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 
-import javax.naming.directory.Attributes;
 import java.io.IOException;
-import java.lang.invoke.StringConcatFactory;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,30 +41,34 @@ public class GetDataFromJWZX {
     @Autowired
     private RedisService redisService;               //redis操作类
 
+    @Autowired
+    private SimulationLogin simulationLogin;         //模拟登陆教务在线的操作类
 
-    @Value("${URLTeaInfoFromJWZX}")
-    private  String URL_TEAINFO_FROM_JWZX;            //去教务在线请求教师信息的URL
 
-    @Value("${URLStuInfoFromJWZX}")
-    private  String URL_StuInfo_From_JWZX;            //去教务在线请求学生信息的URL
 
-    @Value("${URLStuKebiaoFromJWZX}")
-    private String URL_STUKEBIAO_FROM_JWZX;            //从教务在线获取学生课表的URL
+    @Value("${JWZX.URLTeaInfo}")
+    private  String JWZX_URL_TEAINFO;            //去教务在线请求教师信息的URL
 
-    @Value("${URLTeaKebiaoFromJWZX}")
-    private String URL_TEAKEBIAO_FROM_JWZX;            //从教务在线获取教师课表URL
+    @Value("${JWZX.URLStuInfo}")
+    private  String JWZX_URL_StuInfo;            //去教务在线请求学生信息的URL
 
-    @Value("${JWZXURL}")
-    private String JWZX_URL;                            //教务在线首页地址
+    @Value("${JWZX.URLStuKebiao}")
+    private String JWZX_URL_STUKEBIAO;            //从教务在线获取学生课表的URL
 
-    @Value("${URLStuSkjhFromJWZX}")
-    private String URL_STUSKJH_FROM_JWZX;                //去教务在线获取学生课程成绩组成的URL
+    @Value("${JWZX.URLTeaKebiao}")
+    private String JWZX_URL_TEAKEBIAO;            //从教务在线获取教师课表URL
 
-    @Value("${URLAuthserverLoginToJWZX}")
-    private String URL_AUTHSERVER_LOGIN_TO_JWZX;         //统一身份认证平台URL（登陆教务在线）
+    @Value("${JWZX.URLHome}")
+    private String JWZX_URL_HOME;                            //教务在线首页地址
 
-    @Value("${URLKbStuListFromJWZX}")
-    private String URL_KESTULIST_FROM_JWZX;              //去教务在线获取教学班学生名单的URL，参数 jxb=教学班号
+    @Value("${JWZX.URLStuSkjh}")
+    private String JWZX_URL_STUSKJH;                //去教务在线获取学生课程成绩组成的URL
+
+    @Value("${JWZX.URLKbStuList}")
+    private String JWZX_URL_KESTULIST;              //去教务在线获取教学班学生名单的URL，参数 jxb=教学班号
+
+    @Value("${JWZX.URLUser}")
+    private String JWZX_URL_USER;                            //教务在线个人服务页
 
     /**
      * 根据学号去教务在线获取学生数据
@@ -81,7 +79,7 @@ public class GetDataFromJWZX {
 
 
         // 1.访问教务在线url获取返回的数据
-        String studentJson = SendHttpRquest.getJson(URL_StuInfo_From_JWZX, "searchKey=" + xh);
+        String studentJson = SendHttpRquest.getJson(JWZX_URL_StuInfo, "searchKey=" + xh);
 
         return Parse.ParseJsonToStudent(studentJson);
 
@@ -94,7 +92,7 @@ public class GetDataFromJWZX {
     public Teacher getTeacherInfoByTeaId(String teaId){
         Teacher teacher=null;
         // 1.访问教务在线url获取教师的json数据
-        String teacherInfo = SendHttpRquest.getJson(URL_TEAINFO_FROM_JWZX, "searchKey=" + teaId);
+        String teacherInfo = SendHttpRquest.getJson(JWZX_URL_TEAINFO, "searchKey=" + teaId);
         // 2.解析json数据获取教师实体（返回的是List集合，但此处因为是用教师号进行的查询，所有只有一个教师数据）
         List<Teacher> teachers= Parse.ParseJsonToTeacher(teacherInfo);
         // 3.取出该教师数据,以EduAccount形式返回
@@ -104,86 +102,55 @@ public class GetDataFromJWZX {
 
         return teacher;
     }
-    /**
-     * 根据教师姓名，学院名去教务在线获取教师数据
-     * @param jsxm 教师姓名
-     * @param yxm  教师的学院名
-     * @return Teacher，教师实体
-     */
-    public Teacher getTeacherInfoByTeaName(String jsxm,String yxm){
-        Teacher teacher = null;
 
-        // 1. 以教师姓名为参数去教务在线查询教师的json数据
-        String teaJsonInfo = SendHttpRquest.getJson(URL_TEAINFO_FROM_JWZX,"searchKey="+jsxm);
-
-        // 2.将josn数据解析为Teacher对象（用姓名查教师数据，可能存在多个同名教师）
-        List<Teacher> teachers = Parse.ParseJsonToTeacher(teaJsonInfo);
-
-        // 3.筛选正确的老师
-        /*通过姓名查询，会查询出较多同名教师。
-                    但是这些同名教师的所属学院大概率不一致，当然这也不能百分百保证能正确筛选。
-                    实在没有办法，目前只能用这样的方式去确定老师。
-                    所有此处采用去对比学院名的方式，来确定该教务账户到底是哪一个老师。*/
-        for (Teacher tea:teachers){
-            if (Parse.isbaohan(yxm, tea.getYxm())){
-                teacher=tea;
-            }
-        }
-
-        return teacher;
-    }
 
 
     /**
-     * 通过统一身份去教务在线获取教师信息
+     * 通过统一身份去教务在线获取教师号
      * @param ykth 一卡通号
      * @param password 密码
      * @return Teacher
      */
-    public Teacher getTeacherInfoByTYSH(String ykth,String password){
+    public Teacher getTeacherInfoByTYSH(String ykth,String password) throws Exception {
 
-        Teacher teacher;
+        Teacher teacherInfo;
 
-        // 1.通过统一身份验证系统（LDAP），获取简单是账户数据，当作去教务在线获取详细数据的参数。
-        Attributes attributes = authentication.getAttributes(ykth, password);
+        // 1.获取表示用户登陆教务在线后的cookie（phpsessid）用于后续获取数据。
+        String phpsessid = simulationLogin.getPhpsessid(ykth, password);
 
-        // 2.使用工具类 Parse 解析 attributes
-        HashMap<String, String> att = Parse.ParseAttributes(attributes);
+        // 2.使用上一步获取的phpsessid去访问教务在线个人服务页，获取教师号。
+        String htmlTea = SendHttpRquest.getHtmlWithCookie(JWZX_URL_USER, phpsessid);
+        // 2.1 解析返回的html页面,获取教师号。
 
-        // 3.获取教师姓名、教师的所属学院（LDAP返回的数据）
-        String jsxm = att.get("cn");
-        String yxm=att.get("edupersonorgdn");
+        String teaId = Parse.ParseHtmlToteaIdOrXh(htmlTea);
 
-        // 4.更改教师姓名的编码格式(中文更改编码格式，否则发起请求是乱码，查不到数据)。这一步很重要！！！！！Charset.forName("utf-8")
-        jsxm = URLEncoder.encode(jsxm, StandardCharsets.UTF_8);
+        // 3.通过教师号，再次请求教务在线，获取详细教师数据。
+        teacherInfo = getTeacherInfoByTeaId(teaId);
 
-        // 5. 以教师姓名为参数去教务在线查询教师的json数据
-        teacher = getTeacherInfoByTeaName(jsxm, yxm);
-
-        return teacher;
+        return teacherInfo;
     }
+
     /**
      * 通过统一身份去教务在线获取学生数据
      * @param ykth  一卡通号
      * @param password 密码
      * @return Student
      */
-    public Student getStudentInfoByTYSH(String ykth,String password){
-        Student student;
+    public Student getStudentInfoByTYSH(String ykth,String password) throws Exception {
+        Student studentInfo;
 
-        // 1.通过统一身份验证系统（LDAP），获取简单是账户数据，当作去教务在线获取详细数据的参数。
-        Attributes attributes = authentication.getAttributes(ykth, password);
+        //1.获取表示用户登陆教务在线后的cookie（PHPSESSID）用于后续获取数据。
+        String phpsessid = simulationLogin.getPhpsessid(ykth, password);
 
-        // 2.使用工具类 Parse 解析 attributes
-        HashMap<String, String> attributeHashMap = Parse.ParseAttributes(attributes);
+        //2.使用获取的phpsessid去访问教务在线个人服务页（学生端），获取学号。
+        String htmlStu = SendHttpRquest.getHtmlWithCookie(JWZX_URL_USER, phpsessid);
+        // 2.1 解析返回的学习个人服务页，获取学号
+        String xh = Parse.ParseHtmlToteaIdOrXh(htmlStu);
 
-        // 3.获取学生学号（LDAP）
-        String xh=attributeHashMap.get("edupersonstudentid");
+        // 3.通过学号,再次请求教务在线，获取学生详细数据。
+        studentInfo = getStudentInfoByXh(xh);
 
-        // 4.通过学号获取学生数据,并添加一卡通号。
-        student = getStudentInfoByXh(xh);
-
-        return student;
+        return studentInfo;
     }
 
 
@@ -215,13 +182,14 @@ public class GetDataFromJWZX {
                 cjzcs = objectMapper.readValue(data, Map.class);
             }
         }catch (Exception e){
+
             logger.error("【获取课表（GetDataFromJWZX.getStukebiaoByXh）】获取成绩组成出错！");
         }
 
         // 2.发起http请求，获取教务在线的课表页的Html代码
         String stuKebiaoHtml=null;
         try {
-             stuKebiaoHtml= SendHttpRquest.getHtmlWithParam(URL_STUKEBIAO_FROM_JWZX, "xh=" + xh);
+             stuKebiaoHtml= SendHttpRquest.getHtmlWithParam(JWZX_URL_STUKEBIAO, "xh=" + xh);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -244,7 +212,7 @@ public class GetDataFromJWZX {
 
         //发起http请求，获取教务在线的课表ktml代码
         try {
-            teaKebiaoHtml= SendHttpRquest.getHtmlWithParam(URL_TEAKEBIAO_FROM_JWZX, "teaId=" + teaId);
+            teaKebiaoHtml= SendHttpRquest.getHtmlWithParam(JWZX_URL_TEAKEBIAO, "teaId=" + teaId);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -259,7 +227,7 @@ public class GetDataFromJWZX {
      * @return Map集合，key是教学班，value是成绩组成
      * @throws IOException http请求异常
      */
-    public Map<String,String> getCjzcByXh(String xh) throws IOException {
+    public Map<String,String> getCjzcByXh(String xh) throws Exception {
 
 
         Map<String,String> cjzc;
@@ -267,12 +235,11 @@ public class GetDataFromJWZX {
         // 1.根据学号获取一卡通号和密码。
         Map<String, String> ykthandPassword = eduAccountService.getStuYkthandPassword(xh);
 
-
         // 1.获取模拟登陆后代表用户登陆状态的cookie （PHPSESSID）
-        String phpsessid = SimulationLogin.getPhpsessid(URL_AUTHSERVER_LOGIN_TO_JWZX, ykthandPassword.get("ykth"), ykthandPassword.get("password"));
+        String phpsessid = simulationLogin.getPhpsessid(ykthandPassword.get("ykth"), ykthandPassword.get("password"));
 
         // 2.发起http请求（get）获取教务在 线上授课计划页的html代码
-        String cjzcHtml = SendHttpRquest.getHtmlWithCookie(URL_STUSKJH_FROM_JWZX, phpsessid);
+        String cjzcHtml = SendHttpRquest.getHtmlWithCookie(JWZX_URL_STUSKJH, phpsessid);
 
         // 3.解析html
         cjzc = Parse.parseHtmlToCJZC(cjzcHtml);
@@ -292,7 +259,7 @@ public class GetDataFromJWZX {
         //发起http请求，请求教务在线学生名单页。
         String param="jxb="+jxb;
         //学生名单页的html
-        String stuListHtml = SendHttpRquest.getHtmlWithParam(URL_KESTULIST_FROM_JWZX, param);
+        String stuListHtml = SendHttpRquest.getHtmlWithParam(JWZX_URL_KESTULIST, param);
         //解析html
         stuList = Parse.parseHtmlToStuList(stuListHtml);
         return stuList;
@@ -306,7 +273,7 @@ public class GetDataFromJWZX {
         Map<String,String> sTime=null;
         try {
             // 1.请求教务在线的主页
-            String JWZXhtml = SendHttpRquest.getHtml(JWZX_URL);
+            String JWZXhtml = SendHttpRquest.getHtml(JWZX_URL_HOME);
             // 2.解析获取时间
             sTime = Parse.parseHtmlToSchoolTime(JWZXhtml);
             // 3.返回

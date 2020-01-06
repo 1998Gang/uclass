@@ -154,6 +154,7 @@ public class UserService {
      * 为用户绑定教务账号
      * @param uclassUser 用户实体（未绑定教务账户的）
      * @param ykth   统一身份认证码、一卡通号
+     * @param password 统一身份密码
      * @return boolean，绑定是否成功
      */
     public boolean setBind(UclassUser uclassUser,String ykth,String password) throws Exception {
@@ -170,11 +171,11 @@ public class UserService {
             if (isIn){
                 //2.1.1数据库中有，通过一卡通号从数据库获取数据。
                  eduAccount = eduAccountService.getEduAccountFromDB(ykth);
-                // 2.1.2 将密码加密
+                // 2.1.2 将密码加密!!!!!
                 String password_encrypt = encryptionUtil.encrypt(password);
                 //2.1.3为该教务账户添加统一身份认证密码，并更新数据库。因为从数据库中获取的教务账户此时是无统一认证码密码的（解除绑定时候，保留基本数据，但会删除密码）。
                 eduAccount.setPassword(password_encrypt);
-                //2.1.4 将教务数据更新到数据库
+                //2.1.4 将教务账号的密码更新到数据库
                 eduAccountService.addPassword(eduAccount);
 
             }else {
@@ -203,16 +204,12 @@ public class UserService {
             // 5.成功
             flage=true;
         }catch (Exception e){
-
             if (logger.isErrorEnabled()){
                 logger.error("【添加绑定（UserService.setBind）】绑定失败！用户：[{}],统一身份认证码：[{}]",uclassUser.getOpenid(),ykth);
             }
-            flage=false;
-
             //捕获异常，抛出！(这里捕获的异常是捕获的  不支持账户的异常。)  重要！！！！
             throw e;
         }
-
         return flage;
     }
 

@@ -327,7 +327,7 @@ public class RedisService {
 
 
     /**
-     * 加载教学班的学生名单到缓存(redis第5个数据库)
+     * 加载教学班的学生名单到缓存(redis第5个数据库)，用于课堂点名的。
      * 传进来的参数jxb,week,work_day,qdcs是用于做redis的key
      *
      * @param jxb 教学班
@@ -364,6 +364,7 @@ public class RedisService {
         }
     }
 
+
     /**
      * 加载签到码到缓存（redis第一个数据库，默认）
      * @param jxb 教学班
@@ -373,7 +374,7 @@ public class RedisService {
      * @param qdm 签到码
      * @return boolean
      */
-    public boolean loadQdmToCache(String jxb, String week, String work_day, String qdcs, String qdm) {
+    public boolean loadQdmToCache(String jxb, String week, String work_day, String qdcs, String qdm,String yxsj) {
 
         //操作redis的key
         String key="(qdm)"+jxb+"<"+week+">("+work_day+")"+"_"+qdcs;//例：(qdm)A13191A2130440002<18>(2)_1
@@ -383,13 +384,76 @@ public class RedisService {
             Jedis jedisLoadQdm = jedisPool.getResource();
             // 2.加载签到码到缓存
             jedisLoadQdm.set(key,qdm);
-            // 3.归还连接
+            // 3.设置签到码有效时间
+            jedisLoadQdm.expire(key, Integer.parseInt(yxsj));
+            // 4.归还连接
             jedisLoadQdm.close();
-            // 4.返回true
+            // 5.返回true
             return true;
         }catch (Exception e){
             //日志
             logger.error("签到功能，加载签到码到缓存失败");
+            return false;
+        }
+    }
+
+
+    /**
+     * 根据一卡通号获取代表用户登陆教务在线后的cookie（phpsessid）缓存
+     * （redis第一个数据库，默认）
+     * @param ykth 一卡通号
+     * @return phpsessid或者“false”。
+     */
+    public String getPhpsessid(String ykth) {
+
+        //操作redis的key
+        String key="phpsessid_"+ykth;
+        try {
+            // 1.获取一个redis连接
+            Jedis jedisGetPhpsessid = jedisPool.getResource();
+            // 2.根据key判断有没有该数据
+            Boolean exists = jedisGetPhpsessid.exists(key);
+            if (!exists){
+                //如果没有，返回”false“字符串
+                return "false";
+            }
+            // 3.有就查询数据返回
+            String s = jedisGetPhpsessid.get(key);
+            // 4.归还连接
+            jedisGetPhpsessid.close();
+            // 5.返回数据
+            return s;
+        }catch (Exception e){
+            //日志
+            logger.error("获取登陆教务在线的phpsessid缓存出错！一卡通号：[{}]",ykth);
+            return "false";
+        }
+    }
+
+    /**
+     * 将用户登陆教务在线后的cookie（PHPSESSID）放入缓存。有效时间25分钟
+     * @param ykth 一卡通号
+     * @param phpsessid phpsessid
+     * @return boolean
+     */
+    public boolean setPhpsessid(String ykth, String phpsessid) {
+        //操作redis的key
+        String key="phpsessid_"+ykth;
+
+        try {
+            // 1.获取redis连接
+            Jedis jedisSetphpsessid = jedisPool.getResource();
+            // 2.添加进缓存
+            jedisSetphpsessid.set(key,phpsessid);
+            // 3.设置有效时间,25分钟。
+            jedisSetphpsessid.expire(key,1500);
+            // 4.归还连接
+            jedisSetphpsessid.close();
+            // 返回true；
+            return true;
+        }catch (Exception e){
+            //日志
+            logger.error("缓存操作出现未知错误");
             return false;
         }
     }

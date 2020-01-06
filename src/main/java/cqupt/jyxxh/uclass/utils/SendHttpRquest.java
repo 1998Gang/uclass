@@ -186,7 +186,6 @@ public  class SendHttpRquest {
             }
         }
 
-
         //5.返回
         return html;
     }
@@ -222,6 +221,7 @@ public  class SendHttpRquest {
 
     /**
      * POST请求，访问学校统一认证平台，校验用户账户,获取响应体对象。
+     * (也就是发起登陆请求)
      *
      * @param url  学校统一认证平台（跳转教务在线）
      * @param jssessionid 第一次访问统一认证平台获取的cookie

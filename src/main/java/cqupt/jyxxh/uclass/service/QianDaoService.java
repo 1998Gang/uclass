@@ -43,7 +43,7 @@ public class QianDaoService {
             String work_day = param.get("work_day");//星期几（工作日）
             String qdcs = param.get("qdcs");//签到次数，这是针对这堂课的第几次签到
             String qdm = param.get("qdm");//签到码
-            String yxsc = param.get("yxsc");//签到码有效时间
+            String yxsj = param.get("yxsj");//签到码有效时间
 
             //2.根据教学班,周数，星期几判断当堂课是否有签到正在进行。
             Set<String> strings = redisService.keysQdm(jxb,week,work_day);
@@ -60,7 +60,7 @@ public class QianDaoService {
             boolean isLoadList = redisService.loadStudentList(jxb, week, work_day, qdcs, students);
 
             // 4.将签到码加载进缓存（redis），并设置有效时间。
-            boolean isloadQdm = redisService.loadQdmToCache(jxb, week, work_day, qdcs, qdm);
+            boolean isloadQdm = redisService.loadQdmToCache(jxb, week, work_day, qdcs, qdm,yxsj);
 
             // 5.名单加载，签到码加载同时成功。发起签到成功，返回true;
             if (isLoadList&&isloadQdm){

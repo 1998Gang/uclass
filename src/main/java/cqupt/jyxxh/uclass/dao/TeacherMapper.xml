@@ -17,8 +17,8 @@
 
     <!--3.插入一条新教师教务账号数据-->
     <insert id="insertTeacher" parameterType="Teacher">
-        insert into uclass_teacher_info(teaId,teaName,xb,ykth,zc,jysm,yxm,email,phone)
-        values (#{teaId},#{teaName},#{xb},#{ykth},#{zc},#{jysm},#{yxm},#{email},#{phone})
+        insert into uclass_teacher_info(teaId,teaName,xb,ykth,password,zc,jysm,yxm,email,phone)
+        values (#{teaId},#{teaName},#{xb},#{ykth},#{password},#{zc},#{jysm},#{yxm},#{email},#{phone})
     </insert>
 
     <!--4.根据一卡通号查询数据条数（不是0，就是1），用来验证数据库中有没有这个教务用户-->
@@ -40,4 +40,10 @@
     <select id="deletePassword" parameterType="String">
         UPDATE uclass_teacher_info SET password='' WHERE ykth=#{value}
     </select>
+
+    <!--8.deleteTeacherByYkth，根据一卡通号删除教师数据-->
+    <delete id="deleteTeacherByYkth" parameterType="String">
+        delete from uclass_teacher_info where ykth='${value}'
+    </delete>
+
 </mapper>

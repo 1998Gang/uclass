@@ -111,9 +111,14 @@ public class UclassUserManage {
                     logger.info("用户：[{}]登陆失败！未绑定教务账户",openid);
                 }
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-
             }
         }catch ( Exception e){
+            if ("Identity is overdue".equals(e.getLocalizedMessage())){
+                //发生此异常说明，用户身份过期，需重新登陆！响应410
+                //日志
+                logger.info("用户身份过期，需重新绑定！");
+                return ResponseEntity.status(HttpStatus.GONE).body(null);
+            }
             //日志
             logger.error("【登陆接口（UclassUserManage.login）】出现未知错误！",e);
         }
@@ -121,7 +126,6 @@ public class UclassUserManage {
         //出现未知异常，响应500
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
-
 
     /**
      *为用户添加教务账号绑定调用本方法
@@ -176,10 +180,10 @@ public class UclassUserManage {
             }
 
 
-            // 4. 根据openid获取用户信息，并判断该用户是否存在绑定
+            // 4. 根据openid获取用户信息，并判断该用户是否存在绑定。
             UclassUser uclassuser = userService.getUser(openid);
             if ("y".equals(uclassuser.getIs_bind())){
-                // 4.1 用户已经存在绑定,删除旧绑定。
+                // 4.1 用户已经存在绑定,删除旧绑定。(uclassuser表中，”y“代表已经绑定了教务账户了。”n“代表没有绑定)
                 userService.deleteBind(uclassuser);
                 //日志
                 if (logger.isDebugEnabled()){
@@ -187,7 +191,7 @@ public class UclassUserManage {
                 }
             }
 
-            // 5.给用户添加教务账户绑定
+            // 5.给用户添加新的教务账户绑定
             boolean isSetBind = userService.setBind(uclassuser, ykth, password);
             if (isSetBind) {
                 //日志

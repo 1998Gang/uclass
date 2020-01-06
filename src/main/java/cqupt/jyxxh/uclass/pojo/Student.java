@@ -30,7 +30,7 @@ public class Student implements EduAccount, Serializable {
     private String stu_phone;//电话号
     private String stu_email;//邮箱
 
-    private String accountType;//类型
+    private String accountType="s";//用户类型，"s"代表学生
 
     private String xkzt; //选课状态（用于获取教学班名单时）
 

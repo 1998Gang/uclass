@@ -40,16 +40,18 @@ public class UclassQianDao {
         try{
             boolean isTrue = qianDaoService.teaCreatQiandao(param);
             if (!isTrue){
-                //签到失败
+                //签到失败，响应417
                 return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("发起失败!当前有签到正在进行");
             }
             //日志
             if (logger.isInfoEnabled()){
                 logger.info("发起签到成功！教学班：[{}],时间:[{}]",param.get("jxb"),param.get("week")+"周_星期"+param.get("work_day"));
             }
+            //发起成功响应200
             return ResponseEntity.status(HttpStatus.OK).body("发起签到成功");
         }catch (Exception e){
             logger.error("发起签到接口，发生未知错误");
+            //异常错误！响应500
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("服务器端发生未知错误！");
         }
     }

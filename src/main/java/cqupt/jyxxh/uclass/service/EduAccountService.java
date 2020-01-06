@@ -7,7 +7,6 @@ import cqupt.jyxxh.uclass.pojo.EduAccount;
 import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.pojo.Teacher;
 import cqupt.jyxxh.uclass.pojo.UclassUser;
-import cqupt.jyxxh.uclass.utils.Authentication;
 import cqupt.jyxxh.uclass.utils.EncryptionUtil;
 import cqupt.jyxxh.uclass.utils.GetDataFromJWZX;
 
@@ -34,8 +33,7 @@ public class EduAccountService {
 
     private final Logger logger= LoggerFactory.getLogger(EduAccountService.class);
 
-    @Autowired
-    private  Authentication authentication;       //统一身份认证实现类
+
 
     @Autowired
     private  TeacherMapper teacherMapper;       //教务账号（教师）dao操作接口
@@ -49,10 +47,6 @@ public class EduAccountService {
     @Autowired
     private EncryptionUtil encryptionUtil;       //加解密工具
 
-    @Value("${URLTeaInfoFromJWZX}")
-    private  String URL_TEAINFO_FROM_JWZX;            //去教务在线请求教师信息的URL
-    @Value("${URLStuInfoFromJWZX}")
-    private  String URL_StuInfo_From_JWZX;            //去教务在线请求学生信息的URL
 
 
 
@@ -65,10 +59,7 @@ public class EduAccountService {
     public EduAccount getEduAccountFromJWZX(String ykth, String password) throws Exception {
         EduAccount eduAccount ;
 
-
-
         //这里似乎不需要在验证身份，因为走到这一步，就代表身份演出是成功了的。
-
         /*// 1.验证统一身份是否正确
         boolean istrue = authentication.ldapCheck(ykth, password);
         // 不正确
@@ -138,8 +129,8 @@ public class EduAccountService {
                     //数据库中有,通过绑定的教师号去数据库中拿。
                     eduAccount = teacherMapper.queryTeacherByTeaId(uclassUser.getBind_number());
                 }else {
-                    //数据库中没有，通过绑定的教师号去教务在线爬取。
-                    eduAccount = getDataFromJWZX.getTeacherInfoByTeaId(uclassUser.getBind_number());
+                    //数据库中没有,身份过期！抛出异常，需要重新绑定！
+                    throw new Exception("Identity is overdue");
                 }
 
                 break;
@@ -152,8 +143,8 @@ public class EduAccountService {
                     //数据库中有，通过用户绑定的学号去数据库获取。
                     eduAccount = studentMapper.queryStudentByXh(uclassUser.getBind_number());
                 }else {
-                    //数据库中没有，根据用户绑定的学号去教务在线爬取。
-                    eduAccount = getDataFromJWZX.getStudentInfoByXh(uclassUser.getBind_number());
+                    //数据库中没有,身份过期！抛出异常，需要重新绑定！
+                    throw new Exception("Identity is overdue");
                 }
                 break;
             }
@@ -270,15 +261,18 @@ public class EduAccountService {
      * @param xh 学号
      * @return map集合，装ykth号和密码
      */
-    public Map<String,String> getStuYkthandPassword(String xh){
+    public Map<String,String> getStuYkthandPassword(String xh) throws Exception {
         Map<String,String> ykthAndPassword=new HashMap<>();
 
         //获取一卡通号和密码，获取的格式是：一卡通号_密码
-        String ykyhAndPassword = studentMapper.queryYkthAndPassByXh(xh);
+        String stringYAP = studentMapper.queryYkthAndPassByXh(xh);
+        if (null==stringYAP||"".equals(stringYAP)){
+            throw new Exception("get ykthandpassword failed,no this account:"+xh);
+        }
 
         //解析
-        String ykth=ykyhAndPassword.substring(0,ykyhAndPassword.indexOf("_"));
-        String password=ykyhAndPassword.substring(ykyhAndPassword.indexOf("_")+1);
+        String ykth=stringYAP.substring(0,stringYAP.indexOf("_"));
+        String password=stringYAP.substring(stringYAP.indexOf("_")+1);
 
         //从数据库获取的密码是加密了的，现在解密.
         String password_decrypt = encryptionUtil.decrypt(password);
@@ -349,7 +343,40 @@ public class EduAccountService {
             flage=false;
             logger.error("【教务账户（EduAccountService.deletePassword）】删除密码出错！一卡通号：[{}]",ykth);
         }
+        return flage;
+    }
 
+    /**
+     * 根据一卡通号删除教务账户
+     * @param ykth 一卡通号
+     * @return boolean
+     */
+    public boolean deleteEduAccount(String ykth) throws Exception {
+
+        boolean flage=false;
+        // 1.获取用户类型（一卡通前两位，16开头为本科生、72开头为留学生、01开头为教师）
+        String ykthStart=ykth.substring(0,2);
+        // 2.判断
+        switch(ykthStart){
+            //教师
+            case "01":{
+                //删除教师账户
+                teacherMapper.deleteTeacherByYkth(ykth);
+                break;
+            }
+            //学生
+            case "16":
+            case "72":{
+                studentMapper.deleteStudentByYkth(ykth);
+                break;
+            }
+
+            // 一些非学生非老师的账户
+            default:{
+                //不支持的教务账户，抛出异常！
+                throw new Exception("Unsupported academic administration account");
+            }
+        }
 
         return flage;
     }

@@ -37,43 +37,6 @@ public class Parse {
 
 
     /**
-     * 解析通过LDAP查询返回的学生老师信息（Attributes ）
-     *     以下是Attributes（无法直接读取具体数据）的数据格式：{uid=uid: 1655728, edupersonstudentid=eduPersonStudentID: 2017214033, edupersonorgdn=eduPersonOrgDN: 软件工程学院, cn=cn: 彭渝刚}
-     *     将其解析为HashMap，以 key-value方式，方后续取用：{ c= 彭渝刚, ui= 1655728,  edupersonorgd= 软件工程学院,  edupersonstudenti= 2017214033}
-     *
-     * @param attributes LDAP查询到的字符串数据
-     * @return  解析之后的数据，以map集合形式返回
-     */
-    public static HashMap<String,String> ParseAttributes(Attributes attributes){
-        //创建一个map集合
-        HashMap<String,String> attrsMap=new HashMap<>();
-        try{
-            //接收传入的attributes（LDAP查询的返回值，转化为字符串用于后续解析，同时去掉字符串前后的 “{” “}” 符号,以及字符串中的空格。
-            String ldapBack=attributes.toString().substring(1,attributes.toString().length()-1).replace(" ","");
-            //将转化后的字符串 以“，”分割开放入数组
-            String[] ldapBackArry = ldapBack.split(",");
-
-            // todo 演示
-            for (String s:ldapBackArry){
-                System.out.println(s);
-            }
-
-
-            //循环数组 并再次解析键与值
-            for (String s : ldapBackArry) {
-                String key = s.substring(0, s.indexOf("="));
-                String value = s.substring(s.indexOf(":") + 1);
-                attrsMap.put(key, value);
-            }
-        }catch (Exception e){
-            logger.error("【解析操作（ParseAttributes）】解析失败，未知错误!错误信息：[{}]",e.getMessage());
-
-        }
-        return attrsMap;
-    }
-
-
-    /**
      *转化编码方式   将经过URLecode编码 转换回来
      *     例如：
      *     转化之前：{"code":0,"info":"ok","returnData":[{"xh":"2017214033","xm":"\u5f6d\u6e1d\u521a","xmEn":"Peng Yu Gang ","xb":"\u7537","bj":"13001701","zyh":"1300","zym":"\u8f6f\u4ef6\u5de5\u7a0b","yxh":"13","yxm":"\u8f6f\u4ef6\u5de5\u7a0b\u5b66\u9662","nj":"2017","csrq":"19981030","xjzt":"\u5728\u6821","rxrq":"201709","yxmen":"School of Software","zymEn":"Software Engineering","xz":4,"mz":"\u6c49\u65cf                "}]}
@@ -690,4 +653,43 @@ public class Parse {
 
         return kbStuListData;
     }
+
+    /**
+     * 解析教务在线的个人服务页，获取用户的学号或者教师号
+     * 因为教务在线的个人主页，教师跟学生的大致相同，所以可以用同一套逻辑。只不过教师号在老师端叫“教务帐号” 学生号在学生端叫“学号”
+     * @param htmlTea 教务在线个人主页
+     * @return 教师号或者学号，如果获取失败返回“false”
+     */
+    public static String ParseHtmlToteaIdOrXh(String htmlTea) {
+
+        try {
+            //1.将html字符串解析为Document对象
+            Document parse = Jsoup.parse(htmlTea);
+            //2.获取页面中的<tbody>标签。实际情况，只有一个。
+            Elements tbodys = parse.getElementsByTag("tbody");
+            //3.根据索引0直接获取唯一的一个<tbody>
+            Element tbody = tbodys.get(0);
+            //4.获取tbody中的所以<tr>标签
+            Elements trs = tbody.getElementsByTag("tr");
+            //5.循环trs获取数据
+            for (Element tr:trs){
+                //获取tr标签下的两个td标签
+                Elements tds = tr.getElementsByTag("td");
+                //第一个td标签是名称，如（“姓名：、教务帐号：、岗位类别：、等”）
+                String tab = tds.get(0).text();
+                //第二个标签是数据，如（王斌（信息）、420004、等）
+                String value = tds.get(1).text();
+                //如果数据名称是“教务帐号”或者“学号”，直接返回具体数据。
+                if ("教务帐号：".equals(tab)||"学号：".equals(tab)){
+                    return value;
+                }
+            }
+        }catch (Exception e){
+            logger.error("解析教务在线个人页失败");
+            return "false";
+        }
+        //如果没有，返回“false”
+        return "false";
+    }
+
 }

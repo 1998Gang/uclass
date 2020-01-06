@@ -12,8 +12,8 @@
     <!--2.insertStudent,插入条学生信息-->
     <insert id="insertStudent" parameterType="Student" >
         insert into
-        uclass_students_info(xh,xm,xb,ykth,yxm,zym,nj,bj,xjzt,mz,csrq,stu_phone,stu_email)
-        values(#{xh},#{xm},#{xb},#{ykth},#{yxm},#{zym},#{nj},#{bj},#{xjzt},#{mz},#{csrq},#{stu_phone},#{stu_email})
+        uclass_students_info(xh,xm,xb,ykth,password,yxm,zym,nj,bj,xjzt,mz,csrq,stu_phone,stu_email)
+        values(#{xh},#{xm},#{xb},#{ykth},#{password},#{yxm},#{zym},#{nj},#{bj},#{xjzt},#{mz},#{csrq},#{stu_phone},#{stu_email})
     </insert>
 
 
@@ -47,4 +47,9 @@
     <select id="deletePassword" parameterType="String">
         update uclass_students_info set password='' WHERE ykth=#{value}
     </select>
+
+    <!--9.deleteStudentByYkth,根据一卡通号，删除学生数据-->
+    <delete id="deleteStudentByYkth" parameterType="String">
+        delete from uclass_students_info where ykth=#{value}
+    </delete>
 </mapper>

@@ -22,6 +22,7 @@ public class Teacher implements EduAccount, Serializable {
     private String yxm;//教师的院系名
     private String email;//教师的联系邮箱
     private String phone;//电话号码
+    private String AccountType="t";//用户类型“教师为t”
 
     @Override
     public String toString() {
@@ -42,7 +43,12 @@ public class Teacher implements EduAccount, Serializable {
     //返回类型，返回t代表是老师。
     @Override
     public String getAccountType() {
-        return "t";
+        return this.AccountType;
+    }
+
+
+    public void setAccountType(String accountType) {
+        AccountType = "s";
     }
 
     public String getTeaId() {

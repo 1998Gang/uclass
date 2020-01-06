@@ -68,8 +68,6 @@ public class KebiaoService {
             logger.debug("【获取课表缓存（KebiaoService.getkebiao）】出现未知错误！");
         }
 
-
-
         //2.根据学号或者教师号去获取教务在线的课表页（html）
         switch (type){
             //学生

@@ -67,4 +67,10 @@ public interface StudentMapper {
      * @param ykth 一卡通号
      */
     void deletePassword(String ykth);
+
+    /**
+     * 通过一卡通号删除学生数据
+     * @param ykth 一卡通号
+     */
+    void deleteStudentByYkth(String ykth);
 }

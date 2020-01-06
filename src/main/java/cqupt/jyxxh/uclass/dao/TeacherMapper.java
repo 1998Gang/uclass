@@ -21,6 +21,7 @@ public interface TeacherMapper {
     void deleteTeacherByTeaId(String teaId);
 
 
+
     /**
      * 插入一条教师信息数据
      * @param teacher 教务账号实体(教师)
@@ -58,4 +59,9 @@ public interface TeacherMapper {
      */
     void deletePassword(String ykth);
 
+    /**
+     * 根据一卡通号删除教师数据
+     * @param ykth 一卡通号
+     */
+    void deleteTeacherByYkth(String ykth);
 }
