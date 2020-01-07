@@ -21,7 +21,7 @@ public class KeChengInfo {
     private String jsm; //教师名    （曹岭）
     private String kclb; //课程类别（必修/选修）
     private String credit;//学分    （3.0学分）
-    private String xklx;//上课类型   （在修/重修/自修等）
+    private String xklx;//上课类型   （在修/重修/自修等,主要针对学生）
 
     private List<String> bjlbandbjh;//班级类别以及班级号 {软件工程,英语+软件,130017|10班,130617|01-03班}
 

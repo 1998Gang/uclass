@@ -10,6 +10,7 @@ import cqupt.jyxxh.uclass.pojo.UclassUser;
 import cqupt.jyxxh.uclass.utils.EncryptionUtil;
 import cqupt.jyxxh.uclass.utils.GetDataFromJWZX;
 
+import jdk.swing.interop.SwingInterOpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -277,6 +278,7 @@ public class EduAccountService {
         //从数据库获取的密码是加密了的，现在解密.
         String password_decrypt = encryptionUtil.decrypt(password);
 
+
         //装入集合
         ykthAndPassword.put("ykth",ykth);
         ykthAndPassword.put("password",password_decrypt);
@@ -298,16 +300,16 @@ public class EduAccountService {
 
         try {
             switch (accountType){
+                case "s":{
+                    //学生
+                    studentMapper.addPassword((Student) eduAccount);
+                    break;
+                }
                 case "t":{
                     //教师
                     teacherMapper.addPassword((Teacher) eduAccount);
+                    break;
                 }
-                case "s":{
-                    //学生
-                    assert eduAccount instanceof Student;
-                    studentMapper.addPassword((Student) eduAccount);
-                }
-
             }
         }catch (Exception e){
             //添加失败

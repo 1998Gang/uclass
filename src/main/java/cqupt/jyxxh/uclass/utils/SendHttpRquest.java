@@ -102,7 +102,7 @@ public  class SendHttpRquest {
             HttpEntity entity = response.getEntity();
              html = EntityUtils.toString(entity, "utf-8");
              if (logger.isDebugEnabled()){
-                 logger.debug("【网络请求工具类（getHtmlWithParam）】获取html页面成功");
+                 logger.debug("【网络请求工具类（getHtmlWithParam）】获取html页面成功!地址：[{}]",url);
              }
         }else {
             //4.2 不为200
@@ -139,7 +139,7 @@ public  class SendHttpRquest {
             HttpEntity entity = response.getEntity();
             html = EntityUtils.toString(entity, "utf-8");
             if (logger.isDebugEnabled()){
-                logger.debug("【网络请求工具类（getHtml）】获取html页面成功");
+                logger.debug("【网络请求工具类（getHtml）】获取html页面成功!url:[{}]",url);
             }
         }else {
             //4.2 不为200
@@ -177,7 +177,7 @@ public  class SendHttpRquest {
 
             //日志
             if (logger.isDebugEnabled()){
-                logger.debug("【网络请求工具类（getHtmlWithCookie）】获取html页面成功");
+                logger.debug("【网络请求工具类（getHtmlWithCookie）】获取html页面成功 地址：[{}]",url);
             }
         }else {
             //4.2,请求失败

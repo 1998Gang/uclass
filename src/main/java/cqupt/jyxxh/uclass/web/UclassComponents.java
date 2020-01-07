@@ -66,7 +66,7 @@ public class UclassComponents {
      * 获取上课学生名单
      * @return 名单的json数据
      */
-    @RequestMapping(value = "kbstuist",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
+    @RequestMapping(value = "kbstulist",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
     public ResponseEntity<KbStuListData> kbStuList(@RequestParam("jxb")String jxb){
 
 

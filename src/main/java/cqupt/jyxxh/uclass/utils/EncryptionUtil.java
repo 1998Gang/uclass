@@ -46,10 +46,9 @@ public class EncryptionUtil {
             instance.init(Cipher.ENCRYPT_MODE,secretKeySpec);
             // 6.加密数据
             byte[] bytes = instance.doFinal(str.getBytes(StandardCharsets.UTF_8));
-            // 7.使用Base64将得到的字节数组转为字符串
-            Base64.Encoder encoder = Base64.getEncoder();
+            // 7.使用Base64编码方式 将加密后得到的字节数组 编码为字符串
             // 8.返回加密后的数据
-            return encoder.encodeToString(bytes);
+            return Base64.getEncoder().encodeToString(bytes);
 
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
             logger.error("加密出错！错误信息：[{}]",e.getMessage());
@@ -75,20 +74,17 @@ public class EncryptionUtil {
             SecretKeySpec secretKeySpec=new SecretKeySpec(SECRET_KEY.getBytes(),"AES");
             // 5.选择解密
             instance.init(Cipher.DECRYPT_MODE,secretKeySpec);
-            // 6.使用Base64将字符串转为字节数组。
-            Base64.Decoder decoder = Base64.getDecoder();
-            byte[] decode = decoder.decode(str);
+            // 6.使用Base64编码 将编码后的字符串 解嘛为加密步骤得到的字节数组。
+            byte[] decode = Base64.getDecoder().decode(str);
             // 7.解密
             byte[] bytes = instance.doFinal(decode);
-            // 8.将解密得到的字节数组在转为字符串
-            Base64.Encoder encoder = Base64.getEncoder();
+            // 8.将解密得到的字节数组在转为字符串。使用new String（）。
             // 9.返回解密后的字符串
-            return encoder.encodeToString(bytes);
+            return new String(bytes);
 
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
             logger.error("解密出现未知错误！错误信息：[{}]",e.getMessage());
         }
-
         return "decrypt_false";
     }
 

@@ -10,6 +10,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -327,7 +328,7 @@ public class RedisService {
 
 
     /**
-     * 加载教学班的学生名单到缓存(redis第5个数据库)，用于课堂点名的。
+     * 加载教学班的学生名单到缓存(redis第5个数据库)，用于课堂点名（签到）的。
      * 传进来的参数jxb,week,work_day,qdcs是用于做redis的key
      *
      * @param jxb 教学班
@@ -339,8 +340,8 @@ public class RedisService {
      */
     public boolean loadStudentList(String jxb, String week, String work_day, String qdcs, List<Student> students) {
         try {
-            //key的前缀
-            String keyFirst=jxb+"<"+week+">("+work_day+")"+"_"+qdcs+":";
+            //key的前缀( 教学班<周>(星期几)_签到次数: )
+            String keyFirst=jxb+"<"+week+">("+work_day+")"+"_"+qdcs+":";//例：A13191A2130440002<18>(2)_1:
 
             // 1.获取redis连接
             Jedis jedisLoadStuList = jedisPool.getResource();
@@ -348,9 +349,9 @@ public class RedisService {
             jedisLoadStuList.select(4);
             // 3.循环加载list集合中的学生进缓存
             for (Student student:students){
-                //设置学生集合
-                String key=keyFirst+student.getXh();//例：A13191A2130440002<18>(2)_1:2017214033
-                String value=student.getXh()+"_"+student.getXm()+"("+student.getBj()+")";//例:2017214033_彭渝刚(13001701)
+                //这里将大量的信息都放在了key里面，方便后续使用。使用keys（）遍可以直接获取数据了。不用在各（）;
+                String key=keyFirst+student.getXh()+"+"+student.getXm()+"=>"+student.getBj();//例：A13191A2130440002<18>(2)_1:2017214033+彭渝刚=>13001701
+                String value=student.getXh();//例:2017214033
                 jedisLoadStuList.set(key,value);
             }
             // 4.归还redis连接
@@ -364,6 +365,34 @@ public class RedisService {
         }
     }
 
+    /**
+     * 获取未签到学生名单（redis第5个数据库）
+     * @param jxb 教学班
+     * @param week 周数
+     * @param work_day 星期几
+     * @param qdcs 签到次数
+     * @return Set 学生数据Set集合
+     */
+    public Set<String> getNotNoStus(String jxb, String week, String work_day, String qdcs) {
+        //操作redis的key1。key1用于查询符合条件的key，也就是符合条件的学生数据的key。
+        String keyFirst=jxb+"<"+week+">("+work_day+")"+"_"+qdcs+":*";//例：A13191A2130440002<18>(2)_1:*
+        try {
+            // 1.获取一个redis连接
+            Jedis jedisGetNotOnStus = jedisPool.getResource();
+            // 2.选择第五个数据库
+            jedisGetNotOnStus.select(4);
+            // 3.查询符合条件的学生key,key里面就包含了所需的必要数据。A13191A2130440002<18>(2)_1:2017214033+彭渝刚=>13001701
+            Set<String> keys = jedisGetNotOnStus.keys(keyFirst);
+            // 4.归还连接
+            jedisGetNotOnStus.close();
+            // 5.返回数据
+            return keys;
+        }catch (Exception e){
+            //日志
+            logger.error("获取未签到学生名单redisService出现未知错误！错误信息：[{}]",e.getMessage());
+        }
+        return null;
+    }
 
     /**
      * 加载签到码到缓存（redis第一个数据库，默认）
@@ -457,4 +486,6 @@ public class RedisService {
             return false;
         }
     }
+
+
 }
