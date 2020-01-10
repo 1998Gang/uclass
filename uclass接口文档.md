@@ -1,5 +1,4 @@
 ## U课堂后台接口文档
-ST-273018-plVQmiNcITvKfhXY9SKO-NlvE-ids1-1578315998726
 
 
 ### 一、用户权限类接口  
