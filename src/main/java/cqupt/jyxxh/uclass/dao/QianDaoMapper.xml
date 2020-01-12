@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cqupt.jyxxh.uclass.dao.QianDaoMapper">
+    <!--1.将签到记录数据插入到mysql-->
+    <insert id="insertQiandaoResult" parameterType="java.util.List">
+        Insert into uclass_qdjl(qdid, jxb, week, work_day, qdcs, allStuNum, notOnStuNum, inStuNum,beLateNum,askForLeaveNum,qdsj)
+        values
+        <foreach collection="list" item="qiandaoresult" separator=",">
+            (
+            #{qiandaoresult.qdid},
+            #{qiandaoresult.jxb},
+            #{qiandaoresult.week},
+            #{qiandaoresult.work_day},
+            #{qiandaoresult.qdcs},
+            #{qiandaoresult.allStuNum},
+            #{qiandaoresult.notOnStuNum},
+            #{qiandaoresult.inStuNum},
+            #{qiandaoresult.beLateNum},
+            #{qiandaoresult.askForLeaveNum},
+            #{qiandaoresult.qdsj}
+            )
+        </foreach>
+    </insert>
+
+    <!--2.将签到有记录的学生数据插入到mysql-->
+    <insert id="insertClassStuInfo" parameterType="java.util.List">
+        insert into uclass_no_qd_stu (qdid,xh,xm,xb,yxm,zym,nj,bj,xjzt,qdzt) VALUES
+        <foreach collection="list" item="classStuInfo" separator=",">
+            (
+            #{classStuInfo.qdid},
+            #{classStuInfo.xh},
+            #{classStuInfo.xm},
+            #{classStuInfo.xb},
+            #{classStuInfo.yxm},
+            #{classStuInfo.zym},
+            #{classStuInfo.nj},
+            #{classStuInfo.bj},
+            #{classStuInfo.xjzt},
+            #{classStuInfo.qdzt}
+            )
+        </foreach>
+    </insert>
+
+    <!--3.getStuQdRecord，根据学号和教学班获取学生的签到记录-->
+    <select id="getStuQdRecord" parameterType="java.util.Map" resultType="SingleRecord">
+        select uclass_qdjl.jxb,qdsj,week,work_day,qdzt
+        from uclass_qdjl left join uclass_no_qd_stu on  xh=#{xh} and jxb=#{jxb} and uclass_no_qd_stu.qdid=uclass_qdjl.qdid
+    </select>
+
+</mapper>

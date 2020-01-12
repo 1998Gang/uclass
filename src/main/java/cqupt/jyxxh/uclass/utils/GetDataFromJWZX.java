@@ -2,6 +2,7 @@ package cqupt.jyxxh.uclass.utils;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cqupt.jyxxh.uclass.pojo.ClassStudentInfo;
 import cqupt.jyxxh.uclass.pojo.KeChengInfo;
 import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.pojo.Teacher;
@@ -251,18 +252,23 @@ public class GetDataFromJWZX {
     /**
      * 通过教学班获取上课学生名单
      * @param jxb 教学班
-     * @return list<Student></Student>
+     * @return list<ClassStudentInfo>
      */
-    public List<Student>getKbStuList(String jxb) throws IOException {
-        List<Student> stuList;
+    public List<ClassStudentInfo>getKbStuList(String jxb)  {
+        List<ClassStudentInfo> ClassStuList = null;
 
-        //发起http请求，请求教务在线学生名单页。
-        String param="jxb="+jxb;
-        //学生名单页的html
-        String stuListHtml = SendHttpRquest.getHtmlWithParam(JWZX_URL_KESTULIST, param);
-        //解析html
-        stuList = Parse.parseHtmlToStuList(stuListHtml);
-        return stuList;
+        try {
+            //发起http请求，请求教务在线学生名单页。
+            String param="jxb="+jxb;
+            //学生名单页的html
+            String stuListHtml = SendHttpRquest.getHtmlWithParam(JWZX_URL_KESTULIST, param);
+            //解析html
+            ClassStuList = Parse.parseHtmlToStuList(stuListHtml);
+        }catch (Exception e){
+            //日志
+            logger.error("【获取上课学生名单(GetDataFromJWZX)】失败！可能因为教学班号不对！错误信息：[{}]",e.getMessage());
+        }
+        return ClassStuList;
     }
 
     /**

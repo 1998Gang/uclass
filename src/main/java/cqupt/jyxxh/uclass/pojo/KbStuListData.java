@@ -11,10 +11,11 @@ import java.util.Map;
  */
 public class KbStuListData {
 
-    private List<Student> students;    //学生名单
-    private int headcount;              //总人数
-    private Map<String,Integer>numberOfXkzt; //不同选课状态（重修，自修，在修，正常）对应的人数
+    private List<ClassStudentInfo> students;     //学生名单
+    private int headcount;                       //总人数
+    private Map<String,Integer>numberOfXkzt;      //不同选课状态（重修，自修，在修，正常）对应的人数
     private Map<String,Map<String,Integer>> numberOfZyAndBj; //不同专业下不同班级对应的人数。
+    private Map<String,Map<String,Integer>> numberOfNormalBj;//正常选课的专业和班级人数
 
     @Override
     public String toString() {
@@ -23,14 +24,15 @@ public class KbStuListData {
                 ", headcount=" + headcount +
                 ", numberOfXkzt=" + numberOfXkzt +
                 ", numberOfZyAndBj=" + numberOfZyAndBj +
+                ", numberOfNormalBj=" + numberOfNormalBj +
                 '}';
     }
 
-    public List<Student> getStudents() {
+    public List<ClassStudentInfo> getStudents() {
         return students;
     }
 
-    public void setStudents(List<Student> students) {
+    public void setStudents(List<ClassStudentInfo> students) {
         this.students = students;
     }
 
@@ -56,5 +58,13 @@ public class KbStuListData {
 
     public void setNumberOfZyAndBj(Map<String, Map<String, Integer>> numberOfZyAndBj) {
         this.numberOfZyAndBj = numberOfZyAndBj;
+    }
+
+    public Map<String, Map<String, Integer>> getNumberOfNormalBj() {
+        return numberOfNormalBj;
+    }
+
+    public void setNumberOfNormalBj(Map<String, Map<String, Integer>> numberOfNormalBj) {
+        this.numberOfNormalBj = numberOfNormalBj;
     }
 }

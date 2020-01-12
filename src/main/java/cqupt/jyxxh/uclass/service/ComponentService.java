@@ -2,6 +2,7 @@ package cqupt.jyxxh.uclass.service;
 
 import checkers.oigj.quals.O;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cqupt.jyxxh.uclass.pojo.ClassStudentInfo;
 import cqupt.jyxxh.uclass.pojo.KbStuListData;
 import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.utils.GetDataFromJWZX;
@@ -91,14 +92,13 @@ public class ComponentService {
     /**
      * 获取解析之后的教学班学生名单。（名单人数，所含专业、班级等，不同选课状态的学生。）
      * @param jxb 教学班
-     * @return KbStuListData类的json字符串
+     * @return KbStuListData类的json字符串，如果教学班是错误的，查出的数据是空的。
      */
     public KbStuListData getKbStuListData(String jxb)  {
         //教学班学生名单数据。
         KbStuListData kbStuListData=null;
         //json操作对象
         ObjectMapper objectMapper=new ObjectMapper();
-
 
         // 1.先从缓存中取
         try {
@@ -119,15 +119,15 @@ public class ComponentService {
         try {
 
             //2.1.根据教学班获取学生名单。
-            List<Student> stuList = getDataFromJWZX.getKbStuList(jxb);
+            List<ClassStudentInfo> ClassStuList = getDataFromJWZX.getKbStuList(jxb);
 
-            //2.2.解析名单，获取该名单的具体数据,。
-            kbStuListData = Parse.parseStuListToKbStuListData(stuList);
+            //2.2.解析名单数据，得到kbStuListData类（包含学生名单，统计数据）。
+            kbStuListData = Parse.parseStuListToKbStuListData(ClassStuList);
 
             //2.3 将KbStuListData对象转换为json字符串格式。
             String data = objectMapper.writeValueAsString(kbStuListData);
 
-            //2.4将数据添加到缓存
+            //2.4将数据添加到缓存(redis第4个数据库)
             try {
                 redisService.setStuListData(jxb,data);
             }catch (Exception e){

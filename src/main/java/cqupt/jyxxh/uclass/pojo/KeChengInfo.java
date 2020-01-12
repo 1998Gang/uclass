@@ -28,7 +28,7 @@ public class KeChengInfo {
     private String week; //上课周（  “00000000000000001000” 20位代表20周，本例表示第17周（某一节）有课，其他周没有  ）
     private List<String> weekNum; //上课的周数 （1、3、5、7、9）代表第1、3、5、7、9周有课。
 
-    private String workday;//上课天（“1”、“2”、“3”、“4”、“5”、“6”、“7” ）
+    private String work_day;//上课天（“1”、“2”、“3”、“4”、“5”、“6”、“7” ）
     private String cStart;//课程开始节数（如该课为 34节 的课，cStart参数为3）
     private String cTimes;//课程节数    （如该课为 34节 ，cTimes为2。如果该课为4节连上1234节，cuTime为4）
 
@@ -49,7 +49,7 @@ public class KeChengInfo {
                 ", bjlbandbjh=" + bjlbandbjh +
                 ", week='" + week + '\'' +
                 ", weekNum=" + weekNum +
-                ", weekday='" + workday + '\'' +
+                ", weekday='" + work_day + '\'' +
                 ", cStart='" + cStart + '\'' +
                 ", cTimes='" + cTimes + '\'' +
                 ", cjzc='" + cjzc + '\'' +
@@ -161,12 +161,12 @@ public class KeChengInfo {
         this.week = week;
     }
 
-    public String getWorkday() {
-        return workday;
+    public String getWork_day() {
+        return work_day;
     }
 
-    public void setWorkday(String workday) {
-        this.workday = workday;
+    public void setWork_day(String work_day) {
+        this.work_day = work_day;
     }
 
     public String getcStart() {
