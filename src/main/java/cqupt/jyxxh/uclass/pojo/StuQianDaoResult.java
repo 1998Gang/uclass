@@ -16,7 +16,7 @@ public class StuQianDaoResult {
     private int cdtime;//迟到次数
     private int qjtime;//请假次数
     private int cqtime;//出勤次数
-    private List<SingleRecord> Records;//签到情况记录
+    private List<StuSingleRecord> Records;//签到情况记录
 
     @Override
     public String toString() {
@@ -88,11 +88,11 @@ public class StuQianDaoResult {
         this.cqtime = cqtime;
     }
 
-    public List<SingleRecord> getRecords() {
+    public List<StuSingleRecord> getRecords() {
         return Records;
     }
 
-    public void setRecords(List<SingleRecord> records) {
+    public void setRecords(List<StuSingleRecord> records) {
         Records = records;
     }
 }

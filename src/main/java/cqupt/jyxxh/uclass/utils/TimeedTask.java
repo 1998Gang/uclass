@@ -44,10 +44,10 @@ public class TimeedTask {
      * 每天12点30分，18点30分 22点30分。将点名数据持久化到mysql数据库
      */
     @Transactional(rollbackFor = {Exception.class})
-    @Scheduled(cron = "* */20 * * * *")
+    @Scheduled(cron = " * 20 * * * *")
     public void insertQiandaoDataToMysql(){
 
-        System.out.println("定时任务");
+        /*System.out.println("定时任务");
         try {
             // 1.获取缓存中有的签到记录，就是签到id，但是这个签到id有前缀 "(qdjl)"。例：(qdjl)A13191A2130460001<1>(1)_1
             Set<String> allQdjl = redisService.getAllQdjl();
@@ -83,6 +83,6 @@ public class TimeedTask {
         }catch (Exception e){
             //日志
             logger.error("定时任务，将签到数据持久化mysql失败，可能原因是数据冲突。具体错误信息：[{}]",e.getMessage());
-        }
+        }*/
     }
 }

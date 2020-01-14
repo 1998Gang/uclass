@@ -10,7 +10,7 @@ package cqupt.jyxxh.uclass.pojo;
  * @version 1.0.0
  * @date created in 20:05 2020/1/12
  */
-public class SingleRecord {
+public class StuSingleRecord {
     private String jxb;   //教学班
     private String qdsj;  //日期（yyyy-MM-dd）字符串
     private String week;  //周

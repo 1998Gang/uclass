@@ -236,7 +236,7 @@ public class QianDaoService {
      * @return map集合装有剩余时间，签到id。{timeremaining,qdid,yxsj}
      * 如果没有获取到剩余时间 或者 获取到的剩余时间小于5秒，返回一个 空 map。
      */
-    public Map<String, String> getQiandaoreaminTime(String jxb, String week, String work_day) throws Exception {
+    public Map<String, String> getQiandaoreaminTime(String jxb, String week, String work_day)  {
 
         Map<String, String> remainTimeResult = new HashMap<>();
         try {
@@ -326,7 +326,7 @@ public class QianDaoService {
         xhAndJxb.put("xh", xh);
         xhAndJxb.put("jxb", jxb);
         //1.查询历史签到数据
-        List<SingleRecord> records = qianDaoMapper.getStuQdRecord(xhAndJxb);
+        List<StuSingleRecord> records = qianDaoMapper.getStuQdRecord(xhAndJxb);
 
         //2.获取总签到次数
         int total = records.size();
@@ -340,8 +340,8 @@ public class QianDaoService {
         //6.出勤次数
         int cqtime = 0;
 
-        for (SingleRecord singleRecord : records) {
-            String qdzt = singleRecord.getQdzt();
+        for (StuSingleRecord stuSingleRecord : records) {
+            String qdzt = stuSingleRecord.getQdzt();
 
             if ("CD".equals(qdzt)) {
                 cdtime += 1;
@@ -355,7 +355,7 @@ public class QianDaoService {
                 qjtime += 1;
                 continue;
             }
-            singleRecord.setQdzt("CQ");
+            stuSingleRecord.setQdzt("CQ");
             cqtime += 1;
         }
 
@@ -372,5 +372,33 @@ public class QianDaoService {
 
         //8.返回
         return stuQianDaoResult;
+    }
+
+    /**
+     * 获取课程的历史签到情况
+     * @param jxb 教学班
+     * @return KcQianDaoResult
+     */
+    public KcQianDaoResult getKcQDhistory(String jxb){
+
+        //定义参数
+        int total=0;//有记录的总人次
+        int Absenteeism=0;//有缺勤记录是人次
+        int LateArrivals=0;//有迟到记录的人次
+        int NumberOfLeave=0;//有请假记录的人次
+        List<KcOneStuRecord> stuList=new ArrayList<>();//学生名单
+
+
+
+
+        // 1.获取的该课程有记录学生名单
+        List<Map<String, String>> maps = qianDaoMapper.getkcQdRecord(jxb);
+
+        //2.遍历该名单
+        for (Map<String,String> map:maps){
+            map.get("xh");
+        }
+
+        return null;
     }
 }

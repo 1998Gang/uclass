@@ -5,7 +5,8 @@
 <mapper namespace="cqupt.jyxxh.uclass.dao.QianDaoMapper">
     <!--1.将签到记录数据插入到mysql-->
     <insert id="insertQiandaoResult" parameterType="java.util.List">
-        Insert into uclass_qdjl(qdid, jxb, week, work_day, qdcs, allStuNum, notOnStuNum, inStuNum,beLateNum,askForLeaveNum,qdsj)
+        Insert into uclass_qdjl(qdid, jxb, week, work_day, qdcs, allStuNum, notOnStuNum,
+        inStuNum,beLateNum,askForLeaveNum,qdsj)
         values
         <foreach collection="list" item="qiandaoresult" separator=",">
             (
@@ -45,8 +46,22 @@
 
     <!--3.getStuQdRecord，根据学号和教学班获取学生的签到记录-->
     <select id="getStuQdRecord" parameterType="java.util.Map" resultType="SingleRecord">
-        select uclass_qdjl.jxb,qdsj,week,work_day,qdzt
-        from uclass_qdjl left join uclass_no_qd_stu on  xh=#{xh} and jxb=#{jxb} and uclass_no_qd_stu.qdid=uclass_qdjl.qdid
+        select qdjl.jxb, qdjl.qdsj, qdjl.week, qdjl.work_day, uclass_no_qd_stu.qdzt
+        from (select * from uclass_qdjl where jxb = #{jxb}) as qdjl
+                 left join
+             uclass_no_qd_stu
+             on qdjl.qdid = uclass_no_qd_stu.qdid and xh = #{xh}
+    </select>
+
+    <!--4.getkcQdRecord,根据教学班获取该课程有缺勤|迟到|请假记录的学生名单，以及相应的缺勤次数-->
+    <select id="getkcQdRecord" resultType="java.util.HashMap" parameterType="String">
+        select allStu.xh, allStu.xm, allStu.qdzt, count(allStu.xh) as times
+        from (select xm, xh, qdzt
+              from (select * from uclass_qdjl where jxb = #{jxb}) as qdjl
+                       left join uclass_no_qd_stu
+                                 on qdjl.qdid = uclass_no_qd_stu.qdid) as allStu
+        group by allStu.xh, allStu.qdzt
+        order by allStu.xh
     </select>
 
 </mapper>

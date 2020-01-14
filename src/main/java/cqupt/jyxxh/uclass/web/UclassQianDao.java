@@ -1,7 +1,6 @@
 package cqupt.jyxxh.uclass.web;
 
 import cqupt.jyxxh.uclass.pojo.QianDaoResult;
-import cqupt.jyxxh.uclass.pojo.SingleRecord;
 import cqupt.jyxxh.uclass.pojo.StuQianDaoResult;
 import cqupt.jyxxh.uclass.service.QianDaoService;
 import org.slf4j.Logger;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,7 +39,7 @@ public class UclassQianDao {
      * @return ResponseEntity
      */
     @RequestMapping(value = "originateqiandao", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-    public ResponseEntity<Map> originateQanDao(@RequestBody Map<String, String> param) {
+    public ResponseEntity<Map<String,String>> originateQanDao(@RequestBody Map<String, String> param) {
 
         //装载返回数据
         Map<String, String> massage = new HashMap<>();
@@ -107,7 +105,7 @@ public class UclassQianDao {
      * @return 响应信息
      */
     @RequestMapping(value = "tearetroactive", method = RequestMethod.PUT, produces = "application/json;charset=utf-8")
-    public ResponseEntity<Map> teaRetroactive(@RequestBody Map<String, String> param) {
+    public ResponseEntity<Map<String,String>> teaRetroactive(@RequestBody Map<String, String> param) {
 
         //响应信息
         Map<String, String> massage = new HashMap<>();
@@ -151,7 +149,7 @@ public class UclassQianDao {
      * @return Map {"timeremaining":"102(签到剩余时间)","qdid":"签到id","yxsj":"这次签到的有效时间"}
      */
     @RequestMapping(value = "stugetqiandaotimeremaining", method = RequestMethod.GET, produces = "application/json;charset=utf-8")
-    public ResponseEntity<Map> stuGetqiandaoTimeRemain(@RequestParam("jxb") String jxb, @RequestParam("week") String week, @RequestParam("work_day") String work_day) {
+    public ResponseEntity<Map<String,String>> stuGetqiandaoTimeRemain(@RequestParam("jxb") String jxb, @RequestParam("week") String week, @RequestParam("work_day") String work_day) {
 
         //响应信息
         Map<String, String> massage = new HashMap<>();
@@ -190,7 +188,7 @@ public class UclassQianDao {
      * @return map集合 {"massage":""}
      */
     @RequestMapping(value = "stuqiandao", method = RequestMethod.PUT, produces = "application/json;charset=utf-8")
-    public ResponseEntity<Map> stuQianDao(@RequestBody Map<String, String> param) {
+    public ResponseEntity<Map<String,String>> stuQianDao(@RequestBody Map<String, String> param) {
 
         //响应信息
         Map<String, String> massage = new HashMap<>();

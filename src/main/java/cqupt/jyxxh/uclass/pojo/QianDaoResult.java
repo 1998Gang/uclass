@@ -1,10 +1,11 @@
 package cqupt.jyxxh.uclass.pojo;
 
 
-import java.util.Date;
 import java.util.Set;
 
 /**
+ * 一次点名的签到结果
+ * 用于实时返回课堂签到结果
  * 单次点名的签到结果,对于老师。
  * @author 彭渝刚
  * @version 1.0.0
