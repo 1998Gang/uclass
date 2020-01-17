@@ -2,10 +2,7 @@ package cqupt.jyxxh.uclass.utils;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cqupt.jyxxh.uclass.pojo.ClassStudentInfo;
-import cqupt.jyxxh.uclass.pojo.KeChengInfo;
-import cqupt.jyxxh.uclass.pojo.Student;
-import cqupt.jyxxh.uclass.pojo.Teacher;
+import cqupt.jyxxh.uclass.pojo.*;
 import cqupt.jyxxh.uclass.service.EduAccountService;
 import cqupt.jyxxh.uclass.service.RedisService;
 import org.slf4j.Logger;
@@ -160,32 +157,11 @@ public class GetDataFromJWZX {
      * @param xh 学号
      * @return ArrayList<ArrayList<ArrayList<KeChengInfo>>> 课表数组
      */
-    public ArrayList<ArrayList<ArrayList<KeChengInfo>>> getStukebiaoByXh(String xh) throws IOException {
+    public ArrayList<ArrayList<ArrayList<KeChengInfo>>> getStukebiaoByXh(String xh)  {
 
         // jackson操作对象
         ObjectMapper objectMapper = new ObjectMapper();
 
-        // 1.在获取课表之前先获取成绩组成
-        Map<String,String> cjzcs=new HashMap<>();
-        // 1.2先去redis中拿数据。
-        try{
-            String data = redisService.getCjzc(xh);
-            if ("false".equals(data)){
-                //从redis获取数据失败。1.缓存中没有该key的数据。或者 2.操作redis时出现未知错误。
-                //缓存没有，就去教务在线获取
-                cjzcs = getCjzcByXh(xh);
-                //教务在线获取成功后，将数据存入redis中。
-                //将教务在线获取map集合转为json字符串。
-                String cjzcJson = objectMapper.writeValueAsString(cjzcs);
-                redisService.setCjzc(xh,cjzcJson);
-            }else {
-                //从redis获取数据成功,将json字符串转为map集合
-                cjzcs = objectMapper.readValue(data, Map.class);
-            }
-        }catch (Exception e){
-
-            logger.error("【获取课表（GetDataFromJWZX.getStukebiaoByXh）】获取成绩组成出错！");
-        }
 
         // 2.发起http请求，获取教务在线的课表页的Html代码
         String stuKebiaoHtml=null;
@@ -196,7 +172,7 @@ public class GetDataFromJWZX {
         }
 
         //解析并返回，带参数”s“表示这个是学生的课表,第三个参数是成绩组成。
-        return Parse.parseHtmlToKebiaoInfo(stuKebiaoHtml, "s",cjzcs);
+        return Parse.parseHtmlToKebiaoInfo(stuKebiaoHtml, "s");
     }
     /**
      * 通过教师号获取教师课表
@@ -220,7 +196,7 @@ public class GetDataFromJWZX {
 
 
         //解析并返回,带参数”t“表示这是老师的课表。
-        return Parse.parseHtmlToKebiaoInfo(teaKebiaoHtml,"t",cjzcs);
+        return Parse.parseHtmlToKebiaoInfo(teaKebiaoHtml,"t");
     }
     /**
      * 获取学生所有课程的成绩组成
@@ -275,21 +251,19 @@ public class GetDataFromJWZX {
      * 获取重庆邮电大学，校历时间。
      * @return 时间的map集合
      */
-    public Map<String,String> getSchoolTime(){
-        Map<String,String> sTime=null;
+    public SchoolTime getSchoolTime(){
         try {
             // 1.请求教务在线的主页
             String JWZXhtml = SendHttpRquest.getHtml(JWZX_URL_HOME);
             // 2.解析获取时间
-            sTime = Parse.parseHtmlToSchoolTime(JWZXhtml);
             // 3.返回
-            return sTime;
+            return Parse.parseHtmlToSchoolTime(JWZXhtml);
 
-        }catch (Exception ignored){
-
+        }catch (Exception e){
+            //日志
+            logger.error("获取教务时间出错！错误信息：[{}]",e.getMessage());
         }
-
-        return sTime;
+        return null;
     }
 
 

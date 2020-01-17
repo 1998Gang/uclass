@@ -15,15 +15,17 @@ public class StuSingleRecord {
     private String qdsj;  //日期（yyyy-MM-dd）字符串
     private String week;  //周
     private String work_day; //星期几
+    private String weekStr;//签到周数以及星期数（第8周星期1）
     private String qdzt;//签到状态（CD|QJ|QQ）代表迟到|请假|缺勤。如果为空代表出勤。
 
     @Override
     public String toString() {
-        return "SingleRecord{" +
+        return "StuSingleRecord{" +
                 "jxb='" + jxb + '\'' +
-                ", data='" + qdsj + '\'' +
+                ", qdsj='" + qdsj + '\'' +
                 ", week='" + week + '\'' +
                 ", work_day='" + work_day + '\'' +
+                ", weekStr='" + weekStr + '\'' +
                 ", qdzt='" + qdzt + '\'' +
                 '}';
     }
@@ -58,6 +60,14 @@ public class StuSingleRecord {
 
     public void setWork_day(String work_day) {
         this.work_day = work_day;
+    }
+
+    public String getWeekStr() {
+        return weekStr;
+    }
+
+    public void setWeekStr(String weekStr) {
+        this.weekStr = weekStr;
     }
 
     public String getQdzt() {

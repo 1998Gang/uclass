@@ -4,6 +4,7 @@ import checkers.oigj.quals.O;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cqupt.jyxxh.uclass.pojo.ClassStudentInfo;
 import cqupt.jyxxh.uclass.pojo.KbStuListData;
+import cqupt.jyxxh.uclass.pojo.SchoolTime;
 import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.utils.GetDataFromJWZX;
 import cqupt.jyxxh.uclass.utils.Parse;
@@ -41,10 +42,10 @@ public class ComponentService {
      * 获取教务时间，匹配课表
      * @return Map，教务时间
      */
-    public String  getSchoolTime(){
+    public SchoolTime  getSchoolTime(){
 
         //教务时间，json字符串格式。
-        String schoolTime = null;
+        SchoolTime schoolTime = null;
 
         //操作josn的对象
         ObjectMapper objectMapper=new ObjectMapper();
@@ -60,8 +61,8 @@ public class ComponentService {
         try {
             String data = redisService.getSchoolTime(nowData);
             if (!"false".equals(data)){
-                //缓存中有
-                schoolTime=data;
+                //缓存中有,将json字符串数据转为schoooltime对象
+               schoolTime = objectMapper.readValue(data, SchoolTime.class);
                 //直接返回
                 return schoolTime;
             }
@@ -72,20 +73,19 @@ public class ComponentService {
 
         //2.缓存没有，去教务在线获取
         try {
-            //2.1 获取教务时间，得到的数据是map集合
-            Map<String, String> schoolTimeMap= getDataFromJWZX.getSchoolTime();
-            //2.2将map集合转为json字符串
-            schoolTime = objectMapper.writeValueAsString(schoolTimeMap);
+            //2.1 获取教务时间
+            schoolTime = getDataFromJWZX.getSchoolTime();
+            //2.2将schooltime对象转为json字符串
+            String schooltimeJson = objectMapper.writeValueAsString(schoolTime);
             //2.3将教务时间放入redis缓存
             try {
-                redisService.setSchoolTime(nowData,schoolTime);
+                redisService.setSchoolTime(nowData,schooltimeJson);
             }catch (Exception e){
                 logger.error("【获取教务时间（ComponentService.getSchoolTime）】将教务时间添加到缓存出现未知错误！");
             }
         }catch (Exception e){
             logger.error("【获取教务时间（ComponentService.getSchoolTime）】从教务在线获取教务时间出现未知错误！");
         }
-
         return schoolTime;
     }
 

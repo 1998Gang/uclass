@@ -1,7 +1,8 @@
 package cqupt.jyxxh.uclass.web;
 
+import cqupt.jyxxh.uclass.pojo.KcQianDaoHistory;
 import cqupt.jyxxh.uclass.pojo.QianDaoResult;
-import cqupt.jyxxh.uclass.pojo.StuQianDaoResult;
+import cqupt.jyxxh.uclass.pojo.StuQianDaoHistory;
 import cqupt.jyxxh.uclass.service.QianDaoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,6 +140,30 @@ public class UclassQianDao {
         }
     }
 
+    /**
+     * 教师根据教学班获取该班的历史签到数据
+     * @param jxb 教学班号
+     * @return KcQianDaoResult
+     */
+    @RequestMapping(value = "teaqiandaohistroy",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
+    public ResponseEntity<KcQianDaoHistory> teaGetKcQdHistory(@RequestParam("jxb")String jxb){
+        try{
+            //调用service层方法
+            KcQianDaoHistory kcQDhistory = qianDaoService.getKcQDhistory(jxb);
+            //日志
+            if (logger.isInfoEnabled()){
+                logger.info("教师获取教学班：[{}]的历史点名数据成功！",jxb);
+            }
+            //获取成功返回数据，响应200
+            return ResponseEntity.status(HttpStatus.OK).body(kcQDhistory);
+        }catch (Exception e){
+            //日志
+            logger.error("教师获取教学班：[{}]的历史数据出现未知错误！错误信息：[{}]",jxb,e.getMessage());
+        }
+        //出错，响应500
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+
 
     /**
      * 学生获取签到剩余时间和签到id
@@ -164,14 +189,14 @@ public class UclassQianDao {
                 if (logger.isInfoEnabled()) {
                     logger.info("获取签到码剩余时间失败！可能当前并无签到进行！教学班：[{}] 时间：周[{}]xq[{}]", jxb, week, work_day);
                 }
-                //响应404
+                //响应403
                 massage.put("massage", "当前无签到，或签到时间已过");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(massage);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(massage);
             }
             //3.获取成功响应200
             //日志
             if (logger.isInfoEnabled()) {
-                logger.info("获取签到码剩余时间成功！教学班：[{}] 时间：周[{}]xq[{}]", jxb, week, work_day);
+                logger.info("获取签到码剩余时间成功！教学班：[{}] 时间：周[{}]星期[{}]", jxb, week, work_day);
             }
             return ResponseEntity.status(HttpStatus.OK).body(qiandaoreaminTime);
 
@@ -223,16 +248,16 @@ public class UclassQianDao {
     }
 
     /**
-     * 学生获取某一门课的历史签到数据
+     * 学生获取自己某一门课的历史签到数据
      *
      * @param xh 学号
      * @param jxb 教学班号
      * @return StuQianDaoResult
      */
     @RequestMapping(value = "stuqiandaohistory", method = RequestMethod.GET, produces = "application/json;charset=utf-8")
-    public ResponseEntity<StuQianDaoResult> stuGetQDhistory(@RequestParam("xh")String xh, @RequestParam("jxb")String jxb) {
+    public ResponseEntity<StuQianDaoHistory> stuGetQDhistory(@RequestParam("xh")String xh, @RequestParam("jxb")String jxb) {
         try {
-            StuQianDaoResult stuQDhistory = qianDaoService.getStuQDhistory(xh, jxb);
+            StuQianDaoHistory stuQDhistory = qianDaoService.getStuQDhistory(xh, jxb);
             //日志
             if (logger.isInfoEnabled()) {
                 logger.info("学生[{}]获取教学班[{}]历史签到记录成功！", xh, jxb);

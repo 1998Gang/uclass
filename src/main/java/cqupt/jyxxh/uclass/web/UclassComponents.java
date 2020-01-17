@@ -1,6 +1,7 @@
 package cqupt.jyxxh.uclass.web;
 
 import cqupt.jyxxh.uclass.pojo.KbStuListData;
+import cqupt.jyxxh.uclass.pojo.SchoolTime;
 import cqupt.jyxxh.uclass.service.ComponentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,30 +37,31 @@ public class UclassComponents {
      * @return 时间map集合{"学期":"1","年":"2019","学年":"2019-2020","日":"16","周":"16","月":"12","星期":"1"}
      */
     @RequestMapping(value = "schooltime",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
-    public ResponseEntity<String> SchoolTime(){
-        String sTime=null;
+    public ResponseEntity<SchoolTime> SchoolTime(){
+        SchoolTime schoolTime;
         try {
             // 1.获取教务时间
-            sTime = componentService.getSchoolTime();
-            // 2.判断sTime是否为空
-            if (null==sTime){
+            schoolTime = componentService.getSchoolTime();
+            // 2.判断schoolTime是否为空
+            if (null==schoolTime){
                 //日志
                 logger.info("获取教务时间失败！为空！");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("获取失败！");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
             // 2.获取成功，响应200.
             //日志
             if (logger.isInfoEnabled()){
                 logger.info("获取教务时间成功！");
             }
-            return ResponseEntity.status(HttpStatus.OK).body(sTime);
+            return ResponseEntity.status(HttpStatus.OK).body(schoolTime);
 
         }catch (Exception e){
+            //日志
             logger.error("【课表接口（SchoolTime）】教务时间获取失败！");
         }
 
         // 未知错误响应500
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("服务器端出现未知错误！");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
 
     /**
@@ -76,12 +78,12 @@ public class UclassComponents {
 
             //判断数据是否为空
             if (null==data){
-                //为空，响应404
+                //为空，响应415
                 //日志
                 if (logger.isInfoEnabled()){
                     logger.info("学生名单数据获取失败！为空！教学班：[{}]",jxb);
                 }
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(null);
             }
 
             //数据正常，响应200

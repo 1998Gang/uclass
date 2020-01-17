@@ -12,5 +12,4 @@
     <!--2. 配置注解驱动 加载新的映射器与适配器-->
     <mvc:annotation-driven/>
 
-
 </beans>

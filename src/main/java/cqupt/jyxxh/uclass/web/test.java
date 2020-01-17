@@ -41,12 +41,9 @@ public class test {
     @RequestMapping(value = "testlist",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
     public ResponseEntity<List<String>> testlist(){
 
-
-
         List<String> list=new ArrayList<>();
         list.add("a080");
         list.add("09809");
-
 
         return ResponseEntity.status(HttpStatus.OK).body(list);
     }

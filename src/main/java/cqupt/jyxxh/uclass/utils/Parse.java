@@ -229,10 +229,9 @@ public class Parse {
      *
      * @param html  html字符串
      * @param type  用户类型，”s“学生，"t"老师。必填
-     * @param cjzcs map集合，装的成绩组成。  如：{SK13191A2130610002=[实验实践]考勤占30%，课堂表现占30%, A13191A1100040014=[理论]期末考试50%+网络学习30%+课程论文20%}
      * @return ArrayList<ArrayList < ArrayList < KeChengInfo>>> 嵌套的集合，最里层放的课程信息
      */
-    public static ArrayList<ArrayList<ArrayList<KeChengInfo>>> parseHtmlToKebiaoInfo(String html, String type, Map<String, String> cjzcs) {
+    public static ArrayList<ArrayList<ArrayList<KeChengInfo>>> parseHtmlToKebiaoInfo(String html, String type) {
 
 
         //解析后的数据以嵌套集合的方式返回，定义三层集合
@@ -300,7 +299,7 @@ public class Parse {
                     //解析，将"10101010101010101000" to {1，3，5，7，9，11，13，15，17}
                     List<String> weekNum = Parse.parseZCtoWeekNum(zc);
                     //解析具体的课程信息，将html页面上的信息解析为 KeChengInfo。学生与老师的html页面不一样，不同的解析方式。
-                    KeChengInfo keChengInfo = parseKebiaoToKeChengInfo(kbTd.html(), type, cjzcs);
+                    KeChengInfo keChengInfo = parseKebiaoToKeChengInfo(kbTd.html(), type);
                     //补充数据
                     keChengInfo.setWeek(zc); //上课周数
                     keChengInfo.setWeekNum(weekNum);//上课周数（具体数字）
@@ -329,10 +328,9 @@ public class Parse {
      *
      * @param kebiaoHtml 课程详细信息的html数据(具体的 某一节的信息。)
      * @param type       操作的用户类型 “s” 是学生，"t"是老师
-     * @param cjzcs      map集合，装的是成绩组成。key是教学班，value是成绩组成描述的字符串。如：{SK13191A2130610002=[实验实践]考勤占30%，课堂表现占30%, A13191A1100040014=[理论]期末考试50%+网络学习30%+课程论文20%}
      * @return kechengInfo 课程的详细信息
      */
-    private static KeChengInfo parseKebiaoToKeChengInfo(String kebiaoHtml, String type, Map cjzcs) {
+    private static KeChengInfo parseKebiaoToKeChengInfo(String kebiaoHtml, String type) {
         KeChengInfo keChengInfo = new KeChengInfo();
         String[] s1 = kebiaoHtml.split("\n");
 
@@ -344,7 +342,8 @@ public class Parse {
         keChengInfo.setKcm(s1[1].substring(s1[1].indexOf("-") + 1));
         //上课地点
         if (isbaohan("综合实验楼", s1[2])) {
-            keChengInfo.setSkdd(s1[2].substring(s1[2].indexOf("综合实验楼"), s1[2].length() - 2));
+            keChengInfo.setSkdd(s1[2].substring(s1[2].indexOf("综合实验楼")+5, s1[2].length() - 2));
+            keChengInfo.setSkddqc(s1[2].substring(s1[2].indexOf("：") + 1, s1[2].length() - 1));
         } else {
             keChengInfo.setSkdd(s1[2].substring(s1[2].indexOf("：") + 1, s1[2].length() - 1));
         }
@@ -370,12 +369,6 @@ public class Parse {
             if (s1.length == 11) {
                 keChengInfo.setXklx(s1[8].substring(s1[8].indexOf("\">") + 2, s1[8].indexOf("</")));
             }
-            //成绩组成，根据教学班获取
-            if (null != cjzcs) {
-                keChengInfo.setCjzc((String) cjzcs.get(s1[0]));
-            }
-
-
         }
         //上课班级类别以及班级号，如果是老师进行该步骤
         if ("t".equals(type)) {
@@ -414,10 +407,10 @@ public class Parse {
      * 解析教务在线首页html代码，获取校历时间
      *
      * @param html 教务在线首页html代码
-     * @return 时间map集合
+     * @return  SchoolTime
      */
-    public static Map<String, String> parseHtmlToSchoolTime(String html) {
-        Map<String, String> sTime = new HashMap<>();
+    public static SchoolTime parseHtmlToSchoolTime(String html) {
+        SchoolTime schoolTime=new SchoolTime();
 
         // 1.转换html字符串为Document对象
         Document doc = Jsoup.parse(html);
@@ -428,27 +421,27 @@ public class Parse {
         // 4.使用正则解析该字符串
         // 4.1 学年
         String xuenian = time.substring(0, time.indexOf("学"));
-        sTime.put("semester", xuenian);
+        schoolTime.setSchool_year(xuenian);
         // 4.2 学期
         String xueqi = time.substring(time.indexOf("学年") + 2, time.indexOf("学期"));
-        sTime.put("semester", xueqi);
+        schoolTime.setSemester(xueqi);
         // 4.3 周
         String week = time.substring(time.indexOf("第") + 2, time.indexOf("周") - 1);
-        sTime.put("week", week);
+        schoolTime.setWeek(week);
         // 4.4 星期
         String workDay = time.substring(time.indexOf("星期") + 3, time.indexOf("星期") + 4);
-        sTime.put("work_day", workDay);
+        schoolTime.setWork_day(workDay);
         // 4.5 年
         String year = time.substring(time.indexOf("年", 20) - 4, time.indexOf("年", 20));
-        sTime.put("year", year);
+        schoolTime.setYear(year);
         // 4.6 月
         String month = time.substring(time.indexOf("月") - 2, time.indexOf("月"));
-        sTime.put("month", month);
+        schoolTime.setMonth(month);
         // 4.7 日
         String day = time.substring(time.indexOf("月") + 1, time.indexOf("日"));
-        sTime.put("day", day);
+        schoolTime.setDay(day);
 
-        return sTime;
+        return schoolTime;
 
     }
 

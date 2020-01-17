@@ -45,23 +45,28 @@
     </insert>
 
     <!--3.getStuQdRecord，根据学号和教学班获取学生的签到记录-->
-    <select id="getStuQdRecord" parameterType="java.util.Map" resultType="SingleRecord">
-        select qdjl.jxb, qdjl.qdsj, qdjl.week, qdjl.work_day, uclass_no_qd_stu.qdzt
+    <select id="getStuQdRecord" parameterType="java.util.Map" resultType="StuSingleRecord">
+        select qdjl.jxb, qdjl.qdsj, qdjl.week, qdjl.work_day, concat('第',week,'周周',work_day) as weekStr,uclass_no_qd_stu.qdzt
         from (select * from uclass_qdjl where jxb = #{jxb}) as qdjl
                  left join
              uclass_no_qd_stu
              on qdjl.qdid = uclass_no_qd_stu.qdid and xh = #{xh}
     </select>
 
-    <!--4.getkcQdRecord,根据教学班获取该课程有缺勤|迟到|请假记录的学生名单，以及相应的缺勤次数-->
+    <!--4.getkcQdRecord,根据教学班获取该课程有缺勤|迟到|请假记录的学生名单，以及相应的记录
+    例：
+    xm      xh          qdzts
+    彭渝刚	2017214033	QJ,QQ
+    文流彬	2017214057	QQ
+    张海浪	2017214121	QQ,QQ,QQ
+     -->
     <select id="getkcQdRecord" resultType="java.util.HashMap" parameterType="String">
-        select allStu.xh, allStu.xm, allStu.qdzt, count(allStu.xh) as times
+        select xm, xh, group_concat(qdzt ) as qdzts
         from (select xm, xh, qdzt
-              from (select * from uclass_qdjl where jxb = #{jxb}) as qdjl
+              from (select uclass_qdjl.qdid from uclass_qdjl where jxb = #{value}) as qdjl
                        left join uclass_no_qd_stu
-                                 on qdjl.qdid = uclass_no_qd_stu.qdid) as allStu
-        group by allStu.xh, allStu.qdzt
-        order by allStu.xh
+                                 on qdjl.qdid = uclass_no_qd_stu.qdid) as allstu
+        group by xh
     </select>
 
 </mapper>

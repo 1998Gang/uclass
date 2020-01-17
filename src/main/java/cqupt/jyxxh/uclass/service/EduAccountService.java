@@ -61,16 +61,7 @@ public class EduAccountService {
         EduAccount eduAccount ;
 
         //这里似乎不需要在验证身份，因为走到这一步，就代表身份演出是成功了的。
-        /*// 1.验证统一身份是否正确
-        boolean istrue = authentication.ldapCheck(ykth, password);
-        // 不正确
-        if (!istrue){
-            //日志
-            if (logger.isInfoEnabled()){
-                logger.info("【教务账号获取(UserBindInfoService.getBindInfofromYkth)】获取教务账号失败！因为统一身份认证失败！");
-            }
-            return eduAccount;
-        }*/
+
 
         // 2.根据统一身份认证码(一卡通号)判断该教务账户是教师账户还是学生账
         //   01开头为教师
@@ -189,7 +180,7 @@ public class EduAccountService {
      * @return boolean
      */
     public boolean isEduAccountInDB(String ykth) throws Exception {
-        boolean flage=false;
+        boolean flage;
         // 1.获取用户类型（一卡通前两位，16开头为本科生、72开头为留学生、01开头为教师）
         String ykthStart=ykth.substring(0,2);
         // 2.判断
@@ -226,7 +217,7 @@ public class EduAccountService {
      * @return eduAccount
      */
     public EduAccount getEduAccountFromDB(String ykth) throws Exception {
-        EduAccount eduAccount=null;
+        EduAccount eduAccount;
 
         //1.获取用户类型（一卡通前两位，16开头为本科生、72开头为留学生、01开头为教师）
         String ykthStart = ykth.substring(0, 2);

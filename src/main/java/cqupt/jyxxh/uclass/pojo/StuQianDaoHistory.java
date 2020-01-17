@@ -8,7 +8,7 @@ import java.util.List;
  * @version 1.0.0
  * @date created in 21:21 2020/1/12
  */
-public class StuQianDaoResult {
+public class StuQianDaoHistory {
     private String xh;//学号
     private String jxb;//教学班号
     private int total;//总签到次数

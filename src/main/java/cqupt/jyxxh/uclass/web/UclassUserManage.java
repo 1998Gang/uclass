@@ -55,7 +55,6 @@ public class UclassUserManage {
 
 
 
-
     /**
      * 用户登陆，调用此方法。
      * 登陆成功，返回绑定的教务账户信息。响应200。

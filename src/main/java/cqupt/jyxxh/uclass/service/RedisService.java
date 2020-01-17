@@ -1,10 +1,9 @@
 package cqupt.jyxxh.uclass.service;
 
-import checkers.units.quals.C;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cqupt.jyxxh.uclass.pojo.ClassStudentInfo;
+import cqupt.jyxxh.uclass.pojo.StuQianDaoHistory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -270,6 +269,7 @@ public class RedisService {
 
     /**
      * 获取教务时间（redis第1个数据库，默认）
+     * key格式  schooltime_yyyy-MM-dd
      *
      * @param nowData 当天日期（nowData是当天的日期，yyyy-MM-dd）
      * @return 教务时间的json数据
@@ -380,7 +380,7 @@ public class RedisService {
     public Set<String> keysQdm(String jxb, String week, String work_day) {
 
         //操作redis的key
-        String key = "(qdm)" + jxb + "<" + week + ">(" + work_day + ")" + "*";//例：(qdm)A13191A2130440002<18>(2)*
+        String key = "(qdm)QD#" + jxb + "<" + week + ">(" + work_day + ")" + "*";//例：(qdm)QD#A13191A2130440002<18>(2)*
         try {
             // 1. 获取一个redis连接
             Jedis jedisKeys = jedisPool.getResource();
@@ -400,7 +400,7 @@ public class RedisService {
     }
 
     /**
-     * 获取签到码(redis第5个数据库)
+     * 根据签到id获取签到码(redis第5个数据库)
      *
      * @param qdid 签到id
      * @return String 签到码 如果出现错误，返回"fasle"
@@ -414,15 +414,47 @@ public class RedisService {
             Jedis jedisGetQdm = jedisPool.getResource();
             // 2.选择第5个数据库
             jedisGetQdm.select(4);
-            // 3.获取签到码
-            String s = jedisGetQdm.get(key);
-            // 4.归还连接
+            // 3.获取value,qdm_yxsj。前为签到码，后为这次签到的有效时间
+            String value = jedisGetQdm.get(key);
+            // 4.解析value
+            String qdm = value.substring(0, value.indexOf("_"));
+            // 5.归还连接
             jedisGetQdm.close();
-            // 5.返回数据
-            return s;
+            // 6.返回数据
+            return qdm;
         } catch (Exception e) {
             //日志
             logger.error("获取签到码出现未知错误！错误信息：[{}]", e.getMessage());
+            return "false";
+        }
+    }
+
+    /**
+     * 根据签到id获取签到的设置的有效时间(redis第5个数据库)
+     *
+     * @param qdid 签到id
+     * @return String 有效时间如果出现错误，返回"fasle"
+     */
+    public String getYxsj(String qdid) {
+
+        //操作redis的key
+        String key = "(qdm)" + qdid;
+        try {
+            // 1.获取redis连接
+            Jedis jedisGetYxsj = jedisPool.getResource();
+            // 2.选择第5个数据库
+            jedisGetYxsj.select(4);
+            // 3.获取value,qdm_yxsj。前为签到码，后为这次签到的有效时间
+            String value = jedisGetYxsj.get(key);
+            // 4.解析value
+            String yxsj = value.substring(value.indexOf("_") + 1);
+            // 5.归还连接
+            jedisGetYxsj.close();
+            // 6.返回数据
+            return yxsj;
+        } catch (Exception e) {
+            //日志
+            logger.error("获取签到设置的有效时间出现未知错误！错误信息：[{}]", e.getMessage());
             return "false";
         }
     }
@@ -442,9 +474,10 @@ public class RedisService {
      */
     public boolean loadStudentList(String jxb, String week, String work_day, String qdcs, List<ClassStudentInfo> students) {
         try {
-            //key的前缀( 教学班<周>(星期几)_签到次数: )
-            String keyFirst = "(qdstu)" + jxb + "<" + week + ">(" + work_day + ")" + "_" + qdcs + ":";//例：A13191A2130440002<18>(2)_1:
-
+            //代表该值是学生信息的key的前缀
+            String keyFirst = "(qdstu)";//例：(qdstu)
+            // 签到id（qdid）：QD#教学班<周>(星期几)_签到次数
+            String qdid = "QD#" + jxb + "<" + week + ">(" + work_day + ")" + "_" + qdcs;//例：QD#A13191A2130440002<18>(2)_1
             // 1.获取redis连接
             Jedis jedisLoadStuList = jedisPool.getResource();
             // 2.选择第5个数据库
@@ -453,7 +486,7 @@ public class RedisService {
             ObjectMapper objectMapper = new ObjectMapper();
             for (ClassStudentInfo classStudent : students) {
                 //key为这次点名的唯一识别加学生学号。
-                String key = keyFirst + classStudent.getXh();//例：A13191A2130440002<18>(2)_1:2017214033
+                String key = keyFirst + qdid + ":" + classStudent.getXh();//例：(qdstu)QD#A13191A2130440002<18>(2)_1:2017214033
                 //设置签到状态为"QQ"(缺勤)
                 classStudent.setQdzt("QQ");
                 //把ClassStudentInfo对象转为json字符串，作为value。
@@ -520,7 +553,7 @@ public class RedisService {
     public boolean alterStuQiandaoStatus(String qdid, String xh, String bqlx) {
 
         //操作redis的key
-        String key = "(qdstu)"+qdid + ":" + xh; //例：(qdstu)A13191A2130440002<18>(2)_1:2017214033
+        String key = "(qdstu)" + qdid + ":" + xh; //例：(qdstu)A13191A2130440002<18>(2)_1:2017214033
 
         try {
             // 1.获取redis连接
@@ -573,18 +606,19 @@ public class RedisService {
     public String loadQdmToCache(String jxb, String week, String work_day, String qdcs, String qdm, String yxsj) {
 
         //操作redis的key（用于添加签到码）
-        String qdid = jxb + "<" + week + ">(" + work_day + ")" + "_" + qdcs;
-        String keyQdm = "(qdm)" + qdid+":"+yxsj;//例：(qdm)A13191A2130440002<18>(2)_1:120
-        String keyQdjl = "(qdjl)" + qdid;//例：(qdjl)A13191A2130440002<18>(2)_1
+        String qdid = "QD#" + jxb + "<" + week + ">(" + work_day + ")" + "_" + qdcs;
+        String keyQdm = "(qdm)" + qdid;//例：(qdm)QD#A13191A2130440002<18>(2)_1
+        String keyQdjl = "(qdjl)" + qdid;//例：(qdjl)QD#A13191A2130440002<18>(2)_1
 
         try {
             // 1.获取redis连接
             Jedis jedisLoadQdm = jedisPool.getResource();
             // 2.选择第5个数据库
             jedisLoadQdm.select(4);
-            // 2.加载签到码到缓存
-            jedisLoadQdm.set(keyQdm, qdm);
-            // 3.设置签到码有效时间
+            // 2.加载签到码到缓存，同时把签到的有效时间也作为value。例：签到码为：1234 有效时间为120秒。value为 1234_120
+            String value = qdm + "_" + yxsj;
+            jedisLoadQdm.set(keyQdm, value);
+            // 3.设置该签到码有效时间
             jedisLoadQdm.expire(keyQdm, Integer.parseInt(yxsj));
             // 4.加载签到记录到缓存,value为当前时间
             Date date = new Date();
@@ -602,7 +636,6 @@ public class RedisService {
     }
 
 
-
     /**
      * 删除学生签到缓存记录数据（redis第5个数据库）
      *
@@ -612,7 +645,7 @@ public class RedisService {
      */
     public boolean delStu(String qdid, String xh) {
         //操作redis的key
-        String key = "(qdstu)"+qdid + ":" + xh;
+        String key = "(qdstu)" + qdid + ":" + xh;
         try {
             // 1.获取redis连接
             Jedis jedisDelStu = jedisPool.getResource();
@@ -661,13 +694,14 @@ public class RedisService {
 
     /**
      * 获取缓存中所有有记录的学生信息（保存迟到|请假|缺勤）
+     *
      * @return List集合，元素的ClassStudentInfo,如果出现错误，返回null;
      */
     public List<ClassStudentInfo> getAllNoQdStu() {
         //操作redis的key
-        String key="(qdstu)*";
+        String key = "(qdstu)*";
         //操作json字符串的对象
-        ObjectMapper objectMapper=new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
 
         try {
             //1.获取redis连接
@@ -678,8 +712,8 @@ public class RedisService {
             Set<String> keys = jedisGetAllStuKeys.keys(key);
             //4.通过keys获取学生数据
             Iterator<String> iterator = keys.iterator();//迭代器
-            List<ClassStudentInfo> classStudentInfoList=new ArrayList<>();
-            while (iterator.hasNext()){
+            List<ClassStudentInfo> classStudentInfoList = new ArrayList<>();
+            while (iterator.hasNext()) {
                 //获代表学生的key，例：(qdstu)A13191A2130460001<1>(1)_1:2014213950
                 String stukey = iterator.next();
                 //根据key获取value
@@ -687,7 +721,7 @@ public class RedisService {
                 //将每个学生存储的json字符串转为java对象
                 ClassStudentInfo classStudentInfo = objectMapper.readValue(classStuInfoOfString, ClassStudentInfo.class);
                 //获取签到id（qdid）  例：A13191A2130460001<1>(1)_1
-                String qdid=stukey.substring(stukey.indexOf("(qdstu)")+7,stukey.indexOf(":"));
+                String qdid = stukey.substring(stukey.indexOf("(qdstu)") + 7, stukey.indexOf(":"));
                 //将签到id（qdid）设置到该学生对象中
                 classStudentInfo.setQdid(qdid);
                 //将该学生对象加入到list集合中
@@ -699,7 +733,7 @@ public class RedisService {
             return classStudentInfoList;
         } catch (JsonProcessingException e) {
             //日志
-            logger.error("获取所有学生记录缓存出现错误！错误信息：[{}]",e.getMessage());
+            logger.error("获取所有学生记录缓存出现错误！错误信息：[{}]", e.getMessage());
         }
         return null;
     }
@@ -733,11 +767,12 @@ public class RedisService {
 
     /**
      * 获取指定key是value
-     * @param key key
+     *
+     * @param key   key
      * @param index redis数据库索引，表示第几个数据库。
      * @return value 成功获取就返回value，失败就返回"false";
      */
-    public String getValue(String key,int index){
+    public String getValue(String key, int index) {
         try {
             //1.获取redis连接
             Jedis jedisGetValue = jedisPool.getResource();
@@ -749,19 +784,20 @@ public class RedisService {
             jedisGetValue.close();
             //5.返回数据
             return value;
-        }catch (Exception e){
+        } catch (Exception e) {
             //日志
-            logger.error("根据指定key：[{}]获取value失败！",key);
+            logger.error("根据指定key：[{}]获取value失败！", key);
             return "false";
         }
     }
 
     /**
      * 清空选定的redis数据库
+     *
      * @param index 数据库索引
      * @return boolean
      */
-    public boolean flushDB(int index){
+    public boolean flushDB(int index) {
         try {
             //1.获取redis连接
             Jedis delDB = jedisPool.getResource();
@@ -772,19 +808,92 @@ public class RedisService {
             //4.归还连接
             delDB.close();
             //5.如果s为”OK“表示清空成功
-            if ("OK".equals(s)){
+            if ("OK".equals(s)) {
                 //日志
-                if (logger.isInfoEnabled()){
-                    logger.info("【redis操作类(RedisService)】已清空redis第[{}]个数据库",index+1);
+                if (logger.isInfoEnabled()) {
+                    logger.info("【redis操作类(RedisService)】已清空redis第[{}]个数据库", index + 1);
                 }
                 return true;
-            }else {
+            } else {
                 return false;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             //日志
-            logger.error("清空redis第[{}]数据库出现未知错误！错误信息：[{}]",index+1,e.getMessage());
+            logger.error("清空redis第[{}]数据库出现未知错误！错误信息：[{}]", index + 1, e.getMessage());
             return false;
+        }
+    }
+
+    /**
+     * 将学生的某一门课签到历史数据放进缓存。(redis第6个数据库)
+     *
+     * @param stuQianDaoHistory StuQianDaoResult学生单门课程的签到历史结果
+     */
+    public boolean setStuQDHistory(StuQianDaoHistory stuQianDaoHistory) {
+        //操作redis的key  (sqh)xh_jxb。  例：(sqh)2017214033_A13191A2130460001
+        String key = "(sqh)" + stuQianDaoHistory.getXh() + "_" + stuQianDaoHistory.getJxb();
+        try {
+            //1.获取redis连接
+            Jedis jedisSetstuQdHistory = jedisPool.getResource();
+            //2.选择第6个数据库
+            jedisSetstuQdHistory.select(5);
+            //3.将java对象转为json字符串
+            ObjectMapper objectMapper = new ObjectMapper();
+            String stuqdhisJson = objectMapper.writeValueAsString(stuQianDaoHistory);
+            //4.将数据放入缓存，有效时间为半小时
+            jedisSetstuQdHistory.set(key, stuqdhisJson);
+            jedisSetstuQdHistory.expire(key, 1800);
+            //5.归还连接
+            jedisSetstuQdHistory.close();
+            //6.返回true
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            //日志
+            logger.error("添加学生历史签到数据缓存出现未知错误！错误信息：[{}]", e.getMessage());
+            return false;
+        }
+
+
+    }
+
+    /**
+     * 获取学生某门课程签到历史记录缓存（redis第6个数据库）
+     *
+     * @param xh  学号
+     * @param jxb 教学班
+     * @return StuQianDaoHistory
+     */
+    public StuQianDaoHistory getStuQDhistory(String xh, String jxb) {
+        //操作redis的key (sqh)xh_jxb。  例：(sqh)2017214033_A13191A2130460001
+        String key = "(sqh)" + xh + "_" + jxb;
+
+        //结果
+        StuQianDaoHistory stuQianDaoHistory = null;
+        try {
+            //1.获取redis连接
+            Jedis jedisGetQDH = jedisPool.getResource();
+            //2.选择第6个数据库
+            jedisGetQDH.select(5);
+            //3.获取数据
+            String stuqdhisJson = jedisGetQDH.get(key);
+            //4.判断数据是否获取成功
+            if (null == stuqdhisJson) {
+                //失败，没有该数据，返回空的java对象
+                return stuQianDaoHistory;
+            }
+            //5.成功将json字符串转为java对象
+            ObjectMapper objectMapper = new ObjectMapper();
+            stuQianDaoHistory = objectMapper.readValue(stuqdhisJson, StuQianDaoHistory.class);
+            //6.关闭连接
+            jedisGetQDH.close();
+            //7.返回
+            return stuQianDaoHistory;
+
+        } catch (Exception e) {
+            //日志
+            logger.error("获取学生课程历史签到数据出现未知错误！错误信息：[{}]", e.getMessage());
+            return stuQianDaoHistory;
         }
     }
 }

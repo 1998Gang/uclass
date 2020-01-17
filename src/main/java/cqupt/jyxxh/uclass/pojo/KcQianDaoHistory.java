@@ -10,12 +10,12 @@ import java.util.List;
  * @version 1.0.0
  * @date created in 21:51 2020/1/13
  */
-public class KcQianDaoResult {
+public class KcQianDaoHistory {
     private String jxb;  //教学班
     private int total;  //有记录的总人次
-    private int Absenteeism;//有缺勤记录是人次
-    private int LateArrivals;//有迟到记录的人次
-    private int NumberOfLeave;//有请假记录的人次
+    private int absenteeism;//有缺勤记录是人次
+    private int lateArrivals;//有迟到记录的人次
+    private int numberOfLeave;//有请假记录的人次
     private List<KcOneStuRecord> stuList;//名单
 
     @Override
@@ -23,9 +23,9 @@ public class KcQianDaoResult {
         return "KcQianDaoResult{" +
                 "jxb='" + jxb + '\'' +
                 ", total=" + total +
-                ", Absenteeism=" + Absenteeism +
-                ", LateArrivals=" + LateArrivals +
-                ", NumberOfLeave=" + NumberOfLeave +
+                ", Absenteeism=" + absenteeism +
+                ", LateArrivals=" + lateArrivals +
+                ", NumberOfLeave=" + numberOfLeave +
                 ", stuList=" + stuList +
                 '}';
     }
@@ -47,27 +47,27 @@ public class KcQianDaoResult {
     }
 
     public int getAbsenteeism() {
-        return Absenteeism;
+        return absenteeism;
     }
 
     public void setAbsenteeism(int absenteeism) {
-        Absenteeism = absenteeism;
+        this.absenteeism = absenteeism;
     }
 
     public int getLateArrivals() {
-        return LateArrivals;
+        return lateArrivals;
     }
 
     public void setLateArrivals(int lateArrivals) {
-        LateArrivals = lateArrivals;
+        this.lateArrivals = lateArrivals;
     }
 
     public int getNumberOfLeave() {
-        return NumberOfLeave;
+        return numberOfLeave;
     }
 
     public void setNumberOfLeave(int numberOfLeave) {
-        NumberOfLeave = numberOfLeave;
+        this.numberOfLeave = numberOfLeave;
     }
 
     public List<KcOneStuRecord> getStuList() {

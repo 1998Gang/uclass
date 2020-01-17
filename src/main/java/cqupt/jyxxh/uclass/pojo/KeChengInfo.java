@@ -17,7 +17,8 @@ public class KeChengInfo {
     private String kch;//课程号 （A2130640）
     private String kcm;//课程名 （计算机网络）
     private String skzs;//教务在线显示的上课周数，字符串）（2-6周双周,10-12周双周）
-    private String skdd; //地点  （软件工程实验室(综合实验楼A503/A504)  /  4404）
+    private String skdd; //地点  （A503/A504 | 4404）
+    private String skddqc;//完整上课地点 （软件工程实验室(综合实验楼A503/A504)）
     private String jsm; //教师名    （曹岭）
     private String kclb; //课程类别（必修/选修）
     private String credit;//学分    （3.0学分）
@@ -32,7 +33,7 @@ public class KeChengInfo {
     private String cStart;//课程开始节数（如该课为 34节 的课，cStart参数为3）
     private String cTimes;//课程节数    （如该课为 34节 ，cTimes为2。如果该课为4节连上1234节，cuTime为4）
 
-    private String cjzc; //该堂课的成绩组成
+
 
     @Override
     public String toString() {
@@ -42,18 +43,17 @@ public class KeChengInfo {
                 ", kcm='" + kcm + '\'' +
                 ", skzs='" + skzs + '\'' +
                 ", skdd='" + skdd + '\'' +
+                ", skddqc='" + skddqc + '\'' +
                 ", jsm='" + jsm + '\'' +
                 ", kclb='" + kclb + '\'' +
                 ", credit='" + credit + '\'' +
-                ", sklx='" + xklx + '\'' +
+                ", xklx='" + xklx + '\'' +
                 ", bjlbandbjh=" + bjlbandbjh +
                 ", week='" + week + '\'' +
                 ", weekNum=" + weekNum +
-                ", weekday='" + work_day + '\'' +
+                ", work_day='" + work_day + '\'' +
                 ", cStart='" + cStart + '\'' +
-                ", cTimes='" + cTimes + '\'' +
-                ", cjzc='" + cjzc + '\'' +
-                '}';
+                ", cTimes='" + cTimes + '}';
     }
 
     public String getSkzs() {
@@ -72,14 +72,6 @@ public class KeChengInfo {
         this.weekNum = weekNum;
     }
 
-
-    public String getCjzc() {
-        return cjzc;
-    }
-
-    public void setCjzc(String cjzc) {
-        this.cjzc = cjzc;
-    }
 
     public String getJxb() {
         return jxb;
@@ -111,6 +103,14 @@ public class KeChengInfo {
 
     public void setSkdd(String skdd) {
         this.skdd = skdd;
+    }
+
+    public String getSkddqc() {
+        return skddqc;
+    }
+
+    public void setSkddqc(String skddqc) {
+        this.skddqc = skddqc;
     }
 
     public String getJsm() {
@@ -184,6 +184,5 @@ public class KeChengInfo {
     public void setcTimes(String cTimes) {
         this.cTimes = cTimes;
     }
-
 
 }

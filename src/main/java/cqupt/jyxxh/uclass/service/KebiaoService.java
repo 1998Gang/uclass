@@ -2,22 +2,19 @@ package cqupt.jyxxh.uclass.service;
 
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cqupt.jyxxh.uclass.pojo.KeChengInfo;
 import cqupt.jyxxh.uclass.utils.GetDataFromJWZX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
+
 
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
 
 /**
  * 获取用户课表
@@ -72,7 +69,6 @@ public class KebiaoService {
         switch (type){
             //学生
             case "s":{
-
                 ArrayList<ArrayList<ArrayList<KeChengInfo>>> stukebiaoByXh = getDataFromJWZX.getStukebiaoByXh(number);
                 //将嵌套集合转位json字符串
                  kebiao = objectMapper.writeValueAsString(stukebiaoByXh);

@@ -45,11 +45,11 @@ public class QianDaoService {
      * <p>
      * 教师发起签到步骤。1.先判断是否有其签到正在进行。如果有，签到失败！如果没有，进行第二步！
      * 2.将本堂课的学生名单加载进缓存（redis第5个数据库）。
-     * 2.1   key:为  “(qdstu)jxb<week>(work_day)_qdcs:xh”
-     * 例：(qdstu)A13191A2130440002<18>(2)_1:2017214033
+     * 2.1   key:为  “(qdstu)QD#jxb<week>(work_day)_qdcs:xh” 注：(qdstu)QD#是字符串
+     * 例：(qdstu)QD#A13191A2130440002<18>(2)_1:2017214033
      * 2.2   value: ClassStudenInfo的json字符串格式，签到状态统一为“QQ”，代表缺勤。
      * 3.将签到码加载进缓存（redis第1个数据库，默认。）
-     * 3.1   key: “  "（qdm）"jxb<week>(work_day)_qdcs  ”。注：（qdm）是字符串
+     * 3.1   key: “ (qdm)QD#jxb<week>(work_day)_qdcs  ”。注：(qdm)QD#是字符串
      * 例：(qdm)A13191A2130440002<18>(2)_1
      *
      * @param param map集合，是发起签到需要的必要参数。
@@ -250,7 +250,7 @@ public class QianDaoService {
 
             // 2.得到key了，取获取剩余时间,还是得循环。但是keys的长度只能为0 或者 1 同一时间，不会有两个相同的签到码key。所以这里的key是唯一的。
             for (String key : keys) {
-                // 2.1 获取剩余时间。签到码在redis的di5个数据库，所以还得传参数4。
+                // 2.1 获取剩余时间。签到码在redis的第5个数据库，所以还得传参数4。
                 long timeRemain = redisService.getTimeRemain(key, 4);
                 // 2.2 如果获得得到的时间小于6秒，直接返回一个空map集合（表示获取失败）。因为小于7秒，加上延迟，签到成功的可能性较低。
                 if (timeRemain <= 6) {
@@ -258,10 +258,10 @@ public class QianDaoService {
                 }
                 // 2.3 考虑到网络延迟，这里将获取的时间减去3秒，在返回。
                 timeRemain -= 3;
-                // 2.4 获取签到id(qdid) 第一步获取的key是带前缀 “（qdm）” ,后缀 ”yxsj“。需要将前缀，和后缀去掉才是签到id（qdid）。
-                String qdid = key.substring(key.indexOf("(qdm)") + 5, key.indexOf(":"));
-                // 2.5 获取这次签到的有效时间
-                String yxsj = key.substring(key.indexOf(":") + 1);
+                // 2.4 获取签到id(qdid) 第一步获取的key是带前缀 “（qdm）” 。需要将前缀去掉才是签到id（qdid）。
+                String qdid = key.substring(key.indexOf("(qdm)") + 5);
+                // 2.5 通过签到id（qdid），获取这次签到设置的有效时间
+                String yxsj = redisService.getYxsj(qdid);
                 // 2.5封装结果
                 remainTimeResult.put("timeremaining", String.valueOf(timeRemain));
                 remainTimeResult.put("qdid", qdid);
@@ -289,9 +289,12 @@ public class QianDaoService {
         String qdm = param.get("qdm");  //签到码
         String xh = param.get("xh"); //学号
 
+
         try {
             // 1.获取签到码
             String qdmTrue = redisService.getQdm(qdid);
+
+
             if ("false".equals(qdmTrue)) {
                 //教师设置的签到码获取失败，签到失败！
                 return false;
@@ -320,7 +323,20 @@ public class QianDaoService {
      * @param jxb 教学班号
      * @return StuQianDaoResult
      */
-    public StuQianDaoResult getStuQDhistory(String xh, String jxb) {
+    public StuQianDaoHistory getStuQDhistory(String xh, String jxb) {
+        //先尝试从缓存获取
+        try {
+            StuQianDaoHistory stuQDhistory = redisService.getStuQDhistory(xh, jxb);
+            if (!(stuQDhistory ==null)){
+                //获取成功，直接返回
+                return stuQDhistory;
+            }
+        }catch (Exception e){
+            //日志
+            logger.error("获取学生课程历史签到记录缓存信息失败！");
+        }
+
+
         //封装参数。用于操作去数据库查询数据
         Map<String, String> xhAndJxb = new HashMap<>();
         xhAndJxb.put("xh", xh);
@@ -360,18 +376,26 @@ public class QianDaoService {
         }
 
         //7.创建StuQianDaoResult对象，并填充数据
-        StuQianDaoResult stuQianDaoResult = new StuQianDaoResult();
-        stuQianDaoResult.setRecords(records);//添加签到记录
-        stuQianDaoResult.setTotal(total);//总签到次数
-        stuQianDaoResult.setQqtime(qqtime);//缺勤次数
-        stuQianDaoResult.setQjtime(qjtime);//请假次数
-        stuQianDaoResult.setCdtime(cdtime);//迟到次数
-        stuQianDaoResult.setCqtime(cqtime);//出勤次数
-        stuQianDaoResult.setXh(xh);//学号
-        stuQianDaoResult.setJxb(jxb);//教学班
+        StuQianDaoHistory stuQianDaoHistory =new StuQianDaoHistory();
+        stuQianDaoHistory.setRecords(records);//添加签到记录
+        stuQianDaoHistory.setTotal(total);//总签到次数
+        stuQianDaoHistory.setQqtime(qqtime);//缺勤次数
+        stuQianDaoHistory.setQjtime(qjtime);//请假次数
+        stuQianDaoHistory.setCdtime(cdtime);//迟到次数
+        stuQianDaoHistory.setCqtime(cqtime);//出勤次数
+        stuQianDaoHistory.setXh(xh);//学号
+        stuQianDaoHistory.setJxb(jxb);//教学班
+
+        //8.将该生的该门课的签到数据，添加进缓存
+        try {
+            redisService.setStuQDHistory(stuQianDaoHistory);
+        }catch (Exception e){
+            //日志
+            logger.error("将学生签到历史数据缓加缓存失败！");
+        }
 
         //8.返回
-        return stuQianDaoResult;
+        return stuQianDaoHistory;
     }
 
     /**
@@ -379,26 +403,89 @@ public class QianDaoService {
      * @param jxb 教学班
      * @return KcQianDaoResult
      */
-    public KcQianDaoResult getKcQDhistory(String jxb){
+    public KcQianDaoHistory getKcQDhistory(String jxb){
 
+        //对象
+        KcQianDaoHistory kcQianDaoHistory =new KcQianDaoHistory();
         //定义参数
         int total=0;//有记录的总人次
-        int Absenteeism=0;//有缺勤记录是人次
-        int LateArrivals=0;//有迟到记录的人次
-        int NumberOfLeave=0;//有请假记录的人次
+        int absenteeism=0;//有缺勤记录是人次
+        int lateArrivals=0;//有迟到记录的人次
+        int numberOfLeave=0;//有请假记录的人次
         List<KcOneStuRecord> stuList=new ArrayList<>();//学生名单
-
-
 
 
         // 1.获取的该课程有记录学生名单
         List<Map<String, String>> maps = qianDaoMapper.getkcQdRecord(jxb);
 
-        //2.遍历该名单
+        //2.遍历该名单,获取数据。
+        // 一个map代表一个学生的数据。
+        // 生成一个KcOneStuRecord对象,并添加到stuList中
+        // 并判断该该生的qdzt，修改相关记录的人次。
         for (Map<String,String> map:maps){
-            map.get("xh");
+            //有记录的总人次加一：
+            total+=1;
+            //为该生创建一个KcOneStuRecord对象。
+            KcOneStuRecord kcOneStuRecord=new KcOneStuRecord();
+            int qqtime=0;//缺勤次数
+            int cdtime=0;//迟到次数
+            int qjtime=0;//请假次数
+            //获取数据
+            String xh = map.get("xh");//学号
+            String xm = map.get("xm");//姓名
+            String qdzts = map.get("qdzts");//所有的签到状态  例：“QJ,QQ,QQ,CD”
+            //解析签到状态,用“,”将qdzts分开,然后遍历统计各个签到状态的次数。
+            String[] split = qdzts.split(",");
+            for (String ss:split) {
+                switch (ss) {
+                    case "QQ": {
+                        qqtime += 1;
+                        break;
+                    }
+                    case "QJ": {
+                        qjtime += 1;
+                        break;
+                    }
+                    case "CD": {
+                        cdtime += 1;
+                        break;
+                    }
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + ss);
+                }
+            }
+            //添加到kcOneStuRecord对象中
+            kcOneStuRecord.setXh(xh);
+            kcOneStuRecord.setXm(xm);
+            kcOneStuRecord.setCdTime(cdtime);
+            kcOneStuRecord.setQqTime(qqtime);
+            kcOneStuRecord.setQjTime(qjtime);
+            //将kcOneStuRecord对象添加到
+            stuList.add(kcOneStuRecord);
+            //判断该生是否缺勤|迟到|请假，修改有相关记录的人次
+            if (0!=qjtime){
+                //有请假记录,总的有请假记录的人次加一。
+                numberOfLeave+=1;
+            }
+            if (0!=cdtime){
+                //有迟到记录，总的迟到记录人次加一。
+                lateArrivals+=1;
+            }
+            if (0!=qqtime){
+                //有缺勤记录，总的缺勤记录人次加一。
+                absenteeism+=1;
+            }
         }
 
-        return null;
+        //3.设置参数到kcQianDaoResult对象
+        kcQianDaoHistory.setJxb(jxb);//教学班
+        kcQianDaoHistory.setTotal(total);//有记录的总人次
+        kcQianDaoHistory.setAbsenteeism(absenteeism);//有缺勤记录的人次
+        kcQianDaoHistory.setLateArrivals(lateArrivals);//有迟到记录的人次
+        kcQianDaoHistory.setNumberOfLeave(numberOfLeave);//有请假记录的人次
+        kcQianDaoHistory.setStuList(stuList);//有记录的学生名单
+
+        //返回
+        return kcQianDaoHistory;
     }
 }
