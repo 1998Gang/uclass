@@ -3,18 +3,16 @@ package cqupt.jyxxh.uclass.service;
 
 import cqupt.jyxxh.uclass.dao.StudentMapper;
 import cqupt.jyxxh.uclass.dao.TeacherMapper;
-import cqupt.jyxxh.uclass.pojo.EduAccount;
-import cqupt.jyxxh.uclass.pojo.Student;
-import cqupt.jyxxh.uclass.pojo.Teacher;
-import cqupt.jyxxh.uclass.pojo.UclassUser;
+import cqupt.jyxxh.uclass.pojo.user.EduAccount;
+import cqupt.jyxxh.uclass.pojo.user.Student;
+import cqupt.jyxxh.uclass.pojo.user.Teacher;
+import cqupt.jyxxh.uclass.pojo.user.UclassUser;
 import cqupt.jyxxh.uclass.utils.EncryptionUtil;
 import cqupt.jyxxh.uclass.utils.GetDataFromJWZX;
 
-import jdk.swing.interop.SwingInterOpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;

@@ -1,8 +1,6 @@
 package cqupt.jyxxh.uclass.dao;
 
-import cqupt.jyxxh.uclass.pojo.Student;
-
-import java.util.List;
+import cqupt.jyxxh.uclass.pojo.user.Student;
 
 /**
  *学生信息操作接口

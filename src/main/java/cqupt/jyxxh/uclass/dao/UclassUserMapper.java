@@ -1,6 +1,6 @@
 package cqupt.jyxxh.uclass.dao;
 
-import cqupt.jyxxh.uclass.pojo.UclassUser;
+import cqupt.jyxxh.uclass.pojo.user.UclassUser;
 
 /**
  * @author 彭渝刚

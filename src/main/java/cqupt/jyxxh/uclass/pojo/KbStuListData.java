@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public class KbStuListData {
 
-    private List<ClassStudentInfo> students;     //学生名单
+    private List<ClassStuInfo> students;     //学生名单
     private int headcount;                       //总人数
     private Map<String,Integer>numberOfXkzt;      //不同选课状态（重修，自修，在修，正常）对应的人数
     private Map<String,Map<String,Integer>> numberOfZyAndBj; //不同专业下不同班级对应的人数。
@@ -28,11 +28,11 @@ public class KbStuListData {
                 '}';
     }
 
-    public List<ClassStudentInfo> getStudents() {
+    public List<ClassStuInfo> getStudents() {
         return students;
     }
 
-    public void setStudents(List<ClassStudentInfo> students) {
+    public void setStudents(List<ClassStuInfo> students) {
         this.students = students;
     }
 

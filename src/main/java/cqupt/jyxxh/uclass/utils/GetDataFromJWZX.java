@@ -3,6 +3,8 @@ package cqupt.jyxxh.uclass.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cqupt.jyxxh.uclass.pojo.*;
+import cqupt.jyxxh.uclass.pojo.user.Student;
+import cqupt.jyxxh.uclass.pojo.user.Teacher;
 import cqupt.jyxxh.uclass.service.EduAccountService;
 import cqupt.jyxxh.uclass.service.RedisService;
 import org.slf4j.Logger;
@@ -73,7 +75,7 @@ public class GetDataFromJWZX {
      * @param xh 学号
      * @return EduAccount
      */
-    public  Student getStudentInfoByXh(String xh){
+    public Student getStudentInfoByXh(String xh){
 
 
         // 1.访问教务在线url获取返回的数据
@@ -230,8 +232,8 @@ public class GetDataFromJWZX {
      * @param jxb 教学班
      * @return list<ClassStudentInfo>
      */
-    public List<ClassStudentInfo>getKbStuList(String jxb)  {
-        List<ClassStudentInfo> ClassStuList = null;
+    public List<ClassStuInfo>getKbStuList(String jxb)  {
+        List<ClassStuInfo> ClassStuList = null;
 
         try {
             //发起http请求，请求教务在线学生名单页。
@@ -265,9 +267,4 @@ public class GetDataFromJWZX {
         }
         return null;
     }
-
-
-
-
-
 }

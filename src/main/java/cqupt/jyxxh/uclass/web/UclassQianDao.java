@@ -1,8 +1,8 @@
 package cqupt.jyxxh.uclass.web;
 
-import cqupt.jyxxh.uclass.pojo.KcQianDaoHistory;
-import cqupt.jyxxh.uclass.pojo.QianDaoResult;
-import cqupt.jyxxh.uclass.pojo.StuQianDaoHistory;
+import cqupt.jyxxh.uclass.pojo.qiandao.KcQianDaoHistory;
+import cqupt.jyxxh.uclass.pojo.qiandao.QianDaoResult;
+import cqupt.jyxxh.uclass.pojo.qiandao.StuQianDaoHistory;
 import cqupt.jyxxh.uclass.service.QianDaoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +81,6 @@ public class UclassQianDao {
      */
     @RequestMapping(value = "teaqiandaoresult", method = RequestMethod.GET, produces = "application/json;charset=utf-8")
     public ResponseEntity<QianDaoResult> teaGetQDResult(@RequestParam("qdid") String qdid) {
-
         try {
             // 1.获取点名结果
             QianDaoResult qianDaoResult = qianDaoService.getQianDaoResultOneTimes(qdid);
@@ -96,7 +95,6 @@ public class UclassQianDao {
             logger.error("教师获取点名结果出现未知错误！错误信息：[{}]", e.getMessage());
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-
     }
 
     /**

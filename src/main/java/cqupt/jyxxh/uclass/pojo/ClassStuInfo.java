@@ -1,7 +1,5 @@
 package cqupt.jyxxh.uclass.pojo;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.io.Serializable;
 
 /**
@@ -10,7 +8,7 @@ import java.io.Serializable;
  * @version 1.0.0
  * @date created in 9:05 2020/1/8
  */
-public class ClassStudentInfo implements Serializable {
+public class ClassStuInfo implements Serializable {
 
     private String xh;//学号
     private String xm;//姓名
@@ -23,6 +21,7 @@ public class ClassStudentInfo implements Serializable {
     private String xkzt; //选课状态(重修|自修|在修|补修|正常)
     private String qdzt; //签到状态（"QQ"(缺勤),"CD"（迟到）,"QJ"（请假））
     private String qdid; //该值用于持久化到数据库。
+    private String twid; //提问id，用于持久化到数据库
 
     @Override
     public String toString() {
@@ -38,6 +37,7 @@ public class ClassStudentInfo implements Serializable {
                 ", xkzt='" + xkzt + '\'' +
                 ", qdzt='" + qdzt + '\'' +
                 ", qdid='" + qdid + '\'' +
+                ", twid='" + twid + '\'' +
                 '}';
     }
 
@@ -127,5 +127,13 @@ public class ClassStudentInfo implements Serializable {
 
     public void setQdid(String qdid) {
         this.qdid = qdid;
+    }
+
+    public String getTwid() {
+        return twid;
+    }
+
+    public void setTwid(String twid) {
+        this.twid = twid;
     }
 }

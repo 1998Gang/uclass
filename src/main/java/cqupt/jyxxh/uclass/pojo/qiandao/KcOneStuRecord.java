@@ -1,4 +1,4 @@
-package cqupt.jyxxh.uclass.pojo;
+package cqupt.jyxxh.uclass.pojo.qiandao;
 
 /**
  * 某个学生某一门课程的签到情况。（只针对有记录的学生，全勤的学生不包含）

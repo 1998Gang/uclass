@@ -1,5 +1,7 @@
-package cqupt.jyxxh.uclass.pojo;
+package cqupt.jyxxh.uclass.pojo.qiandao;
 
+
+import cqupt.jyxxh.uclass.pojo.ClassStuInfo;
 
 import java.util.Set;
 
@@ -18,7 +20,7 @@ public class QianDaoResult {
     private String work_day;          //星期几
     private String qdcs;               //针对这堂课第几次签到
     private String jxb;                //教学班号
-    private Set<ClassStudentInfo> notOnTheStuList;//未签到学生名单（包含没签到，迟到，请假）
+    private Set<ClassStuInfo> notOnTheStuList;//未签到学生名单（包含没签到，迟到，请假）
     private int allStuNum;               //总人数
     private int notOnStuNum;             //未签人数
     private int inStuNum;                //签了的人数
@@ -53,11 +55,11 @@ public class QianDaoResult {
         this.qdid = qdid;
     }
 
-    public Set<ClassStudentInfo> getNotOnTheStuList() {
+    public Set<ClassStuInfo> getNotOnTheStuList() {
         return notOnTheStuList;
     }
 
-    public void setNotOnTheStuList(Set<ClassStudentInfo> notOnTheStuList) {
+    public void setNotOnTheStuList(Set<ClassStuInfo> notOnTheStuList) {
         this.notOnTheStuList = notOnTheStuList;
     }
 

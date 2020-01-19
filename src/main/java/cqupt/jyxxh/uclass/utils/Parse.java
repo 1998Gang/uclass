@@ -4,6 +4,8 @@ package cqupt.jyxxh.uclass.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cqupt.jyxxh.uclass.pojo.*;
+import cqupt.jyxxh.uclass.pojo.user.Student;
+import cqupt.jyxxh.uclass.pojo.user.Teacher;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -486,9 +488,9 @@ public class Parse {
      * @param stuListHtml html页面string字符串
      * @return list<ClassStudentInfo></>
      */
-    public static List<ClassStudentInfo> parseHtmlToStuList(String stuListHtml) {
+    public static List<ClassStuInfo> parseHtmlToStuList(String stuListHtml) {
 
-        List<ClassStudentInfo> classStuList = new ArrayList<>();
+        List<ClassStuInfo> classStuList = new ArrayList<>();
 
         // 1.jsoup解析
         Document listHtml = Jsoup.parse(stuListHtml);
@@ -501,31 +503,31 @@ public class Parse {
         // 5.遍历tr标签，获取学生数据。
         for (Element tr : trs) {
             // 5.1定义一个学生对象，存放学生数据。
-            ClassStudentInfo classStudentInfo = new ClassStudentInfo();
+            ClassStuInfo classStuInfo = new ClassStuInfo();
             // 5.2获取<tr>标签里的<td>标签
             Elements tds = tr.getElementsByTag("td");
 
             //学号，第二个<td>
-            classStudentInfo.setXh(tds.get(1).text());
+            classStuInfo.setXh(tds.get(1).text());
             //姓名，第三个<td>
-            classStudentInfo.setXm(tds.get(2).text());
+            classStuInfo.setXm(tds.get(2).text());
             //性别，第四个<td>
-            classStudentInfo.setXb(tds.get(3).text());
+            classStuInfo.setXb(tds.get(3).text());
             //班级，第五个<td>
-            classStudentInfo.setBj(tds.get(4).text());
+            classStuInfo.setBj(tds.get(4).text());
             //专业，第七个<td>
-            classStudentInfo.setZym(tds.get(6).text());
+            classStuInfo.setZym(tds.get(6).text());
             //学院，第八个<td>
-            classStudentInfo.setYxm(tds.get(7).text());
+            classStuInfo.setYxm(tds.get(7).text());
             //年级，第九个<td>
-            classStudentInfo.setNj(tds.get(8).text());
+            classStuInfo.setNj(tds.get(8).text());
             //学籍状态，第十个<td>
-            classStudentInfo.setXjzt(tds.get(9).text());
+            classStuInfo.setXjzt(tds.get(9).text());
             //选课状态,第十一个<td>
-            classStudentInfo.setXkzt(tds.get(10).text());
+            classStuInfo.setXkzt(tds.get(10).text());
 
             //将该学生数据放入list集合
-            classStuList.add(classStudentInfo);
+            classStuList.add(classStuInfo);
         }
         return classStuList;
     }
@@ -594,7 +596,7 @@ public class Parse {
      * @param classStuList 学生名单
      * @return KbStuListData
      */
-    public static KbStuListData parseStuListToKbStuListData(List<ClassStudentInfo> classStuList) {
+    public static KbStuListData parseStuListToKbStuListData(List<ClassStuInfo> classStuList) {
 
         //1.总人数
         int headcount = classStuList.size();
@@ -606,9 +608,9 @@ public class Parse {
         Map<String, Map<String, Integer>> normalZyAndBj = new HashMap<>();
 
         //遍历学生名单。分析数据。
-        for (ClassStudentInfo classStudentInfo : classStuList) {
+        for (ClassStuInfo classStuInfo : classStuList) {
             // 2.统计选课状态
-            String xkzt = classStudentInfo.getXkzt();//选课状态
+            String xkzt = classStuInfo.getXkzt();//选课状态
             if (xkztMap.containsKey(xkzt)) {
                 xkztMap.put(xkzt, xkztMap.get(xkzt) + 1);
             } else {
@@ -616,8 +618,8 @@ public class Parse {
             }
 
             //3.统计各专业下各班级人数
-            String zym = classStudentInfo.getZym();//专业名
-            String bj = classStudentInfo.getBj();//班级号
+            String zym = classStuInfo.getZym();//专业名
+            String bj = classStuInfo.getBj();//班级号
             //3.1创建专业
             if (!allZyAndBjMap.containsKey(zym)) {
                 //2.1.1 集合中没有该专业，将该专业添加到集合。并创建一个属于该专业的班级集合。

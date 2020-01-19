@@ -1,11 +1,9 @@
 package cqupt.jyxxh.uclass.service;
 
-import checkers.oigj.quals.O;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cqupt.jyxxh.uclass.pojo.ClassStudentInfo;
+import cqupt.jyxxh.uclass.pojo.ClassStuInfo;
 import cqupt.jyxxh.uclass.pojo.KbStuListData;
 import cqupt.jyxxh.uclass.pojo.SchoolTime;
-import cqupt.jyxxh.uclass.pojo.Student;
 import cqupt.jyxxh.uclass.utils.GetDataFromJWZX;
 import cqupt.jyxxh.uclass.utils.Parse;
 import org.slf4j.Logger;
@@ -17,7 +15,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 /**
  * u课堂一些组件功能的srvice类
@@ -119,7 +116,7 @@ public class ComponentService {
         try {
 
             //2.1.根据教学班获取学生名单。
-            List<ClassStudentInfo> ClassStuList = getDataFromJWZX.getKbStuList(jxb);
+            List<ClassStuInfo> ClassStuList = getDataFromJWZX.getKbStuList(jxb);
 
             //2.2.解析名单数据，得到kbStuListData类（包含学生名单，统计数据）。
             kbStuListData = Parse.parseStuListToKbStuListData(ClassStuList);

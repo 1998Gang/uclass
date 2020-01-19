@@ -1,6 +1,7 @@
-package cqupt.jyxxh.uclass.pojo;
+package cqupt.jyxxh.uclass.pojo.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import cqupt.jyxxh.uclass.pojo.user.EduAccount;
 
 import java.io.Serializable;
 

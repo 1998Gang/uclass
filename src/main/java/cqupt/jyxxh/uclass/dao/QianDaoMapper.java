@@ -1,8 +1,8 @@
 package cqupt.jyxxh.uclass.dao;
 
-import cqupt.jyxxh.uclass.pojo.ClassStudentInfo;
-import cqupt.jyxxh.uclass.pojo.QianDaoResult;
-import cqupt.jyxxh.uclass.pojo.StuSingleRecord;
+import cqupt.jyxxh.uclass.pojo.ClassStuInfo;
+import cqupt.jyxxh.uclass.pojo.qiandao.QianDaoResult;
+import cqupt.jyxxh.uclass.pojo.qiandao.StuSingleRecord;
 
 import java.util.List;
 import java.util.Map;
@@ -26,9 +26,9 @@ public interface QianDaoMapper {
     /**
      * 将有有记录的学生数据插入到数据库中（包含缺勤|请假|迟到的）。
      *
-     * @param classStudentInfoList list集合，元素的ClassStudentInfo
+     * @param classStuInfoList list集合，元素的ClassStudentInfo
      */
-    void insertClassStuInfo(List<ClassStudentInfo> classStudentInfoList);
+    void insertClassStuInfo(List<ClassStuInfo> classStuInfoList);
 
     /**
      * 学生获取自己某一门课的签到记录。

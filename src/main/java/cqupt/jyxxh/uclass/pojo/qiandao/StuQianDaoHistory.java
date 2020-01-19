@@ -1,4 +1,4 @@
-package cqupt.jyxxh.uclass.pojo;
+package cqupt.jyxxh.uclass.pojo.qiandao;
 
 import java.util.List;
 

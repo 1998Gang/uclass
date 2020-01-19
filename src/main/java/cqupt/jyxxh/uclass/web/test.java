@@ -1,13 +1,14 @@
 package cqupt.jyxxh.uclass.web;
 
+import cqupt.jyxxh.uclass.pojo.tiwen.TiWenData;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,23 +20,12 @@ import java.util.Map;
 
 @Controller
 public class test {
-    @RequestMapping(value = "test",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
-    public ResponseEntity<List<Map<String,String>>> testweb(){
+    @RequestMapping(value = "test",method = RequestMethod.POST,produces = "application/json;charset=utf-8")
+    public ResponseEntity<List<Map<String,String>>> testweb(@RequestBody TiWenData tiWenData){
 
-        Map<String,String> massage=new HashMap<>();
-        massage.put("name","pyg");
-        massage.put("xh","2017214033");
-        System.out.println("访问成功");
 
-        Map<String,String> massage1=new HashMap<>();
-        massage1.put("name","tcd");
-        massage1.put("xh","13423");
 
-        List<Map<String,String>> list=new ArrayList<>();
-        list.add(massage);
-        list.add(massage1);
-
-        return ResponseEntity.status(HttpStatus.OK).body(list);
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
     @RequestMapping(value = "testlist",method = RequestMethod.GET,produces = "application/json;charset=utf-8")

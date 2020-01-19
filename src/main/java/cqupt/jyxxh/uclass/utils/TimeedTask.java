@@ -1,8 +1,6 @@
 package cqupt.jyxxh.uclass.utils;
 
 import cqupt.jyxxh.uclass.dao.QianDaoMapper;
-import cqupt.jyxxh.uclass.pojo.ClassStudentInfo;
-import cqupt.jyxxh.uclass.pojo.QianDaoResult;
 import cqupt.jyxxh.uclass.service.QianDaoService;
 import cqupt.jyxxh.uclass.service.RedisService;
 import org.slf4j.Logger;
@@ -11,10 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 
 /**

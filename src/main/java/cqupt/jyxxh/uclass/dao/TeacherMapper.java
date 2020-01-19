@@ -1,6 +1,6 @@
 package cqupt.jyxxh.uclass.dao;
 
-import cqupt.jyxxh.uclass.pojo.Teacher;
+import cqupt.jyxxh.uclass.pojo.user.Teacher;
 
 
 public interface TeacherMapper {

@@ -1,8 +1,8 @@
 package cqupt.jyxxh.uclass.web;
 
 
-import cqupt.jyxxh.uclass.pojo.UclassUser;
-import cqupt.jyxxh.uclass.pojo.EduAccount;
+import cqupt.jyxxh.uclass.pojo.user.UclassUser;
+import cqupt.jyxxh.uclass.pojo.user.EduAccount;
 import cqupt.jyxxh.uclass.service.*;
 
 import cqupt.jyxxh.uclass.utils.Authentication;

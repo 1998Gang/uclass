@@ -36,7 +36,6 @@ public class KebiaoService {
     private RedisService redisService;          //reids操作类
 
 
-
     /**
      *  根据学号或者教师号获取课表
      *
