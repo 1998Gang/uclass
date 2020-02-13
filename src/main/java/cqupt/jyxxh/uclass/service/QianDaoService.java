@@ -109,7 +109,7 @@ public class QianDaoService {
     }
 
     /**
-     * 获取某一次签到的结果
+     * 教师根据签到ID获取某一次签到的结果
      *
      * @param qdid 签到id 一次签到的唯一识别码
      * @return QianDaoResult
@@ -321,6 +321,9 @@ public class QianDaoService {
     /**
      * 学生根据学号和教学班号获取本门课的历史签到记录
      *
+     * 包括这门课一共签了几次到，该生的缺勤、请假、迟到、出勤次数等。
+     * 以及每一次的签到状况。
+     *
      * @param xh  学号
      * @param jxb 教学班号
      * @return StuQianDaoResult
@@ -401,7 +404,7 @@ public class QianDaoService {
     }
 
     /**
-     * 获取课程的历史签到情况
+     * 根据教学班获取本门课程的历史签到情况
      *
      * @param jxb 教学班
      * @return KcQianDaoResult
@@ -490,5 +493,50 @@ public class QianDaoService {
 
         //返回
         return kcQianDaoHistory;
+    }
+
+    /**
+     * 持久化签到的相关数据到Mysql数据库
+     *
+     * 1.将签到记录添加进myslq数据库
+     * 2.将有未签到记录、迟到、缺勤记录的学生持久到mysql数据库
+     */
+    public void persistentQianDaoData(){
+        try {
+            //1.获取缓存中有的签到记录集合。
+            Set<String> allQdjl = redisService.getAllQdjl();
+            //1.1 根据这些签到记录，获取每次签到的签到结果数据，并装进一个List集合。  单次签到记录 例：(qdjl)QD-A13191A2130440002<18>(2)_1
+            List<QianDaoResult> qianDaoResultList=new ArrayList<>();
+            for (String oneQdjl:allQdjl){
+                //去掉前缀 “(qdjl)”,得到签到ID
+                String qdid = oneQdjl.substring(oneQdjl.indexOf("(qdjl)") + 6);
+                //根据签到id获取本次签到的结果数据
+                QianDaoResult qianDaoResultOneTimes = this.getQianDaoResultOneTimes(qdid);
+                //添加进List集合
+                qianDaoResultList.add(qianDaoResultOneTimes);
+            }
+            //1.2将签到结果数据持久化到mysql数据库
+            if (!qianDaoResultList.isEmpty()){
+                qianDaoMapper.insertQiandaoResult(qianDaoResultList);
+            }
+
+            //2.获取缓存中有记录的学生数据（包含缺勤、请假、迟到）
+            List<ClassStuInfo> allNoQdStu = redisService.getAllNoQdStu();
+            //2.1将这些学生数据持久化到mysql数据库
+            if (!allNoQdStu.isEmpty()){
+                qianDaoMapper.insertNoQDStuInfo(allNoQdStu);
+            }
+
+            //3.清空redis第5个数据库（装签到数据的数据库）
+            redisService.flushDB(4);
+
+            //日志
+            if (logger.isInfoEnabled()){
+                logger.info("定时任务，将签到数据持久化到mysql。有签到记录[{}]条，有记录的学生数据[{}]条",qianDaoResultList.size(),allNoQdStu.size());
+            }
+        }catch (Exception e){
+            //日志
+            logger.error("定时任务，将签到数据持久化mysql失败，可能原因是数据冲突。具体错误信息：[{}]",e.getMessage());
+        }
     }
 }

@@ -28,7 +28,7 @@ public interface QianDaoMapper {
      *
      * @param classStuInfoList list集合，元素的ClassStudentInfo
      */
-    void insertClassStuInfo(List<ClassStuInfo> classStuInfoList);
+    void insertNoQDStuInfo(List<ClassStuInfo> classStuInfoList);
 
     /**
      * 学生获取自己某一门课的签到记录。

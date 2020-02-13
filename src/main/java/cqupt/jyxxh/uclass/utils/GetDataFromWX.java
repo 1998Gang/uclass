@@ -21,11 +21,11 @@ public class GetDataFromWX {
 
     private static final Logger logger= LoggerFactory.getLogger(GetDataFromWX.class);    //日志
 
-    @Value("${code2Session}")
+    @Value("${WX.code2Session}")
     private  String CODE2SESSION;      //微信的auth.code2Session网址
-    @Value("${AppID}")
+    @Value("${WX.AppID}")
     private  String APPID;              //小程序的appid
-    @Value("${AppSercet}")
+    @Value("${WX.AppSercet}")
     private  String APPSERCET;         //小程序的appSercet
 
 

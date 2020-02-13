@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cqupt.jyxxh.uclass.dao.TiWenMapper">
+    <!--1.将提问记录插入到mysql数据库-->
+    <insert id="insertTiWenJL" parameterType="java.util.List">
+        insert into uclass_twjl(twid, jxb, week, work_day, twcs, twsj)
+        VALUES
+        <foreach collection="list" item="twjl" separator=",">
+            (#{twjl.twid},
+            #{twjl.jxb},
+            #{twjl.week},
+            #{twjl.work_day},
+            #{twjl.twcs},
+            #{twjl.twsj})
+        </foreach>
+    </insert>
+
+    <!--2.将没有回答问题的学生名单插入到mysql数据库-->
+    <insert id="insertNoAnStuList" parameterType="java.util.List">
+        insert into uclass_no_an_stu(twid, xh, xm, xb, yxm, zym, nj, bj, xjzt)
+        VALUES
+        <foreach collection="list" item="classStuInfo" separator=",">
+            (#{classStuInfo.twid},
+            #{classStuInfo.xh},
+            #{classStuInfo.xm},
+            #{classStuInfo.xb},
+            #{classStuInfo.yxm},
+            #{classStuInfo.zym},
+            #{classStuInfo.nj},
+            #{classStuInfo.bj},
+            #{classStuInfo.xjzt})
+        </foreach>
+    </insert>
+
+    <!--3.通过学号，教学班查询该该班该学生的签到记录。-->
+    <select id="getStuTWRecord" parameterType="java.util.Map" resultType="StuTWRecord">
+        select twjls.twsj,
+               concat('第', twjls.week, '周周', twjls.work_day) as weekStr,
+               uclass_no_an_stu.xh as isAnswer
+        from (select * from uclass_twjl where jxb = #{jxb})
+            as twjls
+                 left join
+             uclass_no_an_stu
+                 on twjls.twid = uclass_no_an_stu.twid
+                        and xh = #{xh};
+    </select>
+
+
+</mapper>

@@ -20,8 +20,8 @@ public class ClassStuInfo implements Serializable {
     private String xjzt;//学籍状态
     private String xkzt; //选课状态(重修|自修|在修|补修|正常)
     private String qdzt; //签到状态（"QQ"(缺勤),"CD"（迟到）,"QJ"（请假））
-    private String qdid; //该值用于持久化到数据库。
-    private String twid; //提问id，用于持久化到数据库
+    private String qdid; //签到id,该值用于持久化到数据库,标识这一条数据属于那一次签到
+    private String twid; //提问id，用于持久化到数据库，标识这一条数据属于那一次提问
 
     @Override
     public String toString() {

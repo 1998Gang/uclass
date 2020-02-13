@@ -26,7 +26,7 @@ public class QianDaoResult {
     private int inStuNum;                //签了的人数
     private int beLateNum;                //迟到人数
     private int askForLeaveNum;           //请假人数
-    private String qdsj;                    //签到时间，发生这次签到的时间。
+    private String qdsj;                    //签到时间，发生这次签到的时间（yyyy-MM-dd）。
 
 
     @Override

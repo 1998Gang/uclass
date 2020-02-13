@@ -16,6 +16,7 @@ public class StuSingleRecord {
     private String week;  //周
     private String work_day; //星期几
     private String weekStr;//签到周数以及星期数（第8周星期1）
+    private String qdcs;//签到次数 （是该堂课发起的第几次签到，存在一堂课，教师点名多次的情况。）
     private String qdzt;//签到状态（CD|QJ|QQ）代表迟到|请假|缺勤。如果为空代表出勤。
 
     @Override
@@ -26,6 +27,7 @@ public class StuSingleRecord {
                 ", week='" + week + '\'' +
                 ", work_day='" + work_day + '\'' +
                 ", weekStr='" + weekStr + '\'' +
+                ", qdcs='" + qdcs + '\'' +
                 ", qdzt='" + qdzt + '\'' +
                 '}';
     }
@@ -68,6 +70,14 @@ public class StuSingleRecord {
 
     public void setWeekStr(String weekStr) {
         this.weekStr = weekStr;
+    }
+
+    public String getQdcs() {
+        return qdcs;
+    }
+
+    public void setQdcs(String qdcs) {
+        this.qdcs = qdcs;
     }
 
     public String getQdzt() {

@@ -185,7 +185,6 @@ public class UclassTiWen {
             //日志
             logger.error("获取提问结果出现未知错误！");
         }
-
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
 }

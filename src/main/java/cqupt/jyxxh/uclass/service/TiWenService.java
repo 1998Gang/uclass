@@ -2,6 +2,7 @@ package cqupt.jyxxh.uclass.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cqupt.jyxxh.uclass.dao.TiWenMapper;
 import cqupt.jyxxh.uclass.pojo.ClassStuInfo;
 import cqupt.jyxxh.uclass.pojo.KbStuListData;
 import cqupt.jyxxh.uclass.pojo.tiwen.*;
@@ -10,10 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * 课堂提问工程service层
+ * 课堂提问功能service层
  *
  * @author 彭渝刚
  * @version 1.0.0
@@ -29,6 +31,9 @@ public class TiWenService {
 
     @Autowired
     private ComponentService componentService;   //service 层，用于获取一些数据
+
+    @Autowired
+    private TiWenMapper tiWenMapper;          //提问功能的dao操作
 
 
     /**
@@ -51,7 +56,7 @@ public class TiWenService {
             KbStuListData kbStuListData = componentService.getKbStuListData(tiWenData.getJxb());
             String str1 = redisService.loadTWStuList(kbStuListData.getStudents(), tiWenData.getWork_day(), tiWenData.getWeek(), tiWenData.getJxb(), tiWenData.getTwcs());
 
-            //3.加载题目（问题主体 WTZT）到缓存
+            //3.加载题目，以及提问记录（问题主体 WTZT）到缓存
             String str2 = redisService.loadTWToCache(tiWenData.getWtzt(), tiWenData.getWeek(), tiWenData.getWork_day(), tiWenData.getTwcs(), tiWenData.getJxb(), tiWenData.getYxsj());
 
             //4.只要步骤2与步骤3其中一个失败，本次发起签到就不算成功！
@@ -80,8 +85,8 @@ public class TiWenService {
         Map<String, Object> resultMap = new HashMap<>();
 
         try {
-            //1.抵一部根据jxb week work_day 三个参数获取对应的提问缓存的key。keys的长度只会是 0 或 1。
-            Set<String> keys = redisService.keysTWJL(week, jxb, work_day);
+            //1.根据jxb week work_day 三个参数获取对应的问题主体缓存的key。keys的长度只会是 0 或 1。
+            Set<String> keys = redisService.keysWtzt(week, jxb, work_day);
             //1.1判断keys的长度。
             if (keys.size() == 0) {
                 //长度为0，说明当前没有提问正在进行，可能是时间过了。返回一个空的map集合
@@ -104,7 +109,7 @@ public class TiWenService {
                 String twid = key.substring(key.indexOf("(twjl)") + 6);
 
                 //2.3获取问题主体
-                WTZT wtzt = redisService.getWTZT(twid);
+                WTZT wtzt = redisService.getWtzt(twid);
 
                 //2.4将数据添加到集合中
                 resultMap.put("twid", twid);//提问id
@@ -166,7 +171,7 @@ public class TiWenService {
 
         try {
             //1.根据提问id(twid)获取问题主体，根据问题主体判断问题类型
-            WTZT wtzt = redisService.getWTZT(twid);
+            WTZT wtzt = redisService.getWtzt(twid);
 
             //2.获取未答题学生名单
             List<Map<String, String>> noAnswerStuList = new ArrayList<>();
@@ -217,6 +222,43 @@ public class TiWenService {
             e.printStackTrace();
         }
         return tiWenResult;
+    }
+
+    /**
+     * 根据学号与教学班获取某学生某门课程的提问记录
+     * @param xh 学号
+     * @param jxb 教学班
+     * @return StuTiWenHistory
+     */
+    public StuTiWenHistory getStuTWHistory(String xh,String jxb){
+        try {
+            //定义返回参数
+            StuTiWenHistory stuTiWenHistory=new StuTiWenHistory();//学生提问历史记录主体
+            int total=0;//该门课总提问次数
+            int hdTimes=0;//回答次数
+            int wdTimes=0;//未答次数
+
+            //封装参数请求参数。
+            Map<String,String> xhAndJxb=new HashMap<>();
+            xhAndJxb.put("xh",xh);
+            xhAndJxb.put("jxb",jxb);
+
+            //根据学号和教学班，查询数据库。获取该生该课的回答记录。
+            List<StuTWRecord> stuTWRecordList = tiWenMapper.getStuTWRecord(xhAndJxb);
+
+            //遍历回答记录
+            for (StuTWRecord stuTWRecord:stuTWRecordList){
+
+            }
+
+
+        }catch (Exception e){
+
+        }
+
+
+
+        return null;
     }
 
     /**
@@ -389,4 +431,60 @@ public class TiWenService {
         return count;
     }
 
+
+    /**
+     * 持久化缓存中的提问数据到mysql数据库
+     * 1.提问记录
+     * 2.未回答学生名单
+     */
+    public void persistentTiWenData() {
+        try {
+            //1.获取缓存中有的所有提问记录的key  例：(twjl)TW-A13191A2130460001<12>(1)_2
+            Set<String> allTwjl = redisService.getAllTwjl();
+            //1.1根据提问记录key获取必要数据。
+            //当前时间
+            String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            //提问记录集合
+            List<Twjl> twjlList=new ArrayList<>();
+            for (String oneTwjl:allTwjl){
+                Twjl twjl=new Twjl();
+                //获取提问id
+                twjl.setTwid(oneTwjl.substring(oneTwjl.indexOf("(twjl)")+6));
+                //获取教学班号
+                twjl.setJxb(oneTwjl.substring(oneTwjl.indexOf("-")+1,oneTwjl.indexOf("<")));
+                //获取这周
+                twjl.setWeek(oneTwjl.substring(oneTwjl.indexOf("<")+1,oneTwjl.indexOf(">")));
+                //获取星期几
+                twjl.setWork_day(oneTwjl.substring(oneTwjl.indexOf(">(")+2,oneTwjl.indexOf(")_")));
+                //获取提问次数
+                twjl.setTwcs(oneTwjl.substring(oneTwjl.indexOf("_")+1));
+                //获取提问时间
+                twjl.setTwsj(date);
+                //将该提问记录添加进集合
+                twjlList.add(twjl);
+            }
+            //1.2将提问记录持久化到mysql数据库
+            if (!twjlList.isEmpty()){
+                tiWenMapper.insertTiWenJL(twjlList);
+            }
+
+            //2.获取缓存中所有没有回答课堂提问学生的数据
+            List<ClassStuInfo> allNoAnStu = redisService.getAllNoAnStu();
+            //2.1将这些学生数据持久化到mysql数据库
+            if (!allNoAnStu.isEmpty()){
+                tiWenMapper.insertNoAnStuList(allNoAnStu);
+            }
+
+            //3.持久化完毕，清空redis第7个数据库
+            redisService.flushDB(6);
+
+            //日志
+            if (logger.isInfoEnabled()){
+                logger.info("将课堂提问缓存数据持久化到mysql。有提问记录[{}]条，未回答提问学生数据[{}]条",twjlList.size(),allNoAnStu.size());
+            }
+        }catch (Exception e){
+            //日志
+            logger.error("将课堂提问缓存数据持久化到mysql出现未知错误！");
+        }
+    }
 }

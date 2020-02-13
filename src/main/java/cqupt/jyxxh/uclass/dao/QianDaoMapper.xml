@@ -26,7 +26,7 @@
     </insert>
 
     <!--2.将签到有记录的学生数据插入到mysql-->
-    <insert id="insertClassStuInfo" parameterType="java.util.List">
+    <insert id="insertNoQDStuInfo" parameterType="java.util.List">
         insert into uclass_no_qd_stu (qdid,xh,xm,xb,yxm,zym,nj,bj,xjzt,qdzt) VALUES
         <foreach collection="list" item="classStuInfo" separator=",">
             (
@@ -46,7 +46,13 @@
 
     <!--3.getStuQdRecord，根据学号和教学班获取学生的签到记录-->
     <select id="getStuQdRecord" parameterType="java.util.Map" resultType="StuSingleRecord">
-        select qdjl.jxb, qdjl.qdsj, qdjl.week, qdjl.work_day, concat('第',week,'周周',work_day) as weekStr,uclass_no_qd_stu.qdzt
+        select qdjl.jxb,
+               qdjl.qdsj,
+               qdjl.week,
+               qdjl.work_day,
+               concat('第', week, '周周', work_day) as weekStr,
+               qdjl.qdcs,
+               uclass_no_qd_stu.qdzt
         from (select * from uclass_qdjl where jxb = #{jxb}) as qdjl
                  left join
              uclass_no_qd_stu
@@ -61,7 +67,7 @@
     张海浪	2017214121	QQ,QQ,QQ
      -->
     <select id="getkcQdRecord" resultType="java.util.HashMap" parameterType="String">
-        select xm, xh, group_concat(qdzt ) as qdzts
+        select xm, xh, group_concat(qdzt) as qdzts
         from (select xm, xh, qdzt
               from (select uclass_qdjl.qdid from uclass_qdjl where jxb = #{value}) as qdjl
                        left join uclass_no_qd_stu

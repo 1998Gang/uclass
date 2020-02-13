@@ -28,16 +28,16 @@ public class Authentication {
 
     private final Logger logger= LoggerFactory.getLogger(Authentication.class);   //日志
 
-    @Value("${URL}")
+    @Value("${LDAP.URL}")
     private String URL;       //LDAP连接地址  "ldap://211.83.210.1:389/"
 
-    @Value("${BASEDN}")
+    @Value("${LDAP.BASEDN}")
     private  String BASEDN;   //LDAP的根DN  "dc=cqupt,dc=edu,dc=cn"
 
-    @Value("${PRINCIPAL}")
+    @Value("${LDAP.PRINCIPAL}")
     private String PRINCIPAL; //LDAP的连接账号
 
-    @Value("${PASSWORD}")
+    @Value("${LDAP.PASSWORD}")
     private String PASSWORD;   //LDAP连接账号的密码  wxgzpt_ldapuser
 
 
