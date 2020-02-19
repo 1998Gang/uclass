@@ -225,6 +225,49 @@ public class TiWenService {
     }
 
     /**
+     * 教师获取本门课程的历史答题情况
+     * @param jxb 教学班号
+     * @return KeChengTiWenHistory
+     */
+    public KeChengTiWenHistory getKcTWHistory(String jxb){
+        try {
+            //先查看redis缓存中有没有
+            try {
+                KeChengTiWenHistory keChengTiWenHistory = redisService.getKCTWHistory(jxb);
+                if (!(keChengTiWenHistory==null)){
+                    //kctwHistory不等于空，说明缓存中有，直接返回
+                    return keChengTiWenHistory;
+                }
+            }catch (Exception e){
+                //日志
+                logger.error("获取课程的课堂提问历史答题情况缓存出现未知错误！");
+            }
+
+            //通过该教学班查询该课程为答题的学生
+            List<KeChengTWOneStuRecord> kctwHistory = tiWenMapper.getKCTWHistory(jxb);
+
+            //封装数据
+            KeChengTiWenHistory keChengTiWenHistory=new KeChengTiWenHistory();
+            keChengTiWenHistory.setJxb(jxb);
+            keChengTiWenHistory.setTotal(kctwHistory.size());
+            keChengTiWenHistory.setNoAnswerStuList(kctwHistory);
+
+            //将数据放入缓存，设置30分钟有效时间
+            try {
+                redisService.setKCTWHistory(keChengTiWenHistory);
+            }catch (Exception e){
+                logger.error("将课程的历史提问数据放进缓存失败！");
+            }
+
+            //返回实体
+            return keChengTiWenHistory;
+        }catch (Exception e){
+            logger.error("教师获取本门课程的历史答题情况失败！");
+        }
+        return null;
+    }
+
+    /**
      * 根据学号与教学班获取某学生某门课程的提问记录
      * @param xh 学号
      * @param jxb 教学班
@@ -232,6 +275,17 @@ public class TiWenService {
      */
     public StuTiWenHistory getStuTWHistory(String xh,String jxb){
         try {
+            //先查看缓存中有没有
+            try {
+                StuTiWenHistory stuTiWenHistory = redisService.getStuTWHistory(jxb, xh);
+                if (!(stuTiWenHistory==null)){
+                    //不为空说明有数据，直接返回！
+                    return stuTiWenHistory;
+                }
+            }catch (Exception e){
+                logger.error("获取学生课程答题情况历史数据缓存出现未知错误！");
+            }
+
             //定义返回参数
             StuTiWenHistory stuTiWenHistory=new StuTiWenHistory();//学生提问历史记录主体
             int total=0;//该门课总提问次数
@@ -246,18 +300,43 @@ public class TiWenService {
             //根据学号和教学班，查询数据库。获取该生该课的回答记录。
             List<StuTWRecord> stuTWRecordList = tiWenMapper.getStuTWRecord(xhAndJxb);
 
-            //遍历回答记录
+            //遍历回答记录,获取响应的次数
             for (StuTWRecord stuTWRecord:stuTWRecordList){
+                String isAnswer = stuTWRecord.getIsAnswer();
+                //如果isAnswer为null，说明该生本次提问回答了问题，如果不为null，说明没有回答。
+                if (null==isAnswer){
+                    hdTimes+=1;
+                    //更改属性为true
+                    stuTWRecord.setIsAnswer("true");
+                }else {
+                    wdTimes+=1;
+                    //更改属性为false
+                    stuTWRecord.setIsAnswer("false");
+                }
+            }
+            //该门课程提问总次数
+            total=stuTWRecordList.size();
 
+            //封装数据
+            stuTiWenHistory.setJxb(jxb);
+            stuTiWenHistory.setXh(xh);
+            stuTiWenHistory.setTotal(total);
+            stuTiWenHistory.setHdTimes(hdTimes);
+            stuTiWenHistory.setWdTimes(wdTimes);
+            stuTiWenHistory.setStuTWRecordList(stuTWRecordList);
+
+            //将结果放进缓存,有效时间2小时
+            try{
+                redisService.setStuTWHistory(stuTiWenHistory);
+            }catch (Exception e){
+                logger.error("将学生某门课程的历史答题情况放进缓存出现未知错误！");
             }
 
-
+            //返回
+            return stuTiWenHistory;
         }catch (Exception e){
-
+            logger.error("根据学号教学班获取学生回答记录出错！");
         }
-
-
-
         return null;
     }
 
@@ -431,7 +510,6 @@ public class TiWenService {
         return count;
     }
 
-
     /**
      * 持久化缓存中的提问数据到mysql数据库
      * 1.提问记录
@@ -441,6 +519,14 @@ public class TiWenService {
         try {
             //1.获取缓存中有的所有提问记录的key  例：(twjl)TW-A13191A2130460001<12>(1)_2
             Set<String> allTwjl = redisService.getAllTwjl();
+            if (allTwjl.isEmpty()){
+                //如果没有提问提问记录说明没有提问数据，直接返回。
+                //日志
+                if (logger.isInfoEnabled()){
+                    logger.info("无课堂提问数据，将课堂提问缓存数据持久化到mysql的定时任务结束！。");
+                }
+                return;
+            }
             //1.1根据提问记录key获取必要数据。
             //当前时间
             String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());

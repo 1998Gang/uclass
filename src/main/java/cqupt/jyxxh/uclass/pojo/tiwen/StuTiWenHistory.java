@@ -12,9 +12,9 @@ import java.util.List;
 public class StuTiWenHistory {
     private String xh;//学号
     private String jxb;//教学班
-    private String total;//本门课程提问总次数
-    private String hdTimes;//回答次数
-    private String wdTimes;//未回答次数
+    private int total;//本门课程提问总次数
+    private int hdTimes;//回答次数
+    private int wdTimes;//未回答次数
     private List<StuTWRecord> stuTWRecordList;//学生回答提问情况记录
 
     @Override
@@ -45,27 +45,27 @@ public class StuTiWenHistory {
         this.jxb = jxb;
     }
 
-    public String getTotal() {
+    public int getTotal() {
         return total;
     }
 
-    public void setTotal(String total) {
+    public void setTotal(int total) {
         this.total = total;
     }
 
-    public String getHdTimes() {
+    public int getHdTimes() {
         return hdTimes;
     }
 
-    public void setHdTimes(String hdTimes) {
+    public void setHdTimes(int hdTimes) {
         this.hdTimes = hdTimes;
     }
 
-    public String getWdTimes() {
+    public int getWdTimes() {
         return wdTimes;
     }
 
-    public void setWdTimes(String wdTimes) {
+    public void setWdTimes(int wdTimes) {
         this.wdTimes = wdTimes;
     }
 

@@ -409,16 +409,26 @@ public class QianDaoService {
      * @param jxb 教学班
      * @return KcQianDaoResult
      */
-    public KcQianDaoHistory getKcQDhistory(String jxb) {
+    public KeChengQianDaoHistory getKcQDhistory(String jxb) {
 
+        //先查看redis缓存中有没有
+        try {
+            KeChengQianDaoHistory kcqdHistroy = redisService.getKCQDHistroy(jxb);
+            if (!(kcqdHistroy==null)){
+                //不为空，说明有缓存数据，直接返回。
+                return kcqdHistroy;
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
         //对象
-        KcQianDaoHistory kcQianDaoHistory = new KcQianDaoHistory();
+        KeChengQianDaoHistory keChengQianDaoHistory = new KeChengQianDaoHistory();
         //定义参数
         int total = 0;//有记录的总人次
         int absenteeism = 0;//有缺勤记录是人次
         int lateArrivals = 0;//有迟到记录的人次
         int numberOfLeave = 0;//有请假记录的人次
-        List<KcOneStuRecord> stuList = new ArrayList<>();//学生名单
+        List<KeChengQDOneStuRecord> stuList = new ArrayList<>();//学生名单
 
 
         // 1.获取的该课程有记录学生名单
@@ -432,7 +442,7 @@ public class QianDaoService {
             //有记录的总人次加一：
             total += 1;
             //为该生创建一个KcOneStuRecord对象。
-            KcOneStuRecord kcOneStuRecord = new KcOneStuRecord();
+            KeChengQDOneStuRecord keChengQDOneStuRecord = new KeChengQDOneStuRecord();
             int qqtime = 0;//缺勤次数
             int cdtime = 0;//迟到次数
             int qjtime = 0;//请假次数
@@ -461,13 +471,13 @@ public class QianDaoService {
                 }
             }
             //添加到kcOneStuRecord对象中
-            kcOneStuRecord.setXh(xh);
-            kcOneStuRecord.setXm(xm);
-            kcOneStuRecord.setCdTime(cdtime);
-            kcOneStuRecord.setQqTime(qqtime);
-            kcOneStuRecord.setQjTime(qjtime);
+            keChengQDOneStuRecord.setXh(xh);
+            keChengQDOneStuRecord.setXm(xm);
+            keChengQDOneStuRecord.setCdTime(cdtime);
+            keChengQDOneStuRecord.setQqTime(qqtime);
+            keChengQDOneStuRecord.setQjTime(qjtime);
             //将kcOneStuRecord对象添加到
-            stuList.add(kcOneStuRecord);
+            stuList.add(keChengQDOneStuRecord);
             //判断该生是否缺勤|迟到|请假，修改有相关记录的人次
             if (0 != qjtime) {
                 //有请假记录,总的有请假记录的人次加一。
@@ -484,15 +494,21 @@ public class QianDaoService {
         }
 
         //3.设置参数到kcQianDaoResult对象
-        kcQianDaoHistory.setJxb(jxb);//教学班
-        kcQianDaoHistory.setTotal(total);//有记录的总人次
-        kcQianDaoHistory.setAbsenteeism(absenteeism);//有缺勤记录的人次
-        kcQianDaoHistory.setLateArrivals(lateArrivals);//有迟到记录的人次
-        kcQianDaoHistory.setNumberOfLeave(numberOfLeave);//有请假记录的人次
-        kcQianDaoHistory.setStuList(stuList);//有记录的学生名单
+        keChengQianDaoHistory.setJxb(jxb);//教学班
+        keChengQianDaoHistory.setTotal(total);//有记录的总人次
+        keChengQianDaoHistory.setAbsenteeism(absenteeism);//有缺勤记录的人次
+        keChengQianDaoHistory.setLateArrivals(lateArrivals);//有迟到记录的人次
+        keChengQianDaoHistory.setNumberOfLeave(numberOfLeave);//有请假记录的人次
+        keChengQianDaoHistory.setStuList(stuList);//有记录的学生名单
 
+        //将数据放进缓存
+        try {
+            redisService.setKCQDHistory(keChengQianDaoHistory);
+        } catch (JsonProcessingException e) {
+            logger.error("将课程的签到历史情况放进缓存出现未知错误！");
+        }
         //返回
-        return kcQianDaoHistory;
+        return keChengQianDaoHistory;
     }
 
     /**

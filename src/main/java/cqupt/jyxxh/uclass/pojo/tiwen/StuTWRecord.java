@@ -10,7 +10,7 @@ package cqupt.jyxxh.uclass.pojo.tiwen;
 public class StuTWRecord {
     private String twsj;//提问时间（yyyy-MM-dd）
     private String weekStr;//提问时间(星期几周几)
-    private String isAnswer="null";//是否回答（true回答了，false未回答）,默认为"null"
+    private String isAnswer;//是否回答（true回答了，false未回答）,默认为"null"
 
     @Override
     public String toString() {

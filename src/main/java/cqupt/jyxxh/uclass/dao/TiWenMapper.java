@@ -1,6 +1,7 @@
 package cqupt.jyxxh.uclass.dao;
 
 import cqupt.jyxxh.uclass.pojo.ClassStuInfo;
+import cqupt.jyxxh.uclass.pojo.tiwen.KeChengTWOneStuRecord;
 import cqupt.jyxxh.uclass.pojo.tiwen.StuTWRecord;
 import cqupt.jyxxh.uclass.pojo.tiwen.Twjl;
 
@@ -36,4 +37,12 @@ public interface TiWenMapper {
      * @return  回答记录 集合
      */
     List<StuTWRecord> getStuTWRecord(Map<String,String> xhAndJxb);
+
+    /**
+     * 通过教学班获取该门课程有未答题记录的学生数据
+     *
+     * @param jxb 教学班号
+     * @return KeChengTWOneStuRecord
+     */
+    List<KeChengTWOneStuRecord> getKCTWHistory(String jxb);
 }

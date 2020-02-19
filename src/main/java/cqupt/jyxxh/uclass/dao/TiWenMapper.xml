@@ -37,7 +37,7 @@
     <!--3.通过学号，教学班查询该该班该学生的签到记录。-->
     <select id="getStuTWRecord" parameterType="java.util.Map" resultType="StuTWRecord">
         select twjls.twsj,
-               concat('第', twjls.week, '周周', twjls.work_day) as weekStr,
+               concat('第', twjls.week, '周周', twjls.work_day,'第',twjls.twcs,'次') as weekStr,
                uclass_no_an_stu.xh as isAnswer
         from (select * from uclass_twjl where jxb = #{jxb})
             as twjls
@@ -46,6 +46,15 @@
                  on twjls.twid = uclass_no_an_stu.twid
                         and xh = #{xh};
     </select>
+
+    <!--4.通过教学班获取该课程的历史未答题学生记录-->
+    <select id="getKCTWHistory" parameterType="String" resultType="KeChengTWOneStuRecord">
+        select uas.xm, uas.xh, uas.yxm, uas.nj,count(uas.xh) as wdTimes
+        from (select twid from uclass_twjl where jxb = 'A13191A2130460001') as twids
+                 inner join uclass_no_an_stu as uas on twids.twid = uas.twid
+        group by xh;
+    </select>
+
 
 
 </mapper>

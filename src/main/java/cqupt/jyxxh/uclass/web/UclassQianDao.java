@@ -1,6 +1,6 @@
 package cqupt.jyxxh.uclass.web;
 
-import cqupt.jyxxh.uclass.pojo.qiandao.KcQianDaoHistory;
+import cqupt.jyxxh.uclass.pojo.qiandao.KeChengQianDaoHistory;
 import cqupt.jyxxh.uclass.pojo.qiandao.QianDaoResult;
 import cqupt.jyxxh.uclass.pojo.qiandao.StuQianDaoHistory;
 import cqupt.jyxxh.uclass.service.QianDaoService;
@@ -144,10 +144,10 @@ public class UclassQianDao {
      * @return KcQianDaoResult
      */
     @RequestMapping(value = "teaqiandaohistroy",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
-    public ResponseEntity<KcQianDaoHistory> teaGetKcQdHistory(@RequestParam("jxb")String jxb){
+    public ResponseEntity<KeChengQianDaoHistory> teaGetKcQdHistory(@RequestParam("jxb")String jxb){
         try{
             //调用service层方法
-            KcQianDaoHistory kcQDhistory = qianDaoService.getKcQDhistory(jxb);
+            KeChengQianDaoHistory kcQDhistory = qianDaoService.getKcQDhistory(jxb);
             //日志
             if (logger.isInfoEnabled()){
                 logger.info("教师获取教学班：[{}]的历史点名数据成功！",jxb);

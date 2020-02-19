@@ -68,11 +68,9 @@
      -->
     <select id="getkcQdRecord" resultType="java.util.HashMap" parameterType="String">
         select xm, xh, group_concat(qdzt) as qdzts
-        from (select xm, xh, qdzt
-              from (select uclass_qdjl.qdid from uclass_qdjl where jxb = #{value}) as qdjl
-                       left join uclass_no_qd_stu
-                                 on qdjl.qdid = uclass_no_qd_stu.qdid) as allstu
-        group by xh
+        from (select qdid from uclass_qdjl where jxb = 'A13191A2130460001') as qdids
+                 inner join uclass_no_qd_stu as unq on qdids.qdid = unq.qdid
+        group by unq.xh
     </select>
 
 </mapper>

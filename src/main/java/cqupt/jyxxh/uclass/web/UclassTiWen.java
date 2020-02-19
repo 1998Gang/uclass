@@ -1,13 +1,12 @@
 package cqupt.jyxxh.uclass.web;
 
-import cqupt.jyxxh.uclass.pojo.tiwen.AnswerData;
-import cqupt.jyxxh.uclass.pojo.tiwen.TiWenData;
-import cqupt.jyxxh.uclass.pojo.tiwen.TiWenResult;
+import cqupt.jyxxh.uclass.pojo.tiwen.*;
 import cqupt.jyxxh.uclass.service.TiWenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -76,7 +75,6 @@ public class UclassTiWen {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mm);
         }
     }
-
 
     /**
      * 学生获取课堂提问的题目
@@ -184,6 +182,55 @@ public class UclassTiWen {
         }catch (Exception e){
             //日志
             logger.error("获取提问结果出现未知错误！");
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+
+    /**
+     * 学生获取本门课程的历史回答情况数据
+     * @param xh 学号
+     * @param jxb 教学班号
+     * @return StuTiWenHistory
+     */
+    @RequestMapping(value = "stutiwenhistory",method=RequestMethod.GET,produces = "application/json;charset=utf-8")
+    public ResponseEntity<StuTiWenHistory> stuGetTWHistory(@RequestParam("xh")String xh,@RequestParam("jxb") String jxb){
+        try {
+            //获取数据
+            StuTiWenHistory stuTWHistory = tiWenService.getStuTWHistory(xh, jxb);
+            //成功返回数据
+            // 日志
+            if (logger.isInfoEnabled()){
+                logger.info("学生[{}]获取教学班[{}]的历史提问数据成功！",xh,jxb);
+            }
+            //返回数据
+            return ResponseEntity.status(HttpStatus.OK).body(stuTWHistory);
+        }catch (Exception e){
+            //失败出现未知错误
+            logger.error("学生[{}]获取教学班[{}]的历史提问数据失败！",xh,jxb);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+
+    /**
+     * 教师获取本门课程的历史回答情况数据
+     * @param jxb 教学班
+     * @return KeChengTiWenHistory
+     */
+    @RequestMapping(value = "teatiwenhistory",method = RequestMethod.GET,produces="application/json;charset=utf-8")
+    public ResponseEntity<KeChengTiWenHistory> teaGetTWHistory(@RequestParam("jxb") String jxb){
+        try {
+            //调用service层获取数据
+            KeChengTiWenHistory kcTWHistory = tiWenService.getKcTWHistory(jxb);
+            //日志
+            if (logger.isInfoEnabled()){
+                logger.info("获取教学班[{}]的答题历史记录成功！",jxb);
+            }
+            //成功返回200
+            return ResponseEntity.status(HttpStatus.OK).body(kcTWHistory);
+
+        }catch (Exception e){
+            //日志
+            logger.error("获取教学班[{}]的答题历史记录失败！",jxb);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }

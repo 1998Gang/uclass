@@ -7,7 +7,7 @@ package cqupt.jyxxh.uclass.pojo.qiandao;
  * @version 1.0.0
  * @date created in 21:42 2020/1/13
  */
-public class KcOneStuRecord {
+public class KeChengQDOneStuRecord {
     private String xm; //学生姓名
     private String xh; //学生学号
     private int cdTime; //迟到次数

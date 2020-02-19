@@ -10,13 +10,13 @@ import java.util.List;
  * @version 1.0.0
  * @date created in 21:51 2020/1/13
  */
-public class KcQianDaoHistory {
+public class KeChengQianDaoHistory {
     private String jxb;  //教学班
     private int total;  //有记录的总人次
     private int absenteeism;//有缺勤记录是人次
     private int lateArrivals;//有迟到记录的人次
     private int numberOfLeave;//有请假记录的人次
-    private List<KcOneStuRecord> stuList;//名单
+    private List<KeChengQDOneStuRecord> stuList;//名单
 
     @Override
     public String toString() {
@@ -70,11 +70,11 @@ public class KcQianDaoHistory {
         this.numberOfLeave = numberOfLeave;
     }
 
-    public List<KcOneStuRecord> getStuList() {
+    public List<KeChengQDOneStuRecord> getStuList() {
         return stuList;
     }
 
-    public void setStuList(List<KcOneStuRecord> stuList) {
+    public void setStuList(List<KeChengQDOneStuRecord> stuList) {
         this.stuList = stuList;
     }
 }

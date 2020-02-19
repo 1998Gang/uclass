@@ -1,10 +1,14 @@
 package cqupt.jyxxh.uclass.service;
 
+import checkers.oigj.quals.O;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cqupt.jyxxh.uclass.pojo.ClassStuInfo;
+import cqupt.jyxxh.uclass.pojo.qiandao.KeChengQianDaoHistory;
 import cqupt.jyxxh.uclass.pojo.qiandao.StuQianDaoHistory;
 import cqupt.jyxxh.uclass.pojo.tiwen.AnswerData;
+import cqupt.jyxxh.uclass.pojo.tiwen.KeChengTiWenHistory;
+import cqupt.jyxxh.uclass.pojo.tiwen.StuTiWenHistory;
 import cqupt.jyxxh.uclass.pojo.tiwen.WTZT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1331,5 +1335,158 @@ public class RedisService {
             logger.error("获取所有未回答提问学生记录缓存出现错误！错误信息：[{}]", e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * 将课程的历史提问数据放任缓存 （redis第6个数据库）
+     *
+     *
+     * @param keChengTiWenHistory keChengTiWenHistory
+     */
+    public void setKCTWHistory(KeChengTiWenHistory keChengTiWenHistory) throws JsonProcessingException {
+        //操作redis的key
+        String key="(kctwh)"+keChengTiWenHistory.getJxb();//例：
+
+            //1.获取redis连接
+            Jedis resource = jedisPool.getResource();
+            //2.选择第6个数据库
+            resource.select(5);
+            //3. 将KeChengTiWenHistory转为json格式数据
+            ObjectMapper objectMapper=new ObjectMapper();
+            String KCTWHistoryJson = objectMapper.writeValueAsString(keChengTiWenHistory);
+            //4.存入数据
+            resource.set(key,KCTWHistoryJson);
+            //5.设置有效时间,2小时
+            resource.pexpire(key,7200);
+            //5.归还redis连接
+            resource.close();
+
+    }
+
+    /**
+     * 通过教学班号获取相应课程的课堂提问 回答情况历史数据（redis第6个数据库）
+     * @param jxb 教学班号
+     * @return KeChengTiWenHistory
+     */
+    public KeChengTiWenHistory getKCTWHistory(String jxb) throws JsonProcessingException {
+        //操作redis的key
+        String key="(kctwh)"+jxb;
+
+        //1.获取redis连接
+        Jedis resource = jedisPool.getResource();
+        //2.
+        resource.select(5);
+        //3.
+        String result = resource.get(key);
+        if ("NULL".equals(result)||null==resource){
+            return null;
+        }
+        //4.将结果转换为java对象
+        ObjectMapper objectMapper=new ObjectMapper();
+        KeChengTiWenHistory keChengTiWenHistory = objectMapper.readValue(result, KeChengTiWenHistory.class);
+        //4.归还连接
+        resource.close();
+        //5.返回结果
+        return keChengTiWenHistory;
+    }
+
+    /**
+     * 将学生某门课程的历史答题情况数据放进redis缓存（redis第6个数据库）
+     * key：     例：(stwh)A13191A2130460001-2017214033
+     * @param stuTiWenHistory StuTiWenHistory
+     */
+    public void setStuTWHistory(StuTiWenHistory stuTiWenHistory) throws JsonProcessingException {
+        //操作redis 的key
+        String key="(stwh)"+stuTiWenHistory.getJxb()+"-"+stuTiWenHistory.getXh();//例：(stwh)A13191A2130460001-2017214033
+
+        //1.获取reids连接
+        Jedis resource = jedisPool.getResource();
+        //2.选择第6个数据库
+        resource.select(5);
+        //3.将java对象转为json格式数据
+        ObjectMapper objectMapper=new ObjectMapper();
+        String stutTWHistoryJson = objectMapper.writeValueAsString(stuTiWenHistory);
+        //4.数据放进数据库
+        resource.set(key,stutTWHistoryJson);
+        //5.设置有效时间,2小时
+        resource.pexpire(key,7200);
+        //6.归还redis连接
+        resource.close();
+    }
+
+    /**
+     * 获取某个学生的某门课程的历史答题情况(redis第6个数据库)
+     * @param jxb 教学班
+     * @param xh 学号
+     * @return StuTiWenHistory
+     */
+    public StuTiWenHistory getStuTWHistory(String jxb, String xh) throws JsonProcessingException {
+        //操作redis的key
+        String key="(stwh)"+jxb+"-"+xh;
+        //1.获取reids连接
+        Jedis resource = jedisPool.getResource();
+        //2.选择数据库
+        resource.select(5);
+        //3.获取数据
+        String s = resource.get(key);
+        if ("NULL".equals(s)||null==s){
+            //没有返回空
+            return null;
+        }
+        //4.json转为java对象
+        ObjectMapper objectMapper=new ObjectMapper();
+        StuTiWenHistory stuTiWenHistory = objectMapper.readValue(s, StuTiWenHistory.class);
+        //5.归还连接
+        resource.close();
+        //6.返回数据
+        return stuTiWenHistory;
+    }
+
+    /**
+     * 将课程的历史签到数据放进缓存（redis第6个数据库）
+     * @param keChengQianDaoHistory KeChengQianDaoHistory类
+     */
+    public void setKCQDHistory(KeChengQianDaoHistory keChengQianDaoHistory) throws JsonProcessingException {
+        //操作redis的key
+        String key="(kcqdh)"+keChengQianDaoHistory.getJxb();//例：(kcqdh)A13191A2130460001
+        //1.获取redis 连接
+        Jedis resource = jedisPool.getResource();
+        //2.选择数据库
+        resource.select(5);
+        //3.将java对象转为json格式数据
+        ObjectMapper objectMapper=new ObjectMapper();
+        String s = objectMapper.writeValueAsString(keChengQianDaoHistory);
+        //4.放进redis
+        resource.set(key,s);
+        //5.设置有效时间，2小时
+        resource.pexpire(key,7200);
+        //6.归还连接
+        resource.close();
+    }
+
+    /**
+     * 获取课程的历史签到数据（redis第6个数据库）
+     * @param jxb 教学班
+     * @return KeChengQianDaoHistory
+     */
+    public KeChengQianDaoHistory getKCQDHistroy(String jxb) throws JsonProcessingException {
+        //操作redis的key
+        String key="(kcqdh)"+jxb;
+        //1.获取连接
+        Jedis resource = jedisPool.getResource();
+        //2.选择数据库
+        resource.select(5);
+        //3.获取数据
+        String s = resource.get(key);
+        if ("NULL".equals(s)||null==s){
+            return null;
+        }
+        //4.将json对象转为java对象
+        ObjectMapper objectMapper=new ObjectMapper();
+        KeChengQianDaoHistory keChengQianDaoHistory = objectMapper.readValue(s, KeChengQianDaoHistory.class);
+        //5.归还连接
+        resource.close();
+        //6.返回数据
+        return keChengQianDaoHistory;
     }
 }
