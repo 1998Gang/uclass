@@ -62,8 +62,6 @@ public class ComponentService {
         SimpleDateFormat simpleDateFormat= new SimpleDateFormat("yyyy-MM-dd");
         String nowData = simpleDateFormat.format(date);
 
-
-
         //1.去redis缓存拿教务时间
         try {
             String data = redisService.getSchoolTime(nowData);

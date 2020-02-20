@@ -96,13 +96,18 @@ public class UclassKebiao {
     public ResponseEntity<StuKcMoreInfo> getStuKcMoreInfo(@RequestParam("xh")String xh,@RequestParam("jxb")String jxb){
         try {
             //1.获取数据
-            kebiaoService.getKcStuMoreInfo(xh,jxb);
+            StuKcMoreInfo kcStuMoreInfo = kebiaoService.getKcStuMoreInfo(xh, jxb);
+            if (null!=kcStuMoreInfo){
+                //日志
+                if (logger.isInfoEnabled()){
+                    logger.info("学生获取[{}]教学班[{}]扩展数据成功！",xh,jxb);
+                }
+                //响应200，返回数据
+                return ResponseEntity.status(HttpStatus.OK).body(kcStuMoreInfo);
+            }
         }catch (Exception e){
-
+            logger.error("学生[{}]教学班[{}]扩展数据出现未知错误！",xh,jxb);
         }
-
-
-
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
 

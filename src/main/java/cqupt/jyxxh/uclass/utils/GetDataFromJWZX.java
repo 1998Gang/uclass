@@ -234,14 +234,14 @@ public class GetDataFromJWZX {
 
         // 4.放进缓存
         try {
-
-            redisService.setCjzc(xh,cjzcHtml);
+            //将成绩组成 Map<>集合转未json格式数据
+            String cjzcJson = objectMapper.writeValueAsString(cjzc);
+            redisService.setCjzc(xh,cjzcJson);
         }catch (Exception e){
             logger.error("将成绩组成添加进缓存失败！");
         }
         return cjzc;
     }
-
 
     /**
      * 通过教学班获取上课学生名单

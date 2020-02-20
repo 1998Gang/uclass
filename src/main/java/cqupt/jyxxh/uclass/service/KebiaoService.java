@@ -5,6 +5,9 @@ import checkers.units.quals.A;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cqupt.jyxxh.uclass.pojo.KeChengInfo;
 import cqupt.jyxxh.uclass.pojo.StuKcMoreInfo;
+import cqupt.jyxxh.uclass.pojo.qiandao.StuQianDaoHistory;
+import cqupt.jyxxh.uclass.pojo.tiwen.StuTiWenHistory;
+import cqupt.jyxxh.uclass.pojo.user.Teacher;
 import cqupt.jyxxh.uclass.utils.GetDataFromJWZX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 获取用户课表
@@ -35,6 +35,16 @@ public class KebiaoService {
 
     @Autowired
     private RedisService redisService;          //reids操作类
+
+    @Autowired
+    private EduAccountService eduAccountService; //教务账户操作类
+
+    @Autowired
+    private QianDaoService qianDaoService;      //签到操作类
+
+    @Autowired
+    private TiWenService tiWenService;         //提问操作类
+
 
 
     /**
@@ -136,13 +146,36 @@ public class KebiaoService {
             //1.获取教师数据
             //1.1 根据教学班获取该班的教师id，在redis缓存（第8个数据库）
             String teaId = redisService.getTeaIdByJxb(jxb);
-            //1.2根据teaid获取数据库中的教师数据
+            //1.2根据teaid获取的教师数据
+            Teacher teacher = eduAccountService.getTeacher(teaId);
 
+            //2.获取成绩组成
+            Map<String, String> cjzcs = getDataFromJWZX.getCjzcByXh(xh);
+            String cjzcJxb = cjzcs.get(jxb);
 
+            //3.获取签到历史记录
+            StuQianDaoHistory stuQDhistory = qianDaoService.getStuQDhistory(xh, jxb);
 
+            //4.获取课堂提问答题历史记录
+            StuTiWenHistory stuTWHistory = tiWenService.getStuTWHistory(xh, jxb);
 
+            //5.封装数据
+            StuKcMoreInfo stuKcMoreInfo=new StuKcMoreInfo();
+            stuKcMoreInfo.setTeacher(teacher);//添加教师数据
+            stuKcMoreInfo.setCjzc(cjzcJxb);//添加成绩组成
+            stuKcMoreInfo.setQdTotal(stuQDhistory.getTotal());//添加总签到次数
+            stuKcMoreInfo.setQqTime(stuQDhistory.getQqTime());//添加缺勤记录次数
+            stuKcMoreInfo.setCdTime(stuQDhistory.getCdTime());//添加迟到记录次数
+            stuKcMoreInfo.setQjTime(stuQDhistory.getQjTime());//添加请假记录次数
+            stuKcMoreInfo.setCqTime(stuQDhistory.getCqTime());//添加出勤记录次数
+            stuKcMoreInfo.setTwTotal(stuTWHistory.getTotal());//添加提问总次数
+            stuKcMoreInfo.setHdTimes(stuTWHistory.getHdTimes());//添加回答记录次数
+            stuKcMoreInfo.setWdTimes(stuTWHistory.getWdTimes());//添加未回答记录次数
+
+            //6.返回数据
+            return stuKcMoreInfo;
         }catch (Exception e){
-
+            logger.error("获取学生[{}]课程[{}]扩展数据出现未知错误！",xh,jxb);
         }
         return null;
     }

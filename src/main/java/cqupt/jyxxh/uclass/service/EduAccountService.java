@@ -282,10 +282,17 @@ public class EduAccountService {
      */
     public Teacher getTeacher(String teaId){
         //1.去u课堂后台数据库获取教师数据
-        Teacher teacher = teacherMapper.queryTeacherByTeaId(teaId);
-        if (null==teacher){
-
+        Teacher teacherDB = teacherMapper.queryTeacherByTeaId(teaId);
+        if (null!=teacherDB){
+            //如果不为空直接返回数据
+            return teacherDB;
         }
+        //2.数据库中没有，去教务在线获取
+        Teacher teacherJWZX = getDataFromJWZX.getTeacherInfoByTeaId(teaId);
+        if (null!=teacherJWZX){
+            return teacherJWZX;
+        }
+        //3.如果都没有获取到，就返回null.
         return null;
     }
 
