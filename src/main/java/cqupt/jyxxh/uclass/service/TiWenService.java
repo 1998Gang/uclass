@@ -252,7 +252,7 @@ public class TiWenService {
             keChengTiWenHistory.setTotal(kctwHistory.size());
             keChengTiWenHistory.setNoAnswerStuList(kctwHistory);
 
-            //将数据放入缓存，设置30分钟有效时间
+            //将数据放入缓存，设置2小时有效时间
             try {
                 redisService.setKCTWHistory(keChengTiWenHistory);
             }catch (Exception e){

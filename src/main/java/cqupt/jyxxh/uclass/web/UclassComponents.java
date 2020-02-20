@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -100,5 +101,31 @@ public class UclassComponents {
 
         //未知错误响应500
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+
+    /**
+     * 用户添加电话号码和邮箱
+     * @param params map集合{ykth=‘一卡通号’,'email'='邮箱','phone'='电话号','accountType'='用户类型（"s"为学生，"t"为老师）'}
+     * @return  提示信息
+      */
+    @RequestMapping(value = "addemailandphone",method=RequestMethod.POST,produces = "application/json;charset=utf-8")
+    public ResponseEntity<String> addEmailAndPhone(@RequestBody Map<String,String> params){
+        try {
+            boolean b = componentService.addMailAndPhone(params);
+            if (b){
+                //日志
+                if (logger.isInfoEnabled()){
+                    logger.info("用户[{}]完善电话与邮箱成功！用户类型[{}]",params.get("ykth"),params.get("accountType"));
+                }
+                //响应200
+                return ResponseEntity.status(HttpStatus.OK).body("完成成功！");
+            }else {
+                //响应400
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("完善失败！");
+            }
+        }catch (Exception e){
+            logger.error("用户[{}]完善电话与邮箱失败！用户类型[{}]",params.get("ykth"),params.get("accountType"));
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("服务器端出现未知错误！");
     }
 }

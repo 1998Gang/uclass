@@ -2,6 +2,8 @@ package cqupt.jyxxh.uclass.dao;
 
 import cqupt.jyxxh.uclass.pojo.user.Student;
 
+import java.util.Map;
+
 /**
  *学生信息操作接口
  */
@@ -71,4 +73,10 @@ public interface StudentMapper {
      * @param ykth 一卡通号
      */
     void deleteStudentByYkth(String ykth);
+
+    /**
+     * 给学生添加邮箱和电话号码
+     * @param params  map集合{ykth=‘一卡通号’,'email'='邮箱','phone'='电话号','accountType'='用户类型（"s"为学生，"t"为老师）'}
+     */
+    void addStuEmailAndPhone(Map<String, String> params);
 }

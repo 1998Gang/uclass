@@ -14,10 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 从教务在线获取数据的工具类
@@ -99,7 +96,6 @@ public class GetDataFromJWZX {
         for (Teacher tea:teachers){
             teacher=tea;
         }
-
         return teacher;
     }
 
@@ -196,6 +192,7 @@ public class GetDataFromJWZX {
             e.printStackTrace();
         }
 
+        //教师获取课表
 
         //解析并返回,带参数”t“表示这是老师的课表。
         return Parse.parseHtmlToKebiaoInfo(teaKebiaoHtml,"t");
@@ -208,6 +205,18 @@ public class GetDataFromJWZX {
      */
     public Map<String,String> getCjzcByXh(String xh) throws Exception {
 
+        //json操作类
+        ObjectMapper objectMapper=new ObjectMapper();
+        //先获取缓存
+        try {
+            String cjzcJson = redisService.getCjzc(xh);
+            if (null!=cjzcJson){
+                //不为空说明缓存有数据，直接返回！
+                return objectMapper.readValue(cjzcJson,Map.class);
+            }
+        }catch (Exception e){
+            logger.error("获取成绩组成缓存出现未知错误！");
+        }
 
         Map<String,String> cjzc;
 
@@ -223,6 +232,13 @@ public class GetDataFromJWZX {
         // 3.解析html
         cjzc = Parse.parseHtmlToCJZC(cjzcHtml);
 
+        // 4.放进缓存
+        try {
+
+            redisService.setCjzc(xh,cjzcHtml);
+        }catch (Exception e){
+            logger.error("将成绩组成添加进缓存失败！");
+        }
         return cjzc;
     }
 

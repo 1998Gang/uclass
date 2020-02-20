@@ -1,5 +1,6 @@
 package cqupt.jyxxh.uclass.web;
 
+import cqupt.jyxxh.uclass.pojo.StuKcMoreInfo;
 import cqupt.jyxxh.uclass.service.KebiaoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,6 +84,28 @@ public class UclassKebiao {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
+
+    /**
+     * 学生获取本门课程更多的数据
+     * 包含本门课程教师数据，成绩组成，历史答题情况，历史签到情况
+     * @param xh 学号
+     * @param jxb 教学班
+     * @return StuKcMoreInfo
+     */
+    @RequestMapping(value = "stumorekcinfo",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
+    public ResponseEntity<StuKcMoreInfo> getStuKcMoreInfo(@RequestParam("xh")String xh,@RequestParam("jxb")String jxb){
+        try {
+            //1.获取数据
+            kebiaoService.getKcStuMoreInfo(xh,jxb);
+        }catch (Exception e){
+
+        }
+
+
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+
 
 
 }

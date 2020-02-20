@@ -2,6 +2,9 @@ package cqupt.jyxxh.uclass.dao;
 
 import cqupt.jyxxh.uclass.pojo.user.Teacher;
 
+import java.util.List;
+import java.util.Map;
+
 
 public interface TeacherMapper {
 
@@ -64,4 +67,11 @@ public interface TeacherMapper {
      * @param ykth 一卡通号
      */
     void deleteTeacherByYkth(String ykth);
+
+    /**
+     * 教师完善电话号码与邮箱
+     * @param params map集合{ykth=‘一卡通号’,'email'='邮箱','phone'='电话号','accountType'='用户类型（"s"为学生，"t"为老师）'}
+     */
+    void addTeaEmailAndPhone(Map<String, String> params);
+
 }

@@ -1,6 +1,8 @@
 package cqupt.jyxxh.uclass.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cqupt.jyxxh.uclass.dao.StudentMapper;
+import cqupt.jyxxh.uclass.dao.TeacherMapper;
 import cqupt.jyxxh.uclass.pojo.ClassStuInfo;
 import cqupt.jyxxh.uclass.pojo.KbStuListData;
 import cqupt.jyxxh.uclass.pojo.SchoolTime;
@@ -10,11 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * u课堂一些组件功能的srvice类
@@ -34,6 +38,12 @@ public class ComponentService {
 
     @Autowired
     private RedisService redisService;           //操作redis的操作类
+
+    @Autowired
+    private StudentMapper studentMapper;         //学生信息操作接口
+
+    @Autowired
+    private TeacherMapper teacherMapper;         //教师信息操作接口
 
     /**
      * 获取教务时间，匹配课表
@@ -139,4 +149,33 @@ public class ComponentService {
 
         return kbStuListData;
     }
+
+    /**
+     * 用户添加完善自己的电话邮箱等信息
+     * @param params map集合 {ykth=‘一卡通号’,'email'='邮箱','phone'='电话号','accountType'='用户类型（"s"为学生，"t"为老师）'}
+     * @return boolean
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public boolean addMailAndPhone(Map<String, String> params) {
+        try{
+            //判断用户类型执行不同操作
+            switch(params.get("accountType")){
+                case "s":{
+                    studentMapper.addStuEmailAndPhone(params);
+                    break;
+                }
+                case "t":{
+                    teacherMapper.addTeaEmailAndPhone(params);
+                    break;
+                }
+                default:{
+                    break;
+                }
+            }
+            return true;
+        }catch (Exception e){
+            return false;
+        }
+    }
+
 }

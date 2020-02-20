@@ -384,10 +384,10 @@ public class QianDaoService {
         StuQianDaoHistory stuQianDaoHistory = new StuQianDaoHistory();
         stuQianDaoHistory.setRecords(records);//添加签到记录
         stuQianDaoHistory.setTotal(total);//总签到次数
-        stuQianDaoHistory.setQqtime(qqtime);//缺勤次数
-        stuQianDaoHistory.setQjtime(qjtime);//请假次数
-        stuQianDaoHistory.setCdtime(cdtime);//迟到次数
-        stuQianDaoHistory.setCqtime(cqtime);//出勤次数
+        stuQianDaoHistory.setQqTime(qqtime);//缺勤次数
+        stuQianDaoHistory.setQjTime(qjtime);//请假次数
+        stuQianDaoHistory.setCdTime(cdtime);//迟到次数
+        stuQianDaoHistory.setCqTime(cqtime);//出勤次数
         stuQianDaoHistory.setXh(xh);//学号
         stuQianDaoHistory.setJxb(jxb);//教学班
 

@@ -275,6 +275,19 @@ public class EduAccountService {
         return ykthAndPassword;
     }
 
+    /**
+     * 通过教师号获取教师数据
+     * @param teaId 教师号
+     * @return Teacher
+     */
+    public Teacher getTeacher(String teaId){
+        //1.去u课堂后台数据库获取教师数据
+        Teacher teacher = teacherMapper.queryTeacherByTeaId(teaId);
+        if (null==teacher){
+
+        }
+        return null;
+    }
 
     /**
      * 给指定的教务账户添加密码（加密之后的）

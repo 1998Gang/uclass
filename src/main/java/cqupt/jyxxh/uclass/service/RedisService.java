@@ -1,6 +1,5 @@
 package cqupt.jyxxh.uclass.service;
 
-import checkers.oigj.quals.O;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cqupt.jyxxh.uclass.pojo.ClassStuInfo;
@@ -16,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Pipeline;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -47,7 +47,7 @@ public class RedisService {
     public boolean setKeBiao(String number, String kebiao) {
 
         //操作redis的key
-        String key = "kebiao_" + number;
+        String key = "(kebiao)" + number;
 
         try {
             // 1.获取一个redis连接
@@ -56,8 +56,8 @@ public class RedisService {
             jedisKebiao.select(1);
             // 3.执行存储操作
             jedisKebiao.set(key, kebiao);
-            // 4.设置有效时间 20小时
-            jedisKebiao.expire(key, 72000);
+            // 4.设置有效时间 6小时
+            jedisKebiao.expire(key, 21600);
             // 5.返回连接
             jedisKebiao.close();
         } catch (Exception e) {
@@ -78,7 +78,7 @@ public class RedisService {
     public String getKebiao(String number) {
 
         //操作redis的key
-        String key = "kebiao_" + number;
+        String key = "(kebiao)" + number;
         try {
             // 1.获取一个redis连接
             Jedis jedisGetKebiao = jedisPool.getResource();
@@ -114,7 +114,7 @@ public class RedisService {
     public boolean setCjzc(String xh, String cjzc) {
 
         // 操作redis的key
-        String key = "cjzc_" + xh;
+        String key = "(cjzc)" + xh;
         try {
             // 1.获取一个redis连接
             Jedis jedisCjzc = jedisPool.getResource();
@@ -145,31 +145,22 @@ public class RedisService {
     public String getCjzc(String xh) {
 
         // 操作redis的key
-        String key = "cjzc_" + xh;
+        String key = "(cjzc)" + xh;
 
-        try {
-            // 1.获取redis连接
-            Jedis jedisGetcjzc = jedisPool.getResource();
-            // 2.选择第三个数据库
-            jedisGetcjzc.select(2);
-            // 3.判断缓存中有没有该key的数据
-            Boolean exists = jedisGetcjzc.exists(key);
-            if (!exists) {
-                //缓存中没有，返回“false”
-                //归还连接
-                jedisGetcjzc.close();
-                return "false";
-            }
-            // 4.缓存中有
-            String s = jedisGetcjzc.get(key);
-            // 5.归还连接
-            jedisGetcjzc.close();
-            return s;
-        } catch (Exception e) {
-            //日志
-            logger.error("从缓存获取成绩组成数据出现未知错误！key:[{}]", key);
-            return "false";
+
+        // 1.获取redis连接
+        Jedis jedisGetcjzc = jedisPool.getResource();
+        // 2.选择第三个数据库
+        jedisGetcjzc.select(2);
+        // 3.获取数据
+        String s = jedisGetcjzc.get(key);
+        if ("NULL".equals(s) || null == s) {
+            return null;
         }
+        // 4.归还连接
+        jedisGetcjzc.close();
+        return s;
+
     }
 
 
@@ -185,24 +176,20 @@ public class RedisService {
         //操作redsi的key
         String key = "stulistdata_" + jxb;
 
-        try {
-            // 1.获取redis连接
-            Jedis jedisSetlistData = jedisPool.getResource();
-            // 2.选择第4个数据库
-            jedisSetlistData.select(3);
-            // 3.将数据添加进redis
-            jedisSetlistData.set(key, stuListData);
-            // 4.设置数据有效时间，30天
-            jedisSetlistData.expire(key, 2592000);
-            // 5.归还redis连接
-            jedisSetlistData.close();
 
-            return true;
-        } catch (Exception e) {
-            //日志
-            logger.error("添加课堂学生名单出错！key:[{}]", key);
-            return false;
-        }
+        // 1.获取redis连接
+        Jedis jedisSetlistData = jedisPool.getResource();
+        // 2.选择第4个数据库
+        jedisSetlistData.select(3);
+        // 3.将数据添加进redis
+        jedisSetlistData.set(key, stuListData);
+        // 4.设置数据有效时间，30天
+        jedisSetlistData.expire(key, 2592000);
+        // 5.归还redis连接
+        jedisSetlistData.close();
+
+        return true;
+
     }
 
     /**
@@ -216,30 +203,25 @@ public class RedisService {
 
         //操作redsi的key
         String key = "stulistdata_" + jxb;
-        try {
-            // 1.获取jedis连接
-            Jedis jedisGetStuListData = jedisPool.getResource();
-            // 2.选择redis第4个数据库
-            jedisGetStuListData.select(3);
-            // 3.判断redis中有没有该key的数据
-            Boolean exists = jedisGetStuListData.exists(key);
-            if (!exists) {
-                //redis中没有该key数据，返回“fasle”。
-                //归还连接
-                jedisGetStuListData.close();
-                return "false";
-            }
-            // 4.redis中有，查询并返回。
-            String s = jedisGetStuListData.get(key);
-            // 5.归还redis连接
-            jedisGetStuListData.close();
 
-            return s;
-        } catch (Exception e) {
-            //日志
-            logger.error("从缓存获取学生名单数据出现未知错误！key:[{}]", key);
+        // 1.获取jedis连接
+        Jedis jedisGetStuListData = jedisPool.getResource();
+        // 2.选择redis第4个数据库
+        jedisGetStuListData.select(3);
+        // 3.判断redis中有没有该key的数据
+        Boolean exists = jedisGetStuListData.exists(key);
+        if (!exists) {
+            //redis中没有该key数据，返回“fasle”。
+            //归还连接
+            jedisGetStuListData.close();
             return "false";
         }
+        // 4.redis中有，查询并返回。
+        String s = jedisGetStuListData.get(key);
+        // 5.归还redis连接
+        jedisGetStuListData.close();
+
+        return s;
     }
 
 
@@ -253,24 +235,20 @@ public class RedisService {
     public boolean setSchoolTime(String nowData, String schooleTime) {
 
         //操作redis的key
-        String key = "schooltime_" + nowData;
+        String key = "(schooltime)" + nowData;
 
-        try {
-            // 1.获取redis连接，不选择数据库，使用默认的第一个数据库。
-            Jedis jediSetSchoolTime = jedisPool.getResource();
-            // 2.添加数据
-            jediSetSchoolTime.set(key, schooleTime);
-            // 3.设置有效时间为24小时
-            jediSetSchoolTime.expire(key, 86400);
-            // 4.归还redis连接
-            jediSetSchoolTime.close();
 
-            return true;
-        } catch (Exception e) {
-            //日志
-            logger.error("添加教务时间缓存出错！key:[{}]", key);
-            return false;
-        }
+        // 1.获取redis连接，不选择数据库，使用默认的第一个数据库。
+        Jedis jediSetSchoolTime = jedisPool.getResource();
+        // 2.添加数据
+        jediSetSchoolTime.set(key, schooleTime);
+        // 3.设置有效时间为24小时
+        jediSetSchoolTime.expire(key, 86400);
+        // 4.归还redis连接
+        jediSetSchoolTime.close();
+
+        return true;
+
     }
 
     /**
@@ -283,7 +261,7 @@ public class RedisService {
     public String getSchoolTime(String nowData) {
 
         //操作redis的key
-        String key = "schooltime_" + nowData;
+        String key = "(schooltime)" + nowData;
 
         try {
             //1.获取redis连接,不选择数据库，使用默认的第一个数据库。
@@ -320,7 +298,7 @@ public class RedisService {
     public String getPhpsessid(String ykth) {
 
         //操作redis的key
-        String key = "phpsessid_" + ykth;
+        String key = "(phpsessid)" + ykth;
         try {
             // 1.获取一个redis连接
             Jedis jedisGetPhpsessid = jedisPool.getResource();
@@ -352,7 +330,7 @@ public class RedisService {
      */
     public boolean setPhpsessid(String ykth, String phpsessid) {
         //操作redis的key
-        String key = "phpsessid_" + ykth;
+        String key = "(phpsessid)" + ykth;
 
         try {
             // 1.获取redis连接
@@ -468,7 +446,7 @@ public class RedisService {
     /**
      * 加载教学班的学生名单到缓存(redis第5个数据库)，用于课堂点名（签到）的。
      * 传进来的参数jxb,week,work_day,qdcs是用于做redis的key
-     *
+     * <p>
      * key:(qdstu)QD-A13191A2130440002<18>(2)_1:2017214033
      * value:由classStudenInfo对象转换的的json字符串
      *
@@ -603,13 +581,14 @@ public class RedisService {
 
     /**
      * 加载签到码和签到记录到缓存，（redis第5个数据库）
-     *
+     * <p>
      * 【签到码】
      * key：例(qdm)QD-A13191A2130440002<18>(2)_1
      * value：签到码与本次签到的有效时间（qdm_yxsj）
-     *【签到记录】
+     * 【签到记录】
      * key：例 (qdjl)QD-A13191A2130440002<18>(2)_1
      * value：当前时间，年月日（yy-MM-dd）
+     *
      * @param jxb      教学班
      * @param week     周数
      * @param work_day 星期几
@@ -976,10 +955,10 @@ public class RedisService {
      * 在老师发起提问之后，把该课学生名单全部加载到缓存，回答一个学生，删除一个学生的记录，代表该生以及回答了。
      *
      * @param classStuInfoList 课堂学生名单
-     * @param work_day             星期几
-     * @param week                 周
-     * @param jxb                  教学班
-     * @param twcs                 提问次数
+     * @param work_day         星期几
+     * @param week             周
+     * @param jxb              教学班
+     * @param twcs             提问次数
      * @return String 加载成功，就返回提问id（twid）。加载失败，返回"false"字符串
      */
     public String loadTWStuList(List<ClassStuInfo> classStuInfoList, String work_day, String week, String jxb, String twcs) {
@@ -1016,7 +995,7 @@ public class RedisService {
 
     /**
      * 将教师发起的提问题目加载到缓存（redis第7个数据库）
-     *
+     * <p>
      * 1.问题主体：问题主体，value为问题主体，设有效时间
      * 2.提问记录：value也为问题主体，不设有效时间
      *
@@ -1049,7 +1028,7 @@ public class RedisService {
             //4.加载问题主体进缓存，用于回显给学生端，以及后续数据处理。设有效时间，用于控制回答时间。
             String keyWTZT = firstKeyWTZT + twid;
             jedisLoad.set(keyWTZT, wtztJson);
-            jedisLoad.expire(keyWTZT,Integer.parseInt(yxsj));
+            jedisLoad.expire(keyWTZT, Integer.parseInt(yxsj));
 
             //5.加载提问记录进缓存，value还是问题主体。
             String keyTWJL = firstKeyTWJL + twid;
@@ -1074,8 +1053,9 @@ public class RedisService {
     /**
      * 获取问题主体
      * redis第7个数据库
-     *
+     * <p>
      * 每次发起提问，会产生一个提问记录。提问记录value值也是问题主体。
+     *
      * @param twid 提问id
      * @return WTZT
      */
@@ -1223,12 +1203,13 @@ public class RedisService {
     /**
      * 获取未答题学生名单
      * reids第7个数据库
+     *
      * @param twid 提问id
      * @return map集合，元素为未答题学生的key
      */
     public Set<String> keysNoAnswerStuKey(String twid) {
         //操作redis的key
-        String key="(twstu)"+twid+"*";
+        String key = "(twstu)" + twid + "*";
         try {
             //1.获取redis链接
             Jedis jedisKeys = jedisPool.getResource();
@@ -1240,15 +1221,16 @@ public class RedisService {
             jedisKeys.close();
             //5.返回
             return keys;
-        }catch (Exception e){
+        } catch (Exception e) {
             //日志
-            logger.error("获取未答题学生key出现未知错误！错误原因：[{}]",e.getMessage());
+            logger.error("获取未答题学生key出现未知错误！错误原因：[{}]", e.getMessage());
             return null;
         }
     }
 
     /**
      * 获取没有回答问题的学生
+     *
      * @param key key
      * @return 获取成就返回ClassStudentInfo的json字符串，失败返回"false"
      */
@@ -1264,21 +1246,22 @@ public class RedisService {
             jedisget.close();
             //5.返回
             return classStuInfoJson;
-        }catch (Exception e){
+        } catch (Exception e) {
             //日志
-            logger.error("获取未答题学生key出现未知错误！错误原因：[{}]",e.getMessage());
+            logger.error("获取未答题学生key出现未知错误！错误原因：[{}]", e.getMessage());
             return "false";
         }
     }
 
     /**
      * 获取缓存中所有的提问记录（redis第7个数据库）
+     *
      * @return 提问记录的Set集合
      */
     public Set<String> getAllTwjl() {
 
         //操作redis的key
-        String key="(twjl)*";
+        String key = "(twjl)*";
         try {
             //1.获取redis连接
             Jedis jedisGet = jedisPool.getResource();
@@ -1290,16 +1273,17 @@ public class RedisService {
             jedisGet.close();
             //5.返回数据
             return keys;
-        }catch (Exception e){
+        } catch (Exception e) {
             //日志
-            logger.error("获取所有提问记录key出现位置错误！错误原因：[{}]",e.getMessage());
+            logger.error("获取所有提问记录key出现位置错误！错误原因：[{}]", e.getMessage());
             return null;
-       }
+        }
     }
 
     /**
      * 获取缓存中所有没有回答问题的学生数据（redis第7个数据库）
-     * @return  没有回答问题的学生集合
+     *
+     * @return 没有回答问题的学生集合
      */
     public List<ClassStuInfo> getAllNoAnStu() {
         //操作redis的key
@@ -1340,37 +1324,36 @@ public class RedisService {
     /**
      * 将课程的历史提问数据放任缓存 （redis第6个数据库）
      *
-     *
      * @param keChengTiWenHistory keChengTiWenHistory
      */
     public void setKCTWHistory(KeChengTiWenHistory keChengTiWenHistory) throws JsonProcessingException {
         //操作redis的key
-        String key="(kctwh)"+keChengTiWenHistory.getJxb();//例：
+        String key = "(kctwh)" + keChengTiWenHistory.getJxb();//例：(kctwh)A13191A2130460001
 
-            //1.获取redis连接
-            Jedis resource = jedisPool.getResource();
-            //2.选择第6个数据库
-            resource.select(5);
-            //3. 将KeChengTiWenHistory转为json格式数据
-            ObjectMapper objectMapper=new ObjectMapper();
-            String KCTWHistoryJson = objectMapper.writeValueAsString(keChengTiWenHistory);
-            //4.存入数据
-            resource.set(key,KCTWHistoryJson);
-            //5.设置有效时间,2小时
-            resource.pexpire(key,7200);
-            //5.归还redis连接
-            resource.close();
-
+        //1.获取redis连接
+        Jedis resource = jedisPool.getResource();
+        //2.选择第6个数据库
+        resource.select(5);
+        //3. 将KeChengTiWenHistory转为json格式数据
+        ObjectMapper objectMapper = new ObjectMapper();
+        String KCTWHistoryJson = objectMapper.writeValueAsString(keChengTiWenHistory);
+        //4.存入数据
+        resource.set(key, KCTWHistoryJson);
+        //5.设置有效时间,2小时
+        resource.expire(key, 7200);
+        //5.归还redis连接
+        resource.close();
     }
 
     /**
      * 通过教学班号获取相应课程的课堂提问 回答情况历史数据（redis第6个数据库）
+     *
      * @param jxb 教学班号
      * @return KeChengTiWenHistory
      */
     public KeChengTiWenHistory getKCTWHistory(String jxb) throws JsonProcessingException {
         //操作redis的key
-        String key="(kctwh)"+jxb;
+        String key = "(kctwh)" + jxb;
 
         //1.获取redis连接
         Jedis resource = jedisPool.getResource();
@@ -1378,11 +1361,12 @@ public class RedisService {
         resource.select(5);
         //3.
         String result = resource.get(key);
-        if ("NULL".equals(result)||null==resource){
+        if ("NULL".equals(result)||null==result) {
+            resource.close();
             return null;
         }
         //4.将结果转换为java对象
-        ObjectMapper objectMapper=new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
         KeChengTiWenHistory keChengTiWenHistory = objectMapper.readValue(result, KeChengTiWenHistory.class);
         //4.归还连接
         resource.close();
@@ -1393,48 +1377,51 @@ public class RedisService {
     /**
      * 将学生某门课程的历史答题情况数据放进redis缓存（redis第6个数据库）
      * key：     例：(stwh)A13191A2130460001-2017214033
+     *
      * @param stuTiWenHistory StuTiWenHistory
      */
     public void setStuTWHistory(StuTiWenHistory stuTiWenHistory) throws JsonProcessingException {
         //操作redis 的key
-        String key="(stwh)"+stuTiWenHistory.getJxb()+"-"+stuTiWenHistory.getXh();//例：(stwh)A13191A2130460001-2017214033
+        String key = "(stwh)" + stuTiWenHistory.getJxb() + "-" + stuTiWenHistory.getXh();//例：(stwh)A13191A2130460001-2017214033
 
         //1.获取reids连接
         Jedis resource = jedisPool.getResource();
         //2.选择第6个数据库
         resource.select(5);
         //3.将java对象转为json格式数据
-        ObjectMapper objectMapper=new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
         String stutTWHistoryJson = objectMapper.writeValueAsString(stuTiWenHistory);
         //4.数据放进数据库
-        resource.set(key,stutTWHistoryJson);
+        resource.set(key, stutTWHistoryJson);
         //5.设置有效时间,2小时
-        resource.pexpire(key,7200);
+        resource.expire(key, 7200);
         //6.归还redis连接
         resource.close();
     }
 
     /**
      * 获取某个学生的某门课程的历史答题情况(redis第6个数据库)
+     *
      * @param jxb 教学班
-     * @param xh 学号
+     * @param xh  学号
      * @return StuTiWenHistory
      */
     public StuTiWenHistory getStuTWHistory(String jxb, String xh) throws JsonProcessingException {
         //操作redis的key
-        String key="(stwh)"+jxb+"-"+xh;
+        String key = "(stwh)" + jxb + "-" + xh;
         //1.获取reids连接
         Jedis resource = jedisPool.getResource();
         //2.选择数据库
         resource.select(5);
         //3.获取数据
         String s = resource.get(key);
-        if ("NULL".equals(s)||null==s){
+        if ("NULL".equals(s) || null == s) {
+            resource.close();
             //没有返回空
             return null;
         }
         //4.json转为java对象
-        ObjectMapper objectMapper=new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
         StuTiWenHistory stuTiWenHistory = objectMapper.readValue(s, StuTiWenHistory.class);
         //5.归还连接
         resource.close();
@@ -1444,49 +1431,106 @@ public class RedisService {
 
     /**
      * 将课程的历史签到数据放进缓存（redis第6个数据库）
+     *
      * @param keChengQianDaoHistory KeChengQianDaoHistory类
      */
     public void setKCQDHistory(KeChengQianDaoHistory keChengQianDaoHistory) throws JsonProcessingException {
         //操作redis的key
-        String key="(kcqdh)"+keChengQianDaoHistory.getJxb();//例：(kcqdh)A13191A2130460001
+        String key = "(kcqdh)" + keChengQianDaoHistory.getJxb();//例：(kcqdh)A13191A2130460001
         //1.获取redis 连接
         Jedis resource = jedisPool.getResource();
         //2.选择数据库
         resource.select(5);
         //3.将java对象转为json格式数据
-        ObjectMapper objectMapper=new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
         String s = objectMapper.writeValueAsString(keChengQianDaoHistory);
         //4.放进redis
-        resource.set(key,s);
+        resource.set(key, s);
         //5.设置有效时间，2小时
-        resource.pexpire(key,7200);
+        resource.expire(key, 7200);
         //6.归还连接
         resource.close();
     }
 
     /**
      * 获取课程的历史签到数据（redis第6个数据库）
+     *
      * @param jxb 教学班
      * @return KeChengQianDaoHistory
      */
     public KeChengQianDaoHistory getKCQDHistroy(String jxb) throws JsonProcessingException {
         //操作redis的key
-        String key="(kcqdh)"+jxb;
+        String key = "(kcqdh)" + jxb;
         //1.获取连接
         Jedis resource = jedisPool.getResource();
         //2.选择数据库
         resource.select(5);
         //3.获取数据
         String s = resource.get(key);
-        if ("NULL".equals(s)||null==s){
+        if ("NULL".equals(s) || null == s) {
+            resource.close();
             return null;
         }
         //4.将json对象转为java对象
-        ObjectMapper objectMapper=new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
         KeChengQianDaoHistory keChengQianDaoHistory = objectMapper.readValue(s, KeChengQianDaoHistory.class);
         //5.归还连接
         resource.close();
         //6.返回数据
         return keChengQianDaoHistory;
+    }
+
+    /**
+     * 将教学班与教师的对应关系放进缓存（redis第8个数据库）
+     * <p>
+     * key：（dygx）jxb 例：(dygx)A13191A2130460001
+     * value: teaId 教师号
+     *
+     * @param jxbs  某个老师所教课程的教学班集合
+     * @param teaId 教师号 （tesId）
+     */
+    public void setJxbDYTeaId(Set<String> jxbs, String teaId) {
+        //操作redis的key的前缀
+        String firstKey = "(dygx)";
+        //1.获取redis连接
+        Jedis resource = jedisPool.getResource();
+        //2.选择数据库
+        resource.select(7);
+        //3.加载数据进缓存
+        Pipeline pipelined = resource.pipelined();
+        for (String s : jxbs) {
+            String key = firstKey + s;
+            pipelined.set(key, teaId);
+            //有效时间150天
+            pipelined.expire(key, 12960000);
+        }
+        pipelined.sync();
+        //4.归还连接
+        pipelined.close();
+        resource.close();
+    }
+
+    /**
+     * 根据教学班获取对应的教师号(redis第8个数据库)
+     * @param jxb 教学班号
+     * @return String 教师号
+     */
+    public String getTeaIdByJxb(String jxb){
+        //操作redis的key
+        String key="(dygx)"+jxb;
+        //1.获取redis连接
+        Jedis resource = jedisPool.getResource();
+        //2.选择数据库
+        resource.select(7);
+        //3.获取数据
+        String teaId = resource.get(key);
+        if ("NULL".equals(teaId)||null==teaId){
+            resource.close();
+            return null;
+        }
+        //4.归还连接
+        resource.close();
+        //5.返回
+        return teaId;
     }
 }

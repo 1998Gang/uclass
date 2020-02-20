@@ -46,4 +46,8 @@
         delete from uclass_teacher_info where ykth='${value}'
     </delete>
 
+    <!--9.addEmailAndPhone,给教师更新邮箱与电话号码-->
+    <update id="addTeaEmailAndPhone" parameterType="java.util.Map">
+        update uclass_teacher_info set email=#{email},phone=#{phone} WHERE ykth=#{ykth}
+    </update>
 </mapper>

@@ -12,10 +12,10 @@ public class StuQianDaoHistory {
     private String xh;//学号
     private String jxb;//教学班号
     private int total;//总签到次数
-    private int qqtime; //未签到次数
-    private int cdtime;//迟到次数
-    private int qjtime;//请假次数
-    private int cqtime;//出勤次数
+    private int qqTime; //缺勤次数
+    private int cdTime;//迟到次数
+    private int qjTime;//请假次数
+    private int cqTime;//出勤次数
     private List<StuSingleRecord> Records;//签到情况记录
 
     @Override
@@ -24,10 +24,10 @@ public class StuQianDaoHistory {
                 "xh='" + xh + '\'' +
                 ", jxb='" + jxb + '\'' +
                 ", total=" + total +
-                ", qqtime=" + qqtime +
-                ", cdtime=" + cdtime +
-                ", qjtime=" + qjtime +
-                ", cqtime=" + cqtime +
+                ", qqTime=" + qqTime +
+                ", cdTime=" + cdTime +
+                ", qjTime=" + qjTime +
+                ", cqtime=" + cqTime +
                 ", Record=" + Records +
                 '}';
     }
@@ -56,36 +56,36 @@ public class StuQianDaoHistory {
         this.total = total;
     }
 
-    public int getQqtime() {
-        return qqtime;
+    public int getQqTime() {
+        return qqTime;
     }
 
-    public void setQqtime(int qqtime) {
-        this.qqtime = qqtime;
+    public void setQqTime(int qqTime) {
+        this.qqTime = qqTime;
     }
 
-    public int getCdtime() {
-        return cdtime;
+    public int getCdTime() {
+        return cdTime;
     }
 
-    public void setCdtime(int cdtime) {
-        this.cdtime = cdtime;
+    public void setCdTime(int cdTime) {
+        this.cdTime = cdTime;
     }
 
-    public int getQjtime() {
-        return qjtime;
+    public int getQjTime() {
+        return qjTime;
     }
 
-    public void setQjtime(int qjtime) {
-        this.qjtime = qjtime;
+    public void setQjTime(int qjTime) {
+        this.qjTime = qjTime;
     }
 
-    public int getCqtime() {
-        return cqtime;
+    public int getCqTime() {
+        return cqTime;
     }
 
-    public void setCqtime(int cqtime) {
-        this.cqtime = cqtime;
+    public void setCqTime(int cqTime) {
+        this.cqTime = cqTime;
     }
 
     public List<StuSingleRecord> getRecords() {

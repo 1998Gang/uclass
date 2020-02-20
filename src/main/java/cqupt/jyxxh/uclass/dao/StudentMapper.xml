@@ -52,4 +52,11 @@
     <delete id="deleteStudentByYkth" parameterType="String">
         delete from uclass_students_info where ykth=#{value}
     </delete>
+
+    <!--10.addMailAndPhoneNumber,给学生添加电话号码和邮箱-->
+    <update id="addStuEmailAndPhone" parameterType="java.util.Map" >
+        update uclass_students_info set stu_email=#{email},stu_phone=#{phone} WHERE ykth=#{ykth}
+    </update>
+
+
 </mapper>
