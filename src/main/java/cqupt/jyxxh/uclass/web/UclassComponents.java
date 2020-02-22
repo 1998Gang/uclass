@@ -1,5 +1,6 @@
 package cqupt.jyxxh.uclass.web;
 
+import cqupt.jyxxh.uclass.pojo.Feeback;
 import cqupt.jyxxh.uclass.pojo.KbStuListData;
 import cqupt.jyxxh.uclass.pojo.SchoolTime;
 import cqupt.jyxxh.uclass.service.ComponentService;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -127,5 +129,30 @@ public class UclassComponents {
             logger.error("用户[{}]完善电话与邮箱失败！用户类型[{}]",params.get("ykth"),params.get("accountType"));
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("服务器端出现未知错误！");
+    }
+
+    @RequestMapping(value = "feedbackinfo",method = RequestMethod.POST,produces = "application/json;charset=utf-8")
+    public ResponseEntity<String> feebackPoblems(@RequestBody Feeback feeback){
+
+        try {
+            //添加当前时间
+            feeback.setTime(new Date());
+            //调用service层
+            boolean b = componentService.feebackProblems(feeback);
+            if (b){
+                //日志
+                logger.info("用户[{}]反馈问题数据成功！",feeback.getName());
+                //返回数据 响应200
+                return ResponseEntity.status(HttpStatus.OK).body("反馈成功！");
+            }else {
+                //日志
+                logger.info("用户[{}]反馈问题数据失败！",feeback.getName());
+                //响应400
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("反馈失败！");
+            }
+        }catch (Exception e){
+            logger.error("用户[{}]反馈问题出现未知错误！",feeback.getName());
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("服务器端未知错误！");
     }
 }

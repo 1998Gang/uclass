@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cqupt.jyxxh.uclass.dao.ComponentsMapper">
+    <!--1.insterFeebackInfo,将用户反馈数据添加到数据库-->
+    <insert id="insterFeebackInfo" parameterType="Feeback">
+        insert into uclass_feeback(time, ykth, name, userType, phone, email, title, content)
+        VALUES (#{time}, #{ykth}, #{name}, #{userType}, #{phone}, #{email},#{title},#{content})
+    </insert>
+</mapper>

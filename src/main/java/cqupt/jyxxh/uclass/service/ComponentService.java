@@ -1,13 +1,16 @@
 package cqupt.jyxxh.uclass.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cqupt.jyxxh.uclass.dao.ComponentsMapper;
 import cqupt.jyxxh.uclass.dao.StudentMapper;
 import cqupt.jyxxh.uclass.dao.TeacherMapper;
 import cqupt.jyxxh.uclass.pojo.ClassStuInfo;
+import cqupt.jyxxh.uclass.pojo.Feeback;
 import cqupt.jyxxh.uclass.pojo.KbStuListData;
 import cqupt.jyxxh.uclass.pojo.SchoolTime;
 import cqupt.jyxxh.uclass.utils.GetDataFromJWZX;
 import cqupt.jyxxh.uclass.utils.Parse;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +47,9 @@ public class ComponentService {
 
     @Autowired
     private TeacherMapper teacherMapper;         //教师信息操作接口
+
+    @Autowired
+    private ComponentsMapper componentsMapper;   //扩展功能信息操作接口
 
     /**
      * 获取教务时间，匹配课表
@@ -176,4 +182,19 @@ public class ComponentService {
         }
     }
 
+    /**
+     * 用户反馈使用问题
+     * @param feeback 反馈问题实体
+      */
+    public boolean feebackProblems(Feeback feeback) {
+        try {
+            //操作dao层
+            componentsMapper.insterFeebackInfo(feeback);
+            //成功，返回true
+            return true;
+        }catch (Exception e){
+            logger.error("添加用户反馈数据失败！");
+        }
+        return false;
+    }
 }
