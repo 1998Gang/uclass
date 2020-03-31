@@ -11,11 +11,31 @@ import java.util.Map;
  * @date created in 17:44 2020/1/19
  */
 public class TiWenResult {
-    private String twid;//提问id
-    private String questiontype;//问题类型  sub代表主观 obj代表客观
-    private List<AnswerData> subResult;//主观题结果
-    private List<ObjResult> objResults;//客观题结果
-    private List<Map<String,String>> noAnswerStuList;//未答题学生名单
+
+    /**
+     * 提问id
+     */
+    private String twid;
+
+    /**
+     * 问题类型  sub代表主观 obj代表客观
+     */
+    private String questiontype;
+
+    /**
+     * 主观题结果
+     */
+    private List<AnswerData> subResult;
+
+    /**
+     * 客观题结果
+     */
+    private List<ObjResult> objResults;
+
+    /**
+     * 未答题学生名单
+     */
+    private List<Map<String,String>> noAnswerStuList;
 
     @Override
     public String toString() {

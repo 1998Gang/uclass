@@ -26,19 +26,34 @@ import java.util.Hashtable;
 @Component
 public class Authentication {
 
-    private final Logger logger= LoggerFactory.getLogger(Authentication.class);   //日志
+    /**
+     * 日志
+     */
+    private final Logger logger= LoggerFactory.getLogger(Authentication.class);
 
+    /**
+     * LDAP连接地址
+     */
     @Value("${LDAP.URL}")
-    private String URL;       //LDAP连接地址  "ldap://211.83.210.1:389/"
+    private String URL;
 
+    /**
+     * LDAP的根DN
+     */
     @Value("${LDAP.BASEDN}")
-    private  String BASEDN;   //LDAP的根DN  "dc=cqupt,dc=edu,dc=cn"
+    private  String BASEDN;
 
+    /**
+     * LDAP的连接账号
+     */
     @Value("${LDAP.PRINCIPAL}")
-    private String PRINCIPAL; //LDAP的连接账号
+    private String PRINCIPAL;
 
+    /**
+     * LDAP连接账号的密码
+     */
     @Value("${LDAP.PASSWORD}")
-    private String PASSWORD;   //LDAP连接账号的密码  wxgzpt_ldapuser
+    private String PASSWORD;
 
 
     /**

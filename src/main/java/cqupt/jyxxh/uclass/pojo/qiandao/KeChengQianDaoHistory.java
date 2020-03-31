@@ -11,12 +11,30 @@ import java.util.List;
  * @date created in 21:51 2020/1/13
  */
 public class KeChengQianDaoHistory {
-    private String jxb;  //教学班
-    private int total;  //有记录的总人次
-    private int absenteeism;//有缺勤记录是人次
-    private int lateArrivals;//有迟到记录的人次
-    private int numberOfLeave;//有请假记录的人次
-    private List<KeChengQDOneStuRecord> stuList;//名单
+    /**
+     * 教学班
+     */
+    private String jxb;
+    /**
+     * 有记录的总人次
+     */
+    private int total;
+    /**
+     * 有缺勤记录是人次
+     */
+    private int absenteeism;
+    /**
+     * 有迟到记录的人次
+     */
+    private int lateArrivals;
+    /**
+     * 有请假记录的人次
+     */
+    private int numberOfLeave;
+    /**
+     * 名单
+     */
+    private List<KeChengQdOneStuRecord> stuList;
 
     @Override
     public String toString() {
@@ -70,11 +88,11 @@ public class KeChengQianDaoHistory {
         this.numberOfLeave = numberOfLeave;
     }
 
-    public List<KeChengQDOneStuRecord> getStuList() {
+    public List<KeChengQdOneStuRecord> getStuList() {
         return stuList;
     }
 
-    public void setStuList(List<KeChengQDOneStuRecord> stuList) {
+    public void setStuList(List<KeChengQdOneStuRecord> stuList) {
         this.stuList = stuList;
     }
 }

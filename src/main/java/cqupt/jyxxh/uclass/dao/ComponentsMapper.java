@@ -2,7 +2,6 @@ package cqupt.jyxxh.uclass.dao;
 
 import cqupt.jyxxh.uclass.pojo.Feeback;
 
-import java.util.Map;
 
 /**
  *

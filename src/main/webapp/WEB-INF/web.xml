@@ -13,6 +13,9 @@
   <listener>
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
   </listener>
+  <listener>
+    <listener-class>cqupt.jyxxh.uclass.service.DelayEnduranceToMysqlService</listener-class>
+  </listener>
 
   <!--2.spring 配置文件所在位置-->
   <context-param>

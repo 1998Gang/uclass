@@ -35,14 +35,26 @@ public class SimulationLogin {
 
     Logger logger = LoggerFactory.getLogger(SimulationLogin.class);
 
+    /**
+     * 统一身份认证平台URL（登陆教务在线）
+     */
     @Value("${JWZX.URLAuthserverLogin}")
-    private String URL_AUTHSERVER_LOGIN_TO_JWZX;          //统一身份认证平台URL（登陆教务在线）
+    private String urlAuthServerLoginToJwzx;
 
+    /**
+     * 操作redis的类
+     */
     @Autowired
-    private RedisService redisService;                 //操作redis的类
+    private RedisService redisService;
 
+    /**
+     *  教务账户操作类
+     */
     @Autowired
-    private EduAccountService eduAccountService;        //教务账户操作类
+    private EduAccountService eduAccountService;
+
+
+
 
 
     /**
@@ -61,6 +73,7 @@ public class SimulationLogin {
 
         //1.先去查找缓存（redis）
         try {
+            assert redisService != null;
             String data = redisService.getPhpsessid(ykth);
             if (!"false".equals(data)){
                 //获取的数据不为“false”说明获取成功
@@ -76,7 +89,7 @@ public class SimulationLogin {
         //缓存没有，就去登陆教务在线获取。
         // 2.第一次GET请求学校统一认证平台，获取cookie值（JSESSIONID），以及表单值（lt、execution、_eventId、rmShown）。用于第二次POST请求。
         // 2.1 获取响应实体
-        CloseableHttpResponse responseFirst = SendHttpRquest.getResponse(URL_AUTHSERVER_LOGIN_TO_JWZX);
+        CloseableHttpResponse responseFirst = SendHttpRquest.getResponse(urlAuthServerLoginToJwzx);
         // 2.2 获取cookie值(JSSESSIONID)
         assert responseFirst != null;
         String jssessionid = getJssessionid(responseFirst);
@@ -86,7 +99,7 @@ public class SimulationLogin {
         // 3.第二次POST请求学校统一认证平台，获取身份校验成功后的重定向地址location。需要账号密码，以及第一次GET请求得到的Cookie值，还有表单值。
         String location ;
         // 3.1 获取相应实体
-        CloseableHttpResponse responseSeconed = SendHttpRquest.postResponse(URL_AUTHSERVER_LOGIN_TO_JWZX, jssessionid, form, ykth, password);
+        CloseableHttpResponse responseSeconed = SendHttpRquest.postResponse(urlAuthServerLoginToJwzx, jssessionid, form, ykth, password);
         // 3.2判断响应状态码，200说明账号密码不正确。302说明账号密码正确，可以进行下一步
         if (302==responseSeconed.getStatusLine().getStatusCode()){
             //账号验证成功,获取重定向的地址location，重定向地址含有验证成功（模拟登陆成功）后的PHPSESSID。
@@ -105,6 +118,7 @@ public class SimulationLogin {
             //抛出异常,身份过期。
             // 同时删除该用户的教务账户。
             // 这样在下一次用户登陆的时候，就会被判定出来，身份过期，需要重新绑定了。
+            assert eduAccountService != null;
             eduAccountService.deleteEduAccount(ykth);
             throw new Exception("Identity is overdue");
         }
@@ -159,8 +173,8 @@ public class SimulationLogin {
         // 1.实例化一个map集合用于存放获取的表单值
         Map<String,String> form=new HashMap<>();
         // 2.解析相应页面，获取（lt、execution、_eventId、rmShown）值
-        HttpEntity authserver_loginEntity = response.getEntity();
-        String s = EntityUtils.toString(authserver_loginEntity);
+        HttpEntity authserverLoginEntity = response.getEntity();
+        String s = EntityUtils.toString(authserverLoginEntity);
         Document parse = Jsoup.parse(s);
         Elements input = parse.getElementsByTag("input");
         for (Element element:input){

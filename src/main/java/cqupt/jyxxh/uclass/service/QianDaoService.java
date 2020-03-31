@@ -1,17 +1,21 @@
 package cqupt.jyxxh.uclass.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cqupt.jyxxh.uclass.dao.QianDaoMapper;
 import cqupt.jyxxh.uclass.pojo.ClassStuInfo;
-import cqupt.jyxxh.uclass.pojo.KbStuListData;
+import cqupt.jyxxh.uclass.pojo.ClassStuList;
+import cqupt.jyxxh.uclass.pojo.ClassStuListData;
 import cqupt.jyxxh.uclass.pojo.qiandao.*;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 签到功能service类
@@ -30,17 +34,28 @@ import java.util.*;
 @Service
 public class QianDaoService {
 
+    /**
+     * 日志操作对象
+     */
     Logger logger = LoggerFactory.getLogger(QianDaoService.class);
 
+    /**
+     * redis操作功能类
+     */
     @Autowired
-    private RedisService redisService;          //redis操作功能类
+    private  RedisService redisService;
 
+    /**
+     * service层类，用于获取一些数据。
+     */
     @Autowired
-    private ComponentService componentService;   //service层类，用于获取一些数据。
+    private  ComponentService componentService;
 
+    /**
+     * dao操作，与签到有关的dao操作类
+     */
     @Autowired
-    private QianDaoMapper qianDaoMapper;         //dao操作，与签到有关的dao操作类
-
+    private  QianDaoMapper qianDaoMapper;
 
     /**
      * 教师发起签到
@@ -54,19 +69,23 @@ public class QianDaoService {
      * 3.1   key: “ (qdm)QD-jxb<week>(work_day)_qdcs  ”。注：(qdm)QD-是字符串
      * 例：(qdm)A13191A2130440002<18>(2)_1
      *
-     * @param param map集合，是发起签到需要的必要参数。
+     * @param teaInitiateQdParams TeaInitiateQDParams，是发起签到需要的必要参数。
      * @return 发起签到成功，返回签到id（qdid），如果失败，返回“false”
      */
-    public String teaCreatQiandao(Map<String, String> param) {
+    public String teaCreatQiandao(TeaInitiateQdParams teaInitiateQdParams) {
 
         try {
             //1.获取参数
-            String jxb = param.get("jxb");//教学班
-            String week = param.get("week");//上课周
-            String work_day = param.get("work_day");//星期几（工作日）
-            String qdcs = param.get("qdcs");//签到次数，这是针对这堂课的第几次签到
-            String qdm = param.get("qdm");//签到码
-            String yxsj = param.get("yxsj");//签到码有效时间
+            String jxb = teaInitiateQdParams.getJxb();
+            String week = teaInitiateQdParams.getWeek();
+            //星期几（工作日）
+            String work_day = teaInitiateQdParams.getWork_day();
+            //签到次数，这是针对这堂课的第几次签到
+            String qdcs = teaInitiateQdParams.getQdcs();
+            //签到码
+            String qdm = teaInitiateQdParams.getQdm();
+            //签到码有效时间
+            long yxsj = teaInitiateQdParams.getYxsj();
 
             //日志
             if (logger.isInfoEnabled()) {
@@ -83,23 +102,27 @@ public class QianDaoService {
 
             // 3.将本堂课学生名单加载到缓存（redis第5个数据库）。
             // 3.1 获取该教学班的学生名单
-            KbStuListData kbStuListData = componentService.getKbStuListData(jxb);
-            if (kbStuListData.getHeadcount() == 0) {
-                //根据教学班查出的数据总人数为0，说明获取名单失败，可能是教学班错误！
+            ClassStuList classStuList = componentService.getClassStuList(jxb);
+            if (classStuList==null) {
+                //根据教学班的获取的名单为空，说明获取名单失败，可能是教学班错误！
                 return "jxb error";
             }
-            List<ClassStuInfo> students = kbStuListData.getStudents();
+            List<ClassStuInfo> classStuInfoList = classStuList.getClassStuInfoList();
             // 3.2 将该教学班学生名单加载到缓存（redis）中
-            boolean isLoadList = redisService.loadQDStuList(jxb, week, work_day, qdcs, students);
+            boolean isLoadList = redisService.loadQDStuList(jxb, week, work_day, qdcs, classStuInfoList);
 
             // 4.将签到码加载进缓存（redis第5个数据库），并设置有效时间。同还插入一条记录，记录有这么一次签到（不设有效时间）。
             String qddata = redisService.loadQdmToCache(jxb, week, work_day, qdcs, qdm, yxsj);
 
             // 5.名单加载成功，签到码加载返回值不为“false”。表示发起签到成功，返回签到id;
             if (!"false".equals(qddata) && isLoadList) {
+                /*发起签到成功后，创建一个QianDaoDateEndurance类的实例对象，该对象表示一次将redis中数据持久化到mysql数据库的操作。
+                * 并把该实例对象放进延时队列中，由后台线程去执行*/
+                QianDaoDateEndurance qianDaoDateEndurance=new QianDaoDateEndurance(teaInitiateQdParams);
+                DelayEnduranceToMysqlService.getDelayQueue().put(qianDaoDateEndurance);
+                //返回签到ID
                 return qddata;
             }
-
         } catch (Exception e) {
             //日志
             logger.error("发起签到service发送未知错误！");
@@ -109,7 +132,8 @@ public class QianDaoService {
     }
 
     /**
-     * 教师根据签到ID获取某一次签到的结果
+     * 教师根据签到ID获取本次签到的结果，从redis缓存中获取！
+     * 每天中文，下午，晚上都会清空缓存，所有本次签到结果数据有效时间只有半天
      *
      * @param qdid 签到id 一次签到的唯一识别码
      * @return QianDaoResult
@@ -119,22 +143,28 @@ public class QianDaoService {
         QianDaoResult qianDaoResult = new QianDaoResult();
 
         try {
-            int askForLeaveNum = 0;//请假人数
-            int beLateNum = 0;//迟到人数
-            int notOnStuNum = 0;//未签到人数
-            int allStuNum;//总人数
-            int inStuNum;//签了的人数
-            Set<ClassStuInfo> notOnTheStuList = new HashSet<>();// 未签到学生名单（包含没签到，迟到，请假）
+            //请假人数
+            int askForLeaveNum = 0;
+            //迟到人数
+            int beLateNum = 0;
+            //未签到人数
+            int notOnStuNum = 0;
+            //总人数
+            int allStuNum;
+            //签了的人数
+            int inStuNum;
+            // 未签到学生名单（包含没签到，迟到，请假）
+
+            List<ClassStuInfo> notOnTheStuList=new ArrayList<>(16);
 
             //jakson的操作对象
             ObjectMapper objectMapper = new ObjectMapper();
 
             // 1.获取本次点名还有缓存记录的的学生名单（包含了未签到，迟到，请假的学生）。（数据都在缓存里，redis第五个数据库）
-            Set<String> notNoStus = redisService.getNotOnStus(qdid);
+            List<ClassStuInfo> thisTimeNotOnStus = redisService.getThisTimeNotOnStus(qdid);
 
             // 2.遍历 notNostus，获取请假人数，迟到人数，未签到人数，名单。 set集合中没一个字符串是一个ClassStudentInfo的json字符串数据。遍历将json字符串还原为ClassStudentInfo对象。
-            for (String s : notNoStus) {
-                ClassStuInfo classStuInfo = objectMapper.readValue(s, ClassStuInfo.class);
+            for (ClassStuInfo classStuInfo : thisTimeNotOnStus) {
                 //判断该记录类型 "CD"迟到 "QJ"请假 "QQ"缺勤
                 switch (classStuInfo.getQdzt()) {
                     case "CD": {
@@ -149,48 +179,60 @@ public class QianDaoService {
                         notOnStuNum += 1;
                         break;
                     }
+                    default:{}
                 }
                 //将java对象放入名单中
                 notOnTheStuList.add(classStuInfo);
             }
 
-            // 3.获取总人数
+            // 3.获取该教学班的总人数
             // 3.1 获取该教学班学生名单数据 qdi：QD-A13191A2130460001<18>(3)_2
             String jxb = qdid.substring(qdid.indexOf("-") + 1, qdid.indexOf("<"));
-            KbStuListData kbStuListData = componentService.getKbStuListData(jxb);
+            ClassStuList classStuList = componentService.getClassStuList(jxb);
             // 3.2 总人数
-            allStuNum = kbStuListData.getHeadcount();
+            allStuNum = classStuList.getClassStuInfoList().size();
 
             //4.已经签了的人数,总人数-未签人数-迟到人数-请假人数
             inStuNum = allStuNum - notOnStuNum - beLateNum - askForLeaveNum;
 
             //5.获取签到时间,reids第5个数据库。
-            String keyQDJL = "(qdjl)" + qdid;
-            String qdsj = redisService.getValue(keyQDJL, 4);
+            String keyQdjl = "(qdjl)" + qdid;
+            String qdsj = redisService.getValue(keyQdjl, 4);
 
 
             // 5.将数据添加到QianDaoResult对象中，返回。
-            qianDaoResult.setAllStuNum(allStuNum);//整个班的学生人数
-            qianDaoResult.setInStuNum(inStuNum);//已经签到了的学生人数
-            qianDaoResult.setNotOnStuNum(notOnStuNum); //未签到学生人数
-            qianDaoResult.setBeLateNum(beLateNum);//迟到人数
-            qianDaoResult.setAskForLeaveNum(askForLeaveNum);//请假人数
-            qianDaoResult.setNotOnTheStuList(notOnTheStuList); //未签到学生名单
+            //整个班的学生人数
+            qianDaoResult.setAllStuNum(allStuNum);
+            //已经签到了的学生人数
+            qianDaoResult.setInStuNum(inStuNum);
+            //未签到学生人数
+            qianDaoResult.setNotOnStuNum(notOnStuNum);
+            //迟到人数
+            qianDaoResult.setBeLateNum(beLateNum);
+            //请假人数
+            qianDaoResult.setAskForLeaveNum(askForLeaveNum);
+            //未签到学生名单
+            qianDaoResult.setNotOnTheStuList(notOnTheStuList);
 
             String week = qdid.substring(qdid.indexOf("<") + 1, qdid.indexOf(">"));
-            qianDaoResult.setWeek(week);//时间 周
+            //时间 周
+            qianDaoResult.setWeek(week);
 
             String work_day = qdid.substring(qdid.indexOf("(") + 1, qdid.indexOf(")"));
-            qianDaoResult.setWork_day(work_day);//时间 星期几
+            //时间 星期几
+            qianDaoResult.setWork_day(work_day);
 
             String qdcs = qdid.substring(qdid.indexOf("_") + 1);
-            qianDaoResult.setQdcs(qdcs);   //第几次签到
+            //第几次签到
+            qianDaoResult.setQdcs(qdcs);
+            //教学班
+            qianDaoResult.setJxb(jxb);
+            //签到id
+            qianDaoResult.setQdid(qdid);
+            //签到时间
+            qianDaoResult.setQdsj(qdsj);
 
-            qianDaoResult.setJxb(jxb);      //教学班
-            qianDaoResult.setQdid(qdid); //签到id
-            qianDaoResult.setQdsj(qdsj);  //签到时间
-
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             //日志
             logger.error("获取签到结果出现未知错误");
             e.printStackTrace();
@@ -210,30 +252,60 @@ public class QianDaoService {
      * @param param map {"qdid":"签到id","xh":"补签学生学号","bqlx":"补签类型"}
      * @return boolean 返回补签是否成功。
      */
+    @Transactional(rollbackFor = {Exception.class})
     public boolean teaRetroactive(Map<String, String> param) {
 
         try {
             // 1.解析参数
+            //签到id
+            String qdid = param.get("qdid");
+            //补签学生学号
+            String xh = param.get("xh");
+            //补签类型。QJ|CD|WT (补签类型,分别代表 请假|迟到|网络问题)
+            String bqlx = param.get("bqlx");
 
-            String qdid = param.get("qdid");//签到id
-            String xh = param.get("xh");//补签学生学号
-            String bqlx = param.get("bqlx");//补签类型。QJ|CD|WT (补签类型,分别代表 请假|迟到|网络问题)
+            // 2.更改缓存中的签到数据
+            boolean flage=false;
+            flage = redisService.alterStuQiandaoStatus(qdid, xh, bqlx);
 
-            // 2.操作缓存
+            // 3.更改mysql中的签到数据
+            switch (bqlx){
+                case "QJ":{
+                    //请假,更改签到记录，以及学生的记录
+                    qianDaoMapper.updataResultQj(qdid);
+                    qianDaoMapper.updataNoQdStuQj(qdid,xh);
+                    break;
+                }
+                case "CD":{
+                    //迟到
+                    qianDaoMapper.updataResultCd(qdid);
+                    qianDaoMapper.updataNoQdStuCd(qdid,xh);
+                    break;
+                }
+                case "WT":{
+                    //网络问题
+                    qianDaoMapper.updataResultWt(qdid);
+                    qianDaoMapper.deleteNoQdStuWt(qdid,xh);
+                    break;
+                }
+                default:{
+                    break;
+                }
+            }
             // 3.返回
-            return redisService.alterStuQiandaoStatus(qdid, xh, bqlx);
+            return flage;
         } catch (Exception e) {
             //日志
             logger.error("补签出现未知错误");
-            return false;
+            throw  e;
         }
     }
 
     /**
      * 获取签到剩余时间
-     * * @param jxb 教学班
-     * * @param week 周
-     * * @param work_day 星期几
+     * * @teaInitiateQdParams jxb 教学班
+     * * @teaInitiateQdParams week 周
+     * * @teaInitiateQdParams work_day 星期几
      *
      * @return map集合装有剩余时间，签到id。{timeremaining,qdid,yxsj}
      * 如果没有获取到剩余时间 或者 获取到的剩余时间小于5秒，返回一个 空 map。
@@ -328,19 +400,7 @@ public class QianDaoService {
      * @param jxb 教学班号
      * @return StuQianDaoResult
      */
-    public StuQianDaoHistory getStuQDhistory(String xh, String jxb) {
-        //先尝试从缓存获取
-        try {
-            StuQianDaoHistory stuQDhistory = redisService.getStuQDhistory(xh, jxb);
-            if (!(stuQDhistory == null)) {
-                //获取成功，直接返回
-                return stuQDhistory;
-            }
-        } catch (Exception e) {
-            //日志
-            logger.error("获取学生课程历史签到记录缓存信息失败！");
-        }
-
+    public StuQianDaoHistory getStuQdHistory(String xh, String jxb) {
 
         //封装参数。用于操作去数据库查询数据
         Map<String, String> xhAndJxb = new HashMap<>();
@@ -382,22 +442,22 @@ public class QianDaoService {
 
         //7.创建StuQianDaoResult对象，并填充数据
         StuQianDaoHistory stuQianDaoHistory = new StuQianDaoHistory();
-        stuQianDaoHistory.setRecords(records);//添加签到记录
-        stuQianDaoHistory.setTotal(total);//总签到次数
-        stuQianDaoHistory.setQqTime(qqtime);//缺勤次数
-        stuQianDaoHistory.setQjTime(qjtime);//请假次数
-        stuQianDaoHistory.setCdTime(cdtime);//迟到次数
-        stuQianDaoHistory.setCqTime(cqtime);//出勤次数
-        stuQianDaoHistory.setXh(xh);//学号
-        stuQianDaoHistory.setJxb(jxb);//教学班
-
-        //8.将该生的该门课的签到数据，添加进缓存
-        try {
-            redisService.setStuQDHistory(stuQianDaoHistory);
-        } catch (Exception e) {
-            //日志
-            logger.error("将学生签到历史数据缓加缓存失败！");
-        }
+        //添加签到记录
+        stuQianDaoHistory.setRecords(records);
+        //总签到次数
+        stuQianDaoHistory.setTotal(total);
+        //缺勤次数
+        stuQianDaoHistory.setQqTime(qqtime);
+        //请假次数
+        stuQianDaoHistory.setQjTime(qjtime);
+        //迟到次数
+        stuQianDaoHistory.setCdTime(cdtime);
+        //出勤次数
+        stuQianDaoHistory.setCqTime(cqtime);
+        //学号
+        stuQianDaoHistory.setXh(xh);
+        //教学班
+        stuQianDaoHistory.setJxb(jxb);
 
         //8.返回
         return stuQianDaoHistory;
@@ -409,47 +469,45 @@ public class QianDaoService {
      * @param jxb 教学班
      * @return KcQianDaoResult
      */
-    public KeChengQianDaoHistory getKcQDhistory(String jxb) {
+    public KeChengQianDaoHistory getKcQdHistory(String jxb) {
 
-        //先查看redis缓存中有没有
-        try {
-            KeChengQianDaoHistory kcqdHistroy = redisService.getKCQDHistroy(jxb);
-            if (!(kcqdHistroy==null)){
-                //不为空，说明有缓存数据，直接返回。
-                return kcqdHistroy;
-            }
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
         //对象
         KeChengQianDaoHistory keChengQianDaoHistory = new KeChengQianDaoHistory();
         //定义参数
-        int total = 0;//有记录的总人次
-        int absenteeism = 0;//有缺勤记录是人次
-        int lateArrivals = 0;//有迟到记录的人次
-        int numberOfLeave = 0;//有请假记录的人次
-        List<KeChengQDOneStuRecord> stuList = new ArrayList<>();//学生名单
+        //有记录的总人次
+        int total = 0;
+        //有缺勤记录是人次
+        int absenteeism = 0;
+        //有迟到记录的人次
+        int lateArrivals = 0;
+        //有请假记录的人次
+        int numberOfLeave = 0;
+        //学生名单
+        List<KeChengQdOneStuRecord> stuList = new ArrayList<>();
 
 
         // 1.获取的该课程有记录学生名单
         List<Map<String, String>> maps = qianDaoMapper.getkcQdRecord(jxb);
 
-        //2.遍历该名单,获取数据。
-        // 一个map代表一个学生的数据。
-        // 生成一个KcOneStuRecord对象,并添加到stuList中
-        // 并判断该该生的qdzt，修改相关记录的人次。
+        //2.遍历该名单,获取数据。一个map代表一个学生的数据。生成一个KcOneStuRecord对象,并添加到stuList中并判断该该生的qdzt，修改相关记录的人次。
         for (Map<String, String> map : maps) {
             //有记录的总人次加一：
             total += 1;
             //为该生创建一个KcOneStuRecord对象。
-            KeChengQDOneStuRecord keChengQDOneStuRecord = new KeChengQDOneStuRecord();
-            int qqtime = 0;//缺勤次数
-            int cdtime = 0;//迟到次数
-            int qjtime = 0;//请假次数
+            KeChengQdOneStuRecord keChengQdOneStuRecord = new KeChengQdOneStuRecord();
+            //缺勤次数
+            int qqtime = 0;
+            //迟到次数
+            int cdtime = 0;
+            //请假次数
+            int qjtime = 0;
             //获取数据
-            String xh = map.get("xh");//学号
-            String xm = map.get("xm");//姓名
-            String qdzts = map.get("qdzts");//所有的签到状态  例：“QJ,QQ,QQ,CD”
+            //学号
+            String xh = map.get("xh");
+            //姓名
+            String xm = map.get("xm");
+            //所有的签到状态  例：“QJ,QQ,QQ,CD”
+            String qdzts = map.get("qdzts");
             //解析签到状态,用“,”将qdzts分开,然后遍历统计各个签到状态的次数。
             String[] split = qdzts.split(",");
             for (String ss : split) {
@@ -471,13 +529,13 @@ public class QianDaoService {
                 }
             }
             //添加到kcOneStuRecord对象中
-            keChengQDOneStuRecord.setXh(xh);
-            keChengQDOneStuRecord.setXm(xm);
-            keChengQDOneStuRecord.setCdTime(cdtime);
-            keChengQDOneStuRecord.setQqTime(qqtime);
-            keChengQDOneStuRecord.setQjTime(qjtime);
+            keChengQdOneStuRecord.setXh(xh);
+            keChengQdOneStuRecord.setXm(xm);
+            keChengQdOneStuRecord.setCdTime(cdtime);
+            keChengQdOneStuRecord.setQqTime(qqtime);
+            keChengQdOneStuRecord.setQjTime(qjtime);
             //将kcOneStuRecord对象添加到
-            stuList.add(keChengQDOneStuRecord);
+            stuList.add(keChengQdOneStuRecord);
             //判断该生是否缺勤|迟到|请假，修改有相关记录的人次
             if (0 != qjtime) {
                 //有请假记录,总的有请假记录的人次加一。
@@ -494,65 +552,111 @@ public class QianDaoService {
         }
 
         //3.设置参数到kcQianDaoResult对象
-        keChengQianDaoHistory.setJxb(jxb);//教学班
-        keChengQianDaoHistory.setTotal(total);//有记录的总人次
-        keChengQianDaoHistory.setAbsenteeism(absenteeism);//有缺勤记录的人次
-        keChengQianDaoHistory.setLateArrivals(lateArrivals);//有迟到记录的人次
-        keChengQianDaoHistory.setNumberOfLeave(numberOfLeave);//有请假记录的人次
-        keChengQianDaoHistory.setStuList(stuList);//有记录的学生名单
+        //教学班
+        keChengQianDaoHistory.setJxb(jxb);
+        //有记录的总人次
+        keChengQianDaoHistory.setTotal(total);
+        //有缺勤记录的人次
+        keChengQianDaoHistory.setAbsenteeism(absenteeism);
+        //有迟到记录的人次
+        keChengQianDaoHistory.setLateArrivals(lateArrivals);
+        //有请假记录的人次
+        keChengQianDaoHistory.setNumberOfLeave(numberOfLeave);
+        //有记录的学生名单
+        keChengQianDaoHistory.setStuList(stuList);
 
-        //将数据放进缓存
-        try {
-            redisService.setKCQDHistory(keChengQianDaoHistory);
-        } catch (JsonProcessingException e) {
-            logger.error("将课程的签到历史情况放进缓存出现未知错误！");
-        }
         //返回
         return keChengQianDaoHistory;
     }
 
     /**
-     * 持久化签到的相关数据到Mysql数据库
-     *
-     * 1.将签到记录添加进myslq数据库
-     * 2.将有未签到记录、迟到、缺勤记录的学生持久到mysql数据库
+     *将签到数据持久到mysql数据这个操作封装成一个对象。该类的一个实例化对象就是一个持久化操作。
      */
-    public void persistentQianDaoData(){
-        try {
-            //1.获取缓存中有的签到记录集合。
-            Set<String> allQdjl = redisService.getAllQdjl();
-            //1.1 根据这些签到记录，获取每次签到的签到结果数据，并装进一个List集合。  单次签到记录 例：(qdjl)QD-A13191A2130440002<18>(2)_1
-            List<QianDaoResult> qianDaoResultList=new ArrayList<>();
-            for (String oneQdjl:allQdjl){
-                //去掉前缀 “(qdjl)”,得到签到ID
-                String qdid = oneQdjl.substring(oneQdjl.indexOf("(qdjl)") + 6);
-                //根据签到id获取本次签到的结果数据
-                QianDaoResult qianDaoResultOneTimes = this.getQianDaoResultOneTimes(qdid);
-                //添加进List集合
-                qianDaoResultList.add(qianDaoResultOneTimes);
-            }
-            //1.2将签到结果数据持久化到mysql数据库
-            if (!qianDaoResultList.isEmpty()){
-                qianDaoMapper.insertQiandaoResult(qianDaoResultList);
-            }
+    public class QianDaoDateEndurance implements DelayEnduranceToMysqlService.EnduranceToMysql{
 
-            //2.获取缓存中有记录的学生数据（包含缺勤、请假、迟到）
-            List<ClassStuInfo> allNoQdStu = redisService.getAllNoQdStu();
-            //2.1将这些学生数据持久化到mysql数据库
-            if (!allNoQdStu.isEmpty()){
-                qianDaoMapper.insertNoQDStuInfo(allNoQdStu);
-            }
+        //日志操作对象
+        Logger logger=LoggerFactory.getLogger(QianDaoDateEndurance.class);
 
-            //3.清空redis第5个数据库（装签到数据的数据库）
-            redisService.flushDB(4);
 
-            //日志
-            if (logger.isInfoEnabled()){
-                logger.info("定时任务，将签到数据持久化到mysql。有签到记录[{}]条，有记录的学生数据[{}]条",qianDaoResultList.size(),allNoQdStu.size());
+        /**
+         * 这次签到的结束时间
+         */
+        private long qdjssj;
+
+        /**
+         * 签到ID
+         */
+        private String qdid;
+
+        /**
+         * 构造方法
+         * @param teaInitiateQdParams 发起一次提问的数据
+         */
+        public QianDaoDateEndurance(TeaInitiateQdParams teaInitiateQdParams){
+
+            //时间单位为秒
+            TimeUnit unit = TimeUnit.SECONDS;
+            this.qdjssj=System.currentTimeMillis()+ unit.toMillis(teaInitiateQdParams.getYxsj());
+
+            //签到ID
+            this.qdid="QD-" + teaInitiateQdParams.getJxb() + "<" + teaInitiateQdParams.getWeek() + ">(" + teaInitiateQdParams.getWork_day() + ")" + "_" + teaInitiateQdParams.getQdcs();
+        }
+
+        /**
+         * 将签到数据持久化到mysql的具体操作
+         */
+        @Override
+        @Transactional(rollbackFor = Exception.class)
+        public void endurance() {
+            try {
+                //日志
+                if (logger.isInfoEnabled()){
+                    logger.info("将签到[{}]数据持久化到mysql操作开始！",qdid);
+                }
+                /*1.获取该次签到的签到数据*/
+                QianDaoResult qianDaoResultOneTimes = getQianDaoResultOneTimes(qdid);
+                //将本次签到的签到数据持久化到数据库
+                qianDaoMapper.insertQiandaoResult(qianDaoResultOneTimes);
+                //将本次签到由记录的学生名单持久化到数据库
+                qianDaoMapper.insertNoQDStuInfo(qianDaoResultOneTimes.getNotOnTheStuList());
+
+                //日志
+                if (logger.isInfoEnabled()){
+                    logger.info("将签到[{}]数据持久化到mysql成功,本次签到记录的学生数量为：[{}]",qdid,qianDaoResultOneTimes.getNotOnTheStuList().size());
+                }
+            }catch (Exception e){
+                //日志
+                logger.error("将签到[{}]数据持久化mysql失败，可能原因是数据冲突。具体错误信息：[{}]",qdid,e.getMessage());
+                throw e;
             }
-        }catch (Exception e){
-            //日志
-            logger.error("定时任务，将签到数据持久化mysql失败，可能原因是数据冲突。具体错误信息：[{}]",e.getMessage());
+        }
+
+        /**
+         * 延时队列的跪规则
+         * @param unit 时间参数的单位
+         * @return long
+         */
+        @Override
+        public long getDelay(@NotNull TimeUnit unit) {
+            return qdjssj-System.currentTimeMillis();
+        }
+
+        /**
+         * 延时队列的排队规则
+         * @param o Delayed对象
+         * @return int值
+         */
+        @Override
+        public int compareTo(@NotNull Delayed o) {
+            QianDaoService.QianDaoDateEndurance qianDaoDateEndurance= (QianDaoDateEndurance) o;
+            long l=this.qdjssj-qianDaoDateEndurance.qdjssj;
+            if (l <= 0) {
+                return -1;
+            }else {
+                return 1;
+            }
         }
     }
+
+
 }

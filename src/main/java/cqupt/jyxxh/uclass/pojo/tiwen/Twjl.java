@@ -8,12 +8,30 @@ package cqupt.jyxxh.uclass.pojo.tiwen;
  * @date created in 20:25 2020/2/13
  */
 public class Twjl {
-    private String twid;//提问id
-    private String week;//周
-    private String work_day;//星期几
-    private String twcs;//提问次数，针对这一堂课的第几次提问
-    private String jxb;//教学班
-    private String twsj;//发起这次提问的时间(yyyy-MM-dd)
+    /**
+     * 提问ID
+     */
+    private String twid;
+    /**
+     * 第几周
+     */
+    private String week;
+    /**
+     * 星期几
+     */
+    private String work_day;
+    /**
+     * 提问次数，针对这堂课的第几次提问
+     */
+    private String twcs;
+    /**
+     * 教学班
+     */
+    private String jxb;
+    /**
+     * 发起这次提问的时间(yyyy-MM-dd)
+     */
+    private String twsj;
 
     @Override
     public String toString() {

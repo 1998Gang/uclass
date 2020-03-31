@@ -7,12 +7,27 @@ package cqupt.jyxxh.uclass.pojo.qiandao;
  * @version 1.0.0
  * @date created in 21:42 2020/1/13
  */
-public class KeChengQDOneStuRecord {
-    private String xm; //学生姓名
-    private String xh; //学生学号
-    private int cdTime; //迟到次数
-    private int qqTime; //缺勤次数
-    private int qjTime; //请假次数
+public class KeChengQdOneStuRecord {
+    /**
+     * 学生姓名
+     */
+    private String xm;
+    /**
+     * 学生学号
+     */
+    private String xh;
+    /**
+     * 迟到次数
+     */
+    private int cdTime;
+    /**
+     * 缺勤次数
+     */
+    private int qqTime;
+    /**
+     * 请假次数
+     */
+    private int qjTime;
 
     @Override
     public String toString() {

@@ -1,19 +1,21 @@
-package cqupt.jyxxh.uclass.pojo.tiwen;
+
+package cqupt.jyxxh.uclass.pojo.qiandao;
 
 /**
- * 用于接收教师发起提问数据的实体类
+ *
+ * 教师发起签到的参数实体
  *
  * @author 彭渝刚
  * @version 1.0.0
- * @date created in 8:33 2020/1/18
+ * @date created in 18:06 2020/3/9
  */
-public class TiWenData {
+public class TeaInitiateQdParams {
     /**
      * 教学班
      */
     private String jxb;
     /**
-     * 第几周
+     * 周
      */
     private String week;
     /**
@@ -21,27 +23,27 @@ public class TiWenData {
      */
     private String work_day;
     /**
-     * 本次提问的有效时间
+     * 签到次数
+     */
+    private String qdcs;
+    /**
+     * 签到码
+     */
+    private String qdm;
+    /**
+     * 有效时间
      */
     private long yxsj;
-    /**
-     * 提问次数，针对这节课
-     */
-    private String twcs;
-    /**
-     * 问题主体
-     */
-    private WTZT wtzt;
 
     @Override
     public String toString() {
-        return "TiWen{" +
+        return "TeaInitiateQDParams{" +
                 "jxb='" + jxb + '\'' +
                 ", week='" + week + '\'' +
                 ", work_day='" + work_day + '\'' +
+                ", qdcs='" + qdcs + '\'' +
+                ", qdm='" + qdm + '\'' +
                 ", yxsj='" + yxsj + '\'' +
-                ", twcs='" + twcs + '\'' +
-                ", wtzt=" + wtzt +
                 '}';
     }
 
@@ -69,6 +71,22 @@ public class TiWenData {
         this.work_day = work_day;
     }
 
+    public String getQdcs() {
+        return qdcs;
+    }
+
+    public void setQdcs(String qdcs) {
+        this.qdcs = qdcs;
+    }
+
+    public String getQdm() {
+        return qdm;
+    }
+
+    public void setQdm(String qdm) {
+        this.qdm = qdm;
+    }
+
     public long getYxsj() {
         return yxsj;
     }
@@ -76,20 +94,9 @@ public class TiWenData {
     public void setYxsj(long yxsj) {
         this.yxsj = yxsj;
     }
-
-    public String getTwcs() {
-        return twcs;
-    }
-
-    public void setTwcs(String twcs) {
-        this.twcs = twcs;
-    }
-
-    public WTZT getWtzt() {
-        return wtzt;
-    }
-
-    public void setWtzt(WTZT wtzt) {
-        this.wtzt = wtzt;
-    }
 }
+
+
+
+
+

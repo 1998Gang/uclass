@@ -20,23 +20,38 @@ import java.util.Date;
  */
 @Service
 public class UserService {
+    /**
+     * 日志
+     */
+    private Logger logger= LoggerFactory.getLogger(UserService.class);
 
-    private Logger logger= LoggerFactory.getLogger(UserService.class);//日志
-
-
+    /**
+     * 用户dao操作类
+     */
     @Autowired
-    private  UclassUserMapper uclassUserMapper;           //用户dao操作类
+    private  UclassUserMapper uclassUserMapper;
 
+    /**
+     * 教务账号操作类
+     */
     @Autowired
-    private  EduAccountService eduAccountService;          //教务账号操作类
+    private  EduAccountService eduAccountService;
 
+    /**
+     * 加解密工具
+     */
     @Autowired
-    private EncryptionUtil encryptionUtil;                 //加解密工具
+    private  EncryptionUtil encryptionUtil;
 
-    private final  String YES_BIND="y"; //用户存在绑定了教务账号的标识
-    private final  String NO_BIND="n";  //用户没绑定教务账户的标识
+    /**
+     * 用户存在绑定了教务账号的标识
+     */
+    private final  String YES_BIND="y";
 
-
+    /**
+     * 用户没绑定教务账户的标识
+     */
+    private final  String NO_BIND="n";
 
 
     /**
@@ -63,8 +78,10 @@ public class UserService {
             }
             case 0:{
                 UclassUser uclassUser=new UclassUser();
-                uclassUser.setOpenid(openid);//用户openid
-                uclassUser.setIs_bind("n");  //用户是否绑定 n 未绑定（新建用户）
+                //用户openid
+                uclassUser.setOpenid(openid);
+                //用户是否绑定 n 未绑定（新建用户）
+                uclassUser.setIs_bind("n");
                 uclassUser.setFirst_use_time(new Date());
                 uclassUser.setLast_use_time(new Date());
                 //新建用户，向数据库插入新用户数据
@@ -191,12 +208,18 @@ public class UserService {
             }
 
             // 3.将教务账号绑定到微信用户上
-            uclassUser.setIs_bind(YES_BIND);//更改绑定标识，该用户绑定了教务账户
-            uclassUser.setUser_type(eduAccount.getAccountType());//设置用户绑定的教务账号的类型
-            uclassUser.setBind_name(eduAccount.getName());//设置用户绑定的教务账户的姓名
-            uclassUser.setBind_number(eduAccount.getNumber());//设置用户绑定的教务账号的学号或者教师号
-            uclassUser.setBind_ykth(eduAccount.getYkth());//设置用户绑定的教务账号的（统一身份认证码）一卡通号
-            uclassUser.setLast_use_time(new Date());      //设置最后一次操作时间
+            //更改绑定标识，该用户绑定了教务账户
+            uclassUser.setIs_bind(YES_BIND);
+            //设置用户绑定的教务账号的类型
+            uclassUser.setUser_type(eduAccount.getAccountType());
+            //设置用户绑定的教务账户的姓名
+            uclassUser.setBind_name(eduAccount.getName());
+            //设置用户绑定的教务账号的学号或者教师号
+            uclassUser.setBind_number(eduAccount.getNumber());
+            //设置用户绑定的教务账号的（统一身份认证码）一卡通号
+            uclassUser.setBind_ykth(eduAccount.getYkth());
+            //设置最后一次操作时间
+            uclassUser.setLast_use_time(new Date());
 
             // 4.将更改之后的用户数据持久化到数据库
             uclassUserMapper.updateUser(uclassUser);

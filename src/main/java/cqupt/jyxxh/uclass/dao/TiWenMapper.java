@@ -1,7 +1,7 @@
 package cqupt.jyxxh.uclass.dao;
 
 import cqupt.jyxxh.uclass.pojo.ClassStuInfo;
-import cqupt.jyxxh.uclass.pojo.tiwen.KeChengTWOneStuRecord;
+import cqupt.jyxxh.uclass.pojo.tiwen.KeChengTwOneStuRecord;
 import cqupt.jyxxh.uclass.pojo.tiwen.StuTWRecord;
 import cqupt.jyxxh.uclass.pojo.tiwen.Twjl;
 
@@ -20,9 +20,9 @@ public interface TiWenMapper {
 
     /**
      * 将提问记录持久化到mysql数据库
-     * @param twjlList 提问记录集合
+     * @param twjl 提问记录
      */
-    void insertTiWenJL(List<Twjl> twjlList);
+    void insertTWJL(Twjl twjl);
 
     /**
      * 将所有没有回答问题的学生持久化到mysql数据库
@@ -44,5 +44,12 @@ public interface TiWenMapper {
      * @param jxb 教学班号
      * @return KeChengTWOneStuRecord
      */
-    List<KeChengTWOneStuRecord> getKCTWHistory(String jxb);
+    List<KeChengTwOneStuRecord> getKCTWHistory(String jxb);
+
+    /**
+     * 通过教学班获取该班的历史提问次数
+     * @param jxb 教学班
+     * @return 历史提问次数
+     */
+    int getKcAskTimes(String jxb);
 }

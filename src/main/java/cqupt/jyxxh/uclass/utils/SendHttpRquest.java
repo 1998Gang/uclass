@@ -37,8 +37,10 @@ import java.util.Map;
 @Component
 public  class SendHttpRquest {
 
+    /**
+     * 日志操作对象
+     */
     final static Logger logger= LoggerFactory.getLogger(SendHttpRquest.class);
-
 
 
     /**
@@ -63,6 +65,7 @@ public  class SendHttpRquest {
             //使用Jsoup,最长时间10秒。
             Document document = Jsoup.parse(urlReal, 10000);
 
+
             //获取body中的json数据
             json= document.body().text();
 
@@ -86,32 +89,38 @@ public  class SendHttpRquest {
      */
     public static String getHtmlWithParam(String url, String param) throws IOException {
 
-        String html=null;
+        try {
+            String html=null;
 
-        CloseableHttpClient httpClient= HttpClients.createDefault();
+            CloseableHttpClient httpClient= HttpClients.createDefault();
 
-        //1.定义请求响应结果
-        CloseableHttpResponse response;
-        //2.创建get请求
-        HttpGet httpGet=new HttpGet(url+"?"+param);
-        //3.发送请求
-        response=httpClient.execute(httpGet);
-        //4.判断http响应码,200进行解析
-        if (response.getStatusLine().getStatusCode()== HttpStatus.SC_OK){
-            //4.1 获取响应实体
-            HttpEntity entity = response.getEntity();
-             html = EntityUtils.toString(entity, "utf-8");
-             if (logger.isDebugEnabled()){
-                 logger.debug("【网络请求工具类（getHtmlWithParam）】获取html页面成功!地址：[{}]",url);
-             }
-        }else {
-            //4.2 不为200
-            if (logger.isDebugEnabled()){
-                logger.debug("【网络请求工具类（getHtmlWithParam）】获取html页面失败");
+            //1.定义请求响应结果
+            CloseableHttpResponse response;
+            //2.创建get请求
+            HttpGet httpGet=new HttpGet(url+"?"+param);
+
+            //3.发送请求
+            response=httpClient.execute(httpGet);
+            //4.判断http响应码,200进行解析
+            if (response.getStatusLine().getStatusCode()== HttpStatus.SC_OK){
+                //4.1 获取响应实体
+                HttpEntity entity = response.getEntity();
+                html = EntityUtils.toString(entity, "utf-8");
+                if (logger.isDebugEnabled()){
+                    logger.debug("【网络请求工具类（getHtmlWithParam）】获取html页面成功!地址：[{}]",url);
+                }
+            }else {
+                //4.2 不为200
+                if (logger.isDebugEnabled()){
+                    logger.debug("【网络请求工具类（getHtmlWithParam）】获取html页面失败");
+                }
             }
+            //5.返回获取的html界面，以字符串方式
+            return html;
+        }catch (Exception e){
+            logger.error("【网络请求工具类（getHtmlWithParam）】请求超时！");
         }
-        //5.返回获取的html界面，以字符串方式
-        return html;
+        return null;
     }
 
     /**
@@ -245,8 +254,10 @@ public  class SendHttpRquest {
 
         // 3.设置请求参数。表单数据，请求参数。
         List<NameValuePair> basicNameValuePairList=new ArrayList<>();
-        basicNameValuePairList.add(new BasicNameValuePair("username",ykth));//统一认证码
-        basicNameValuePairList.add(new BasicNameValuePair("password",password));//密码
+        //统一认证码
+        basicNameValuePairList.add(new BasicNameValuePair("username",ykth));
+        //密码
+        basicNameValuePairList.add(new BasicNameValuePair("password",password));
         basicNameValuePairList.add(new BasicNameValuePair("lt",form.get("lt")));
         basicNameValuePairList.add(new BasicNameValuePair("execution",form.get("execution")));
         basicNameValuePairList.add(new BasicNameValuePair("_eventId",form.get("_eventId")));

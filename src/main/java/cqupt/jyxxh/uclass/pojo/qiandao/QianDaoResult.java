@@ -3,7 +3,7 @@ package cqupt.jyxxh.uclass.pojo.qiandao;
 
 import cqupt.jyxxh.uclass.pojo.ClassStuInfo;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * 一次点名的签到结果
@@ -15,18 +15,54 @@ import java.util.Set;
  */
 public class QianDaoResult {
 
-    private String qdid;              //签到id  jxb<week>(work_day)_qdcs  例：SJ13191A2130640003<19>(2)_1
-    private String week;              //周
-    private String work_day;          //星期几
-    private String qdcs;               //针对这堂课第几次签到
-    private String jxb;                //教学班号
-    private Set<ClassStuInfo> notOnTheStuList;//未签到学生名单（包含没签到，迟到，请假）
-    private int allStuNum;               //总人数
-    private int notOnStuNum;             //未签人数
-    private int inStuNum;                //签了的人数
-    private int beLateNum;                //迟到人数
-    private int askForLeaveNum;           //请假人数
-    private String qdsj;                    //签到时间，发生这次签到的时间（yyyy-MM-dd）。
+    /**
+     * 签到id  jxb<week>(work_day)_qdcs  例：SJ13191A2130640003<19>(2)_1
+     */
+    private String qdid;
+    /**
+     * 第几周
+     */
+    private String week;
+    /**
+     * 星期几
+     */
+    private String work_day;
+    /**
+     * 针对这堂课第几次签到
+     */
+    private String qdcs;
+    /**
+     * 教学班号
+     */
+    private String jxb;
+    /**
+     * 未签到学生名单（包含没签到，迟到，请假）
+     */
+    private List<ClassStuInfo> notOnTheStuList;
+    /**
+     * 总人数
+     */
+    private int allStuNum;
+    /**
+     * 未签人数
+     */
+    private int notOnStuNum;
+    /**
+     * 签了的人数
+     */
+    private int inStuNum;
+    /**
+     * 迟到人数
+     */
+    private int beLateNum;
+    /**
+     * 请假人数
+     */
+    private int askForLeaveNum;
+    /**
+     * 签到时间，发生这次签到的时间（yyyy-MM-dd）。
+     */
+    private String qdsj;
 
 
     @Override
@@ -55,11 +91,11 @@ public class QianDaoResult {
         this.qdid = qdid;
     }
 
-    public Set<ClassStuInfo> getNotOnTheStuList() {
+    public List<ClassStuInfo> getNotOnTheStuList() {
         return notOnTheStuList;
     }
 
-    public void setNotOnTheStuList(Set<ClassStuInfo> notOnTheStuList) {
+    public void setNotOnTheStuList(List<ClassStuInfo> notOnTheStuList) {
         this.notOnTheStuList = notOnTheStuList;
     }
 

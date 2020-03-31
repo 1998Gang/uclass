@@ -1,7 +1,7 @@
 package cqupt.jyxxh.uclass.service;
 
 
-import checkers.units.quals.A;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cqupt.jyxxh.uclass.pojo.KeChengInfo;
 import cqupt.jyxxh.uclass.pojo.StuKcMoreInfo;
@@ -30,21 +30,35 @@ public class KebiaoService {
 
     Logger logger = LoggerFactory.getLogger(KebiaoService.class);
 
+    /**
+     * 去教务在线获取数据的工具类
+     */
     @Autowired
-    private GetDataFromJWZX getDataFromJWZX;    //去教务在线获取数据的工具类
+    private  GetDataFromJWZX getDataFromJWZX;
 
+    /**
+     * reids操作类
+     */
     @Autowired
-    private RedisService redisService;          //reids操作类
+    private  RedisService redisService;
 
+    /**
+     * 教务账户操作类
+     */
     @Autowired
-    private EduAccountService eduAccountService; //教务账户操作类
+    private  EduAccountService eduAccountService;
 
+    /**
+     * 签到操作类
+     */
     @Autowired
-    private QianDaoService qianDaoService;      //签到操作类
+    private  QianDaoService qianDaoService;
 
+    /**
+     * 提问操作
+     */
     @Autowired
-    private TiWenService tiWenService;         //提问操作类
-
+    private  TiWenService tiWenService;
 
 
     /**
@@ -77,7 +91,7 @@ public class KebiaoService {
                 return kebiao;
             }
         } catch (Exception e) {
-            logger.debug("【获取课表缓存（KebiaoService.getkebiao）】出现未知错误！");
+            logger.error("获取课表缓存 出现未知错误！");
         }
 
         //2.根据学号或者教师号去获取教务在线的课表页（html）
@@ -92,7 +106,7 @@ public class KebiaoService {
                 try {
                     boolean b = redisService.setKeBiao(number, kebiao);
                 } catch (Exception e) {
-                    logger.debug("【添加学生课表缓存（KebiaoService.getkebiao）】出现未知错误！");
+                    logger.error("添加学生课表缓存出现未知错误！");
                 }
                 break;
             }
@@ -126,8 +140,11 @@ public class KebiaoService {
                 try {
                     boolean b = redisService.setKeBiao(number, kebiao);
                 } catch (Exception e) {
-                    logger.debug("【添加教师课表缓存（KebiaoService.getkebiao）】出现未知错误！");
+                    logger.error("添加教师课表缓存出现未知错误！");
                 }
+                break;
+            }
+            default:{
                 break;
             }
         }
@@ -144,33 +161,48 @@ public class KebiaoService {
     public StuKcMoreInfo getKcStuMoreInfo(String xh, String jxb) {
         try {
             //1.获取教师数据
-            //1.1 根据教学班获取该班的教师id，在redis缓存（第8个数据库）
+            //1.1 根据教学班获取该班的教师id，在redis缓存（第8个数据库）。如果该老师没有使用u课堂，就无法获取。
             String teaId = redisService.getTeaIdByJxb(jxb);
+
             //1.2根据teaid获取的教师数据
-            Teacher teacher = eduAccountService.getTeacher(teaId);
+            Teacher teacher=null;
+            if (teaId!=null){
+                teacher = eduAccountService.getTeacher(teaId);
+            }
+
 
             //2.获取成绩组成
             Map<String, String> cjzcs = getDataFromJWZX.getCjzcByXh(xh);
             String cjzcJxb = cjzcs.get(jxb);
 
             //3.获取签到历史记录
-            StuQianDaoHistory stuQDhistory = qianDaoService.getStuQDhistory(xh, jxb);
+            StuQianDaoHistory stuQDhistory = qianDaoService.getStuQdHistory(xh, jxb);
 
             //4.获取课堂提问答题历史记录
-            StuTiWenHistory stuTWHistory = tiWenService.getStuTWHistory(xh, jxb);
+            StuTiWenHistory stuTWHistory = tiWenService.getStuTwHistory(xh, jxb);
 
             //5.封装数据
             StuKcMoreInfo stuKcMoreInfo=new StuKcMoreInfo();
-            stuKcMoreInfo.setTeacher(teacher);//添加教师数据
-            stuKcMoreInfo.setCjzc(cjzcJxb);//添加成绩组成
-            stuKcMoreInfo.setQdTotal(stuQDhistory.getTotal());//添加总签到次数
-            stuKcMoreInfo.setQqTime(stuQDhistory.getQqTime());//添加缺勤记录次数
-            stuKcMoreInfo.setCdTime(stuQDhistory.getCdTime());//添加迟到记录次数
-            stuKcMoreInfo.setQjTime(stuQDhistory.getQjTime());//添加请假记录次数
-            stuKcMoreInfo.setCqTime(stuQDhistory.getCqTime());//添加出勤记录次数
-            stuKcMoreInfo.setTwTotal(stuTWHistory.getTotal());//添加提问总次数
-            stuKcMoreInfo.setHdTimes(stuTWHistory.getHdTimes());//添加回答记录次数
-            stuKcMoreInfo.setWdTimes(stuTWHistory.getWdTimes());//添加未回答记录次数
+            //添加教师数据
+            stuKcMoreInfo.setTeacher(teacher);
+            //添加成绩组成
+            stuKcMoreInfo.setCjzc(cjzcJxb);
+            //添加总签到次数
+            stuKcMoreInfo.setQdTotal(stuQDhistory.getTotal());
+            //添加缺勤记录次数
+            stuKcMoreInfo.setQqTime(stuQDhistory.getQqTime());
+            //添加迟到记录次数
+            stuKcMoreInfo.setCdTime(stuQDhistory.getCdTime());
+            //添加请假记录次数
+            stuKcMoreInfo.setQjTime(stuQDhistory.getQjTime());
+            //添加出勤记录次数
+            stuKcMoreInfo.setCqTime(stuQDhistory.getCqTime());
+            //添加提问总次数
+            stuKcMoreInfo.setTwTotal(stuTWHistory.getTotal());
+            //添加回答记录次数
+            stuKcMoreInfo.setHdTimes(stuTWHistory.getHdTimes());
+            //添加未回答记录次数
+            stuKcMoreInfo.setWdTimes(stuTWHistory.getWdTimes());
 
             //6.返回数据
             return stuKcMoreInfo;

@@ -25,8 +25,12 @@ public class UclassKebiao {
 
     private Logger logger= LoggerFactory.getLogger(UclassKebiao.class);
 
+    /**
+     * 获取课表
+     */
     @Autowired
-    private KebiaoService kebiaoService;     //获取课表课表
+    private  KebiaoService kebiaoService;
+
 
 
     /**
@@ -46,12 +50,10 @@ public class UclassKebiao {
                 logger.info("获取教师课表成功！教师号：[{}]",teaId);
             }
 
-
-
             // 2.获取成功，响应200.
             return ResponseEntity.status(HttpStatus.OK).body(teaKebiao);
-        }catch (Exception ignored){
-
+        }catch (Exception e){
+            logger.error("获取教师课表出现位置错误！错误信息：[{}]",e.getMessage());
         }
         // 服务器端未知错误
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -77,11 +79,10 @@ public class UclassKebiao {
 
             // 2.获取成功，响应200.
             return ResponseEntity.status(HttpStatus.OK).body(stuKebiao);
-        }catch (Exception ignored){
-
+        }catch (Exception e){
+            logger.error("获取学生课表出现位置错误！错误信息：[{}]",e.getMessage());
         }
-
-
+        //响应500
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
 
@@ -108,9 +109,7 @@ public class UclassKebiao {
         }catch (Exception e){
             logger.error("学生[{}]教学班[{}]扩展数据出现未知错误！",xh,jxb);
         }
+        //响应500
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
-
-
-
 }

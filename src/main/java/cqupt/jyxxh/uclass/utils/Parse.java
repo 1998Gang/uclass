@@ -30,7 +30,10 @@ import java.util.Map;
  */
 public class Parse {
 
-    private final static Logger logger = LoggerFactory.getLogger(Parse.class);  //日志
+    /**
+     * 日志
+     */
+    private final static Logger logger = LoggerFactory.getLogger(Parse.class);
 
 
     /**
@@ -219,7 +222,6 @@ public class Parse {
         return flage;
     }
 
-
     /**
      * 解析教务在线获取的课表html页
      * <p>
@@ -348,6 +350,7 @@ public class Parse {
             keChengInfo.setSkddqc(s1[2].substring(s1[2].indexOf("：") + 1, s1[2].length() - 1));
         } else {
             keChengInfo.setSkdd(s1[2].substring(s1[2].indexOf("：") + 1, s1[2].length() - 1));
+            keChengInfo.setSkddqc(s1[2].substring(s1[2].indexOf("：") + 1, s1[2].length() - 1));
         }
         //上课周数（如：1周,4-8周,10-18周 这样的字符串）
         keChengInfo.setSkzs(s1[3].substring(s1[3].indexOf("<br>") + 4));
@@ -403,7 +406,6 @@ public class Parse {
         }
         return weekNumList;
     }
-
 
     /**
      * 解析教务在线首页html代码，获取校历时间
@@ -532,7 +534,6 @@ public class Parse {
         return classStuList;
     }
 
-
     /**
      * 获取字符串的编码格
      *
@@ -589,17 +590,18 @@ public class Parse {
         return "未识别编码格式";
     }
 
-
     /**
      * 解析课程学生名单，获取总人数，不同选课状态的学生人数，不同专业下不同班级的学生人数。
      *
-     * @param classStuList 学生名单
+     * @param classStuList 学生名单对象
      * @return KbStuListData
      */
-    public static KbStuListData parseStuListToKbStuListData(List<ClassStuInfo> classStuList) {
+    public static ClassStuListData parseStuListToKbStuListData(ClassStuList classStuList) {
+
+        List<ClassStuInfo> classStuInfoList = classStuList.getClassStuInfoList();
 
         //1.总人数
-        int headcount = classStuList.size();
+        int headcount = classStuInfoList.size();
         //2.选课状态（不同选课状态的人数，key是选课状态，value对应选课状态的人生）
         Map<String, Integer> xkztMap = new HashMap<>();
         //3.专业集合（外层map的key是专业名，value是map。内层map的key是班级号，value是对应班级的号的人数）
@@ -608,9 +610,10 @@ public class Parse {
         Map<String, Map<String, Integer>> normalZyAndBj = new HashMap<>();
 
         //遍历学生名单。分析数据。
-        for (ClassStuInfo classStuInfo : classStuList) {
+        for (ClassStuInfo classStuInfo : classStuInfoList) {
             // 2.统计选课状态
-            String xkzt = classStuInfo.getXkzt();//选课状态
+            //选课状态
+            String xkzt = classStuInfo.getXkzt();
             if (xkztMap.containsKey(xkzt)) {
                 xkztMap.put(xkzt, xkztMap.get(xkzt) + 1);
             } else {
@@ -618,12 +621,14 @@ public class Parse {
             }
 
             //3.统计各专业下各班级人数
-            String zym = classStuInfo.getZym();//专业名
-            String bj = classStuInfo.getBj();//班级号
+            //专业名
+            String zym = classStuInfo.getZym();
+            //班级号
+            String bj = classStuInfo.getBj();
             //3.1创建专业
             if (!allZyAndBjMap.containsKey(zym)) {
                 //2.1.1 集合中没有该专业，将该专业添加到集合。并创建一个属于该专业的班级集合。
-                Map<String, Integer> bjMap = new HashMap<>();
+                Map<String, Integer> bjMap = new HashMap<>(16);
                 allZyAndBjMap.put(zym, bjMap);
             }
             //3.2取出该专业下的班级集合
@@ -651,14 +656,14 @@ public class Parse {
 
         }
 
-        KbStuListData kbStuListData = new KbStuListData();
-        kbStuListData.setHeadcount(headcount);
-        kbStuListData.setNumberOfXkzt(xkztMap);
-        kbStuListData.setNumberOfZyAndBj(allZyAndBjMap);
-        kbStuListData.setNumberOfNormalBj(normalZyAndBj);
-        kbStuListData.setStudents(classStuList);
+        ClassStuListData classStuListData = new ClassStuListData();
+        classStuListData.setHeadcount(headcount);
+        classStuListData.setNumberOfXkzt(xkztMap);
+        classStuListData.setNumberOfZyAndBj(allZyAndBjMap);
+        classStuListData.setNumberOfNormalBj(normalZyAndBj);
+        classStuListData.setStudents(classStuInfoList);
 
-        return kbStuListData;
+        return classStuListData;
     }
 
     /**

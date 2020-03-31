@@ -33,20 +33,29 @@ public class EduAccountService {
     private final Logger logger= LoggerFactory.getLogger(EduAccountService.class);
 
 
-
+    /**
+     *  //教务账号（教师）dao操作接口
+     */
     @Autowired
-    private  TeacherMapper teacherMapper;       //教务账号（教师）dao操作接口
+    private  TeacherMapper teacherMapper;
 
+    /**
+     * //教务账号（学生）dao操作接口
+     */
     @Autowired
-    private  StudentMapper studentMapper;        //教务账号（学生）dao操作接口
+    private  StudentMapper studentMapper;
 
+    /**
+     * 去教务在线获取数据的工具类
+     */
     @Autowired
-    private GetDataFromJWZX getDataFromJWZX;     //去教务在线获取数据的工具类
+    private  GetDataFromJWZX getDataFromJWZX;
 
+    /**
+     *  加解密工具
+     */
     @Autowired
-    private EncryptionUtil encryptionUtil;       //加解密工具
-
-
+    private  EncryptionUtil encryptionUtil;
 
 
     /**
@@ -252,27 +261,38 @@ public class EduAccountService {
      * @return map集合，装ykth号和密码
      */
     public Map<String,String> getStuYkthandPassword(String xh) throws Exception {
-        Map<String,String> ykthAndPassword=new HashMap<>();
+        try {
 
-        //获取一卡通号和密码，获取的格式是：一卡通号_密码
-        String stringYAP = studentMapper.queryYkthAndPassByXh(xh);
-        if (null==stringYAP||"".equals(stringYAP)){
-            throw new Exception("get ykthandpassword failed,no this account:"+xh);
+            Map<String,String> ykthAndPassword=new HashMap<>();
+
+            //获取一卡通号和密码，获取的格式是：一卡通号_密码
+            String stringYAP = studentMapper.queryYkthAndPassByXh(xh);
+            if (null==stringYAP||"".equals(stringYAP)){
+                throw new Exception("get ykthandpassword failed,no this account:"+xh);
+            }
+
+            //解析
+            String ykth=stringYAP.substring(0,stringYAP.indexOf("_"));
+            String password=stringYAP.substring(stringYAP.indexOf("_")+1);
+
+            //从数据库获取的密码是加密了的，现在解密.
+            String password_decrypt = encryptionUtil.decrypt(password);
+
+
+            //装入集合
+            ykthAndPassword.put("ykth",ykth);
+            ykthAndPassword.put("password",password_decrypt);
+
+            //日志
+            if (logger.isDebugEnabled()){
+                logger.debug("获取学生[{}]的一卡通号和密码成功！。(从数据库)",xh);
+            }
+
+            return ykthAndPassword;
+        }catch (Exception e){
+            logger.error("获取学生[{}]从一卡通号和密码出错！",xh);
+            return null;
         }
-
-        //解析
-        String ykth=stringYAP.substring(0,stringYAP.indexOf("_"));
-        String password=stringYAP.substring(stringYAP.indexOf("_")+1);
-
-        //从数据库获取的密码是加密了的，现在解密.
-        String password_decrypt = encryptionUtil.decrypt(password);
-
-
-        //装入集合
-        ykthAndPassword.put("ykth",ykth);
-        ykthAndPassword.put("password",password_decrypt);
-
-        return ykthAndPassword;
     }
 
     /**

@@ -10,16 +10,54 @@ import cqupt.jyxxh.uclass.pojo.user.Teacher;
  * @date created in 17:15 2020/2/20
  */
 public class StuKcMoreInfo {
-    private Teacher teacher;//本门课程教师的信息
-    private String cjzc;//本门课程的成绩组成
-    private int qdTotal;//总签到次数
-    private int qqTime; //缺勤次数
-    private int cdTime;//迟到次数
-    private int qjTime;//请假次数
-    private int cqTime;//出勤次数
-    private int twTotal;//本门课程提问总次数
-    private int hdTimes;//回答次数
-    private int wdTimes;//未回答次数
+    /**
+     * //本门课程教师的信息
+     */
+    private Teacher teacher;
+
+    /**
+     *  //本门课程的成绩组成
+     */
+    private String cjzc;
+
+    /**
+     * //总签到次数
+     */
+    private int qdTotal;
+    /**
+     * //缺勤次数
+     */
+    private int qqTime;
+
+    /**
+     * 迟到次数
+     */
+    private int cdTime;
+
+    /**
+     * 请假次数
+     */
+    private int qjTime;
+
+    /**
+     * 出勤次数
+     */
+    private int cqTime;
+
+    /**
+     * 本门课程提问总次数
+     */
+    private int twTotal;
+
+    /**
+     * 回答次数
+     */
+    private int hdTimes;
+
+    /**
+     * //未回答次数
+     */
+    private int wdTimes;
 
     @Override
     public String toString() {

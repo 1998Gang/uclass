@@ -9,7 +9,9 @@
     <!--1.读取连接数据库(mysql、redis)、小程序、连接LDAP、教务在线访问地址相关参数的perperties文件-->
     <context:property-placeholder location="classpath:properties/*.properties"/>
 
-    <!--2.启用spring task-->
+    <!--2.启用spring task，定时任务-->
     <task:annotation-driven/>
+
+
 
 </beans>

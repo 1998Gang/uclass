@@ -4,25 +4,20 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="cqupt.jyxxh.uclass.dao.QianDaoMapper">
     <!--1.将签到记录数据插入到mysql-->
-    <insert id="insertQiandaoResult" parameterType="java.util.List">
+    <insert id="insertQiandaoResult" parameterType="QianDaoResult">
         Insert into uclass_qdjl(qdid, jxb, week, work_day, qdcs, allStuNum, notOnStuNum,
-        inStuNum,beLateNum,askForLeaveNum,qdsj)
-        values
-        <foreach collection="list" item="qiandaoresult" separator=",">
-            (
-            #{qiandaoresult.qdid},
-            #{qiandaoresult.jxb},
-            #{qiandaoresult.week},
-            #{qiandaoresult.work_day},
-            #{qiandaoresult.qdcs},
-            #{qiandaoresult.allStuNum},
-            #{qiandaoresult.notOnStuNum},
-            #{qiandaoresult.inStuNum},
-            #{qiandaoresult.beLateNum},
-            #{qiandaoresult.askForLeaveNum},
-            #{qiandaoresult.qdsj}
-            )
-        </foreach>
+                                inStuNum, beLateNum, askForLeaveNum, qdsj)
+        values (#{qdid},
+                #{jxb},
+                #{week},
+                #{work_day},
+                #{qdcs},
+                #{allStuNum},
+                #{notOnStuNum},
+                #{inStuNum},
+                #{beLateNum},
+                #{askForLeaveNum},
+                #{qdsj})
     </insert>
 
     <!--2.将签到有记录的学生数据插入到mysql-->
@@ -50,7 +45,7 @@
                qdjl.qdsj,
                qdjl.week,
                qdjl.work_day,
-               concat('第', week, '周周', work_day) as weekStr,
+               concat('第', week, '周周', work_day, '第', qdcs, '次') as weekStr,
                qdjl.qdcs,
                uclass_no_qd_stu.qdzt
         from (select * from uclass_qdjl where jxb = #{jxb}) as qdjl
@@ -68,9 +63,58 @@
      -->
     <select id="getkcQdRecord" resultType="java.util.HashMap" parameterType="String">
         select xm, xh, group_concat(qdzt) as qdzts
-        from (select qdid from uclass_qdjl where jxb = 'A13191A2130460001') as qdids
+        from (select qdid from uclass_qdjl where jxb = #{value}) as qdids
                  inner join uclass_no_qd_stu as unq on qdids.qdid = unq.qdid
         group by unq.xh
     </select>
+
+    <!--5.教师个学生补签，类型为请假，未到人+1，请假人数-1-->
+    <update id="updataResultQj" parameterType="String">
+        update uclass_qdjl
+        set notOnStuNum=notOnStuNum - 1,
+            askForLeaveNum=askForLeaveNum + 1
+        where qdid = #{value}
+    </update>
+
+    <!--6.updataNoQdStuQj 教师给学生补签，类型为请假，修改改学生本次签到状态为QJ。-->
+    <update id="updataNoQdStuQj">
+        update uclass_no_qd_stu
+        set qdzt='QJ'
+        where qdid = #{qdid}
+          and xh = #{xh}
+    </update>
+
+    <!--7.updataResultCd 教师给学生补签，类型为迟到，未到人数-1，迟到人数+1-->
+    <update id="updataResultCd" parameterType="String">
+        update uclass_qdjl
+        set notOnStuNum=notOnStuNum - 1,
+            beLateNum=beLateNum + 1
+        where qdid = #{value}
+    </update>
+
+    <!--8.updataNoQdStuCd 教师给学生补签，类型为迟到，修改改学生本次签到状态为CD。-->
+    <update id="updataNoQdStuCd">
+        update uclass_no_qd_stu
+        set qdzt='CD'
+        where qdid = #{qdid}
+          and xh = #{xh}
+    </update>
+
+    <!--9.updataResultWt 教师给学生补签，类型为网络问题，未到人数-1，已到人数+1-->
+    <update id="updataResultWt" parameterType="String">
+        update uclass_qdjl
+        set notOnStuNum=notOnStuNum - 1,
+            inStuNum=inStuNum + 1
+        where qdid = #{value}
+    </update>
+
+    <!--10.deleteNoQdStuWt 教师给学生补签，类型为网络问题，将改学生的未到记录删除-->
+    <delete id="deleteNoQdStuWt">
+        delete
+        from uclass_no_qd_stu
+        where qdid = #{qdid}
+          and xh = #{xh}
+    </delete>
+
 
 </mapper>

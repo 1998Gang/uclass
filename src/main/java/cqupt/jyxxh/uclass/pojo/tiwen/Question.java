@@ -11,11 +11,29 @@ import java.util.Set;
  * @date created in 0:52 2020/1/19
  */
 public class Question {
-    private String th;//题号
-    private String subTopic;//主观题题目
-    private String subDescription;//主观题具体描述
-    private Set<String> objOptins;//客观题选项
-    private List<String> imageUrl;//主观题图片
+    /**
+     * 题号
+     */
+    private String th;
+
+    /**
+     * 主观题题目
+     */
+    private String subTopic;
+    /**
+     * 主观题具体描述
+     */
+    private String subDescription;
+
+    /**
+     * 客观题选项
+     */
+    private Set<String> objOptins;
+
+    /**
+     * 主观题图片
+     */
+    private List<String> imageUrl;
 
     @Override
     public String toString() {

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration scan="true" debug="true" scanPeriod="2 seconds" xmlns="http://ch.qos.logback/xml/ns/logback"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://ch.qos.logback/xml/ns/logback
+               https://raw.githubusercontent.com/enricopulatzo/logback-XSD/master/src/main/xsd/logback.xsd">
+
+    <!--Put your configurations on here-->
+    <contextName>uclassLog</contextName>
+
+    <property name="file_path" value="C:\\Users\\彭渝刚\\Desktop\\uclassLog"/>
+
+
+    <!--1.输出到控制台的日志格式-->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%-4relative [%thread] %-5level %logger{35} - %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <!--2.整个项目运行的日志输出到文件夹,以天为单位进行保存，最多保存1天-->
+    <!---->
+    <appender name="FILE_DEBUG_ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${file_path}\DEBUG\%d.log</fileNamePattern>
+            <maxHistory>1</maxHistory>
+        </rollingPolicy>
+        <!--打印格式-->
+        <encoder>
+            <pattern>%-4relative %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{35} - %msg %n</pattern>
+        </encoder>
+
+    </appender>
+
+
+    <!--3.写到文件的日志配置 (INFO级别)滚动记录，一天一个文件夹，最多保存1天的日志文件-->
+    <appender name="FILE_INFO_ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${file_path}\INFO\%d.log</fileNamePattern>
+            <maxHistory>1</maxHistory>
+        </rollingPolicy>
+        <!--日志书写格式  日期 级别 提示信息-->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level - %msg %n</pattern>
+        </encoder>
+        <!--打印INFO级别-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!--4.写入到文件的日志配置（WARN级别）滚动记录，一天一个文件夹，最多保存10天的日志文件-->
+    <appender name="FILE_WARN_ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${file_path}\WARN\%d.log</fileNamePattern>
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <!--日志书写格式 日期 线程 级别 日志所在的类 日志信息-->
+        <encoder>
+            <pattern> %d [%thread] %-5level %logger{35} - %msg %n</pattern>
+        </encoder>
+        <!--打印级别-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!--5.写入到文件的日志配置（WARN级别）滚动记录，一天一个文件夹，最多保存10天的日志文件-->
+    <appender name="FILE_ERROR_ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${file_path}\REEOR\%d.log</fileNamePattern>
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <!--日志书写格式 日期 线程 级别 日志所在的类 日志信息-->
+        <encoder>
+            <pattern> %d [%thread] %-5level %logger{35} - %msg %n</pattern>
+        </encoder>
+        <!--打印级别-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+
+    <!--将项目DEBUG级别的日志输出到控制台和文件-->
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE_INFO_ROLLING"/>
+        <appender-ref ref="FILE_DEBUG_ROLLING"/>
+        <appender-ref ref="FILE_WARN_ROLLING"/>
+        <appender-ref ref="FILE_ERROR_ROLLING"/>
+    </root>
+
+</configuration>

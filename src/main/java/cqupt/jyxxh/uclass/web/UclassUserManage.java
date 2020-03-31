@@ -38,20 +38,36 @@ import java.util.Map;
 public class UclassUserManage {
 
 
-    private final Logger logger= LoggerFactory.getLogger(UclassUserManage.class);    //日志（slf4j搭配logback）
+    /**
+     *
+     */
+    private final Logger logger= LoggerFactory.getLogger(UclassUserManage.class);
 
 
+    /**
+     * 用户信息操作类
+     */
     @Autowired
-    private  UserService userService;                     //用户信息操作类
+    private  UserService userService;
 
+    /**
+     * 教务账户信息操作类
+     */
     @Autowired
-    private  EduAccountService EduAccountService;         //教务账户信息操作类
+    private  EduAccountService EduAccountService;
 
+    /**
+     * 验证统一身份的工具类
+     */
     @Autowired
-    private  Authentication authentication;                //验证统一身份的工具类
+    private  Authentication authentication;
+    /**
+     * 从微信获取数据的工具类
+     */
+    @Autowired
+    private  GetDataFromWX getDataFromWX;
 
-    @Autowired
-    private GetDataFromWX getDataFromWX;                   //从微信获取数据的工具类
+
 
 
 
@@ -67,7 +83,7 @@ public class UclassUserManage {
     public ResponseEntity<EduAccount> login(@RequestParam("code") String code){
         //日志
         if (logger.isDebugEnabled()){
-            logger.debug("【登陆接口（UclassUserManage.login）】接收参数code：[{}]",code);
+            logger.debug("登陆接口 接收参数code：[{}]",code);
         }
 
         try {
@@ -76,7 +92,7 @@ public class UclassUserManage {
             if (null==openid||"".equals(openid)){
                 //日志
                 if (logger.isDebugEnabled()){
-                    logger.debug("【登陆接口（UclassUserManage.login）】获取openid失败");
+                    logger.debug("登陆接口 获取openid失败");
                 }
                 if (logger.isInfoEnabled()){
                     logger.info("用户：[{}]登陆失败！openid获取失败，code无效：[{}]",openid,code);
@@ -92,7 +108,6 @@ public class UclassUserManage {
             if (userService.isBind(uclassUser)){
 
                 // 3.1 绑定了教务账户，获取教务账户数据并返回 响应200。
-
                 EduAccount eduAccount = EduAccountService.getUserEduAccountInfo(uclassUser);
 
                 //日志
@@ -119,7 +134,7 @@ public class UclassUserManage {
                 return ResponseEntity.status(HttpStatus.GONE).body(null);
             }
             //日志
-            logger.error("【登陆接口（UclassUserManage.login）】出现未知错误！",e);
+            logger.error("用户登陆 出现未知错误！",e);
         }
 
         //出现未知异常，响应500

@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,8 +28,13 @@ public class UclassTiWen {
 
     Logger logger = LoggerFactory.getLogger(UclassTiWen.class);
 
+    /**
+     * 提问功能service类
+     */
     @Autowired
-    private TiWenService tiWenService;   //提问功能service类
+    private TiWenService tiWenService;
+
+
 
 
     /**
@@ -86,7 +90,7 @@ public class UclassTiWen {
     @RequestMapping(value = "stugettopic",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
     public ResponseEntity<Map<String,Object>> stuGetTopicAndtime(@RequestParam("jxb") String jxb,@RequestParam("week") String week,@RequestParam("work_day") String work_day){
         //定义一个map集合
-        Map<String, Object> mm = new HashMap<>();
+        Map<String, Object> mm = new HashMap<>(2);
 
         try {
             //1.获取题目信息以及剩余时间。
@@ -196,7 +200,7 @@ public class UclassTiWen {
     public ResponseEntity<StuTiWenHistory> stuGetTWHistory(@RequestParam("xh")String xh,@RequestParam("jxb") String jxb){
         try {
             //获取数据
-            StuTiWenHistory stuTWHistory = tiWenService.getStuTWHistory(xh, jxb);
+            StuTiWenHistory stuTWHistory = tiWenService.getStuTwHistory(xh, jxb);
             //成功返回数据
             // 日志
             if (logger.isInfoEnabled()){
@@ -220,7 +224,7 @@ public class UclassTiWen {
     public ResponseEntity<KeChengTiWenHistory> teaGetTWHistory(@RequestParam("jxb") String jxb){
         try {
             //调用service层获取数据
-            KeChengTiWenHistory kcTWHistory = tiWenService.getKcTWHistory(jxb);
+            KeChengTiWenHistory kcTWHistory = tiWenService.getKcTwHistory(jxb);
             //日志
             if (logger.isInfoEnabled()){
                 logger.info("获取教学班[{}]的答题历史记录成功！",jxb);

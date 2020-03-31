@@ -3,6 +3,7 @@ package cqupt.jyxxh.uclass.dao;
 import cqupt.jyxxh.uclass.pojo.ClassStuInfo;
 import cqupt.jyxxh.uclass.pojo.qiandao.QianDaoResult;
 import cqupt.jyxxh.uclass.pojo.qiandao.StuSingleRecord;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -19,9 +20,9 @@ public interface QianDaoMapper {
     /**
      * 将签到结果插入到数据库
      *
-     * @param qianDaoResultList list集合，元素是QianDaoResult
+     * @param qianDaoResult list集合，元素是QianDaoResult
      */
-    void insertQiandaoResult(List<QianDaoResult> qianDaoResultList);
+    void insertQiandaoResult(QianDaoResult qianDaoResult);
 
     /**
      * 将有有记录的学生数据插入到数据库中（包含缺勤|请假|迟到的）。
@@ -50,4 +51,43 @@ public interface QianDaoMapper {
      */
     List<Map<String,String>> getkcQdRecord(String jxb);
 
+    /**
+     * 教师个学生补签，类型为请假，未到人+1，请假人数-1
+     * @param qdid 签到id
+     */
+    void updataResultQj(String qdid);
+
+    /**
+     * 教师给学生补签，类型为请假，修改改学生本次签到状态为QJ。
+     * @param qdid 签到id
+     * @param xh 学号
+     */
+    void updataNoQdStuQj(@Param("qdid") String qdid, @Param("xh") String xh);
+
+    /**
+     * 教师给学生补签，类型为迟到，未到人数-1，迟到人数+1
+     * @param qdid 签到id
+     */
+    void updataResultCd(String qdid);
+
+
+    /**
+     * 教师给学生补签，类型为迟到，修改改学生本次签到状态为CD。
+     * @param qdid 签到Id
+     * @param xh 学号
+     */
+    void updataNoQdStuCd(@Param("qdid") String qdid, @Param("xh") String xh);
+
+    /**
+     * 教师给学生补签，类型为网络问题，未到人数-1 已到人数+1
+     * @param qdid 签到ID
+     */
+    void updataResultWt(String qdid);
+
+    /**
+     * 教师给学生补签，类型为网络问题，将改学生的未到记录删除
+     * @param qdid 签到id
+     * @param xh 学号
+     */
+    void deleteNoQdStuWt(@Param("qdid") String qdid, @Param("xh") String xh);
 }

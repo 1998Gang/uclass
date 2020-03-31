@@ -10,22 +10,89 @@ import java.io.Serializable;
  */
 public class ClassStuInfo implements Serializable {
 
-    private String xh;//学号
-    private String xm;//姓名
-    private String xb;//性别
-    private String yxm;//学院
-    private String zym;//专业
-    private String nj;//年级
-    private String bj;//班级
-    private String xjzt;//学籍状态
-    private String xkzt; //选课状态(重修|自修|在修|补修|正常)
-    private String qdzt; //签到状态（"QQ"(缺勤),"CD"（迟到）,"QJ"（请假））
-    private String qdid; //签到id,该值用于持久化到数据库,标识这一条数据属于那一次签到
-    private String twid; //提问id，用于持久化到数据库，标识这一条数据属于那一次提问
+    /**
+     * 学号
+     */
+    private String xh;
+
+    /**
+     * 姓名
+     */
+    private String xm;
+
+    /**
+     * 性别
+     */
+    private String xb;
+
+    /**
+     * 学院
+     */
+    private String yxm;
+
+    /**
+     * 专业
+     */
+    private String zym;
+
+    /**
+     * 年级
+     */
+    private String nj;
+
+    /**
+     * 班级
+     */
+    private String bj;
+
+    /**
+     * 学籍状态
+     */
+    private String xjzt;
+
+    /**
+     * 选课状态(重修|自修|在修|补修|正常)
+     */
+    private String xkzt;
+
+    /**
+     * 签到状态（"QQ"(缺勤),"CD"（迟到）,"QJ"（请假））
+     */
+    private String qdzt;
+
+    /**
+     * 签到id,该值用于持久化到数据库,标识这一条数据属于那一次签到
+     */
+    private String qdid;
+
+    /**
+     * 提问id，用于持久化到数据库，标识这一条数据属于那一次提问
+     */
+    private String twid;
+
+    /**
+     * 缺勤次数
+     */
+    private int qqTime =0;
+
+    /**
+     * 迟到次数
+     */
+    private int cdTime =0;
+
+    /**
+     * 请假次数
+     */
+    private int qjTime =0;
+
+    /**
+     * 未答次数
+     */
+    private int wdTime =0;
 
     @Override
     public String toString() {
-        return "ClassStudentInfo{" +
+        return "ClassStuInfo{" +
                 "xh='" + xh + '\'' +
                 ", xm='" + xm + '\'' +
                 ", xb='" + xb + '\'' +
@@ -38,6 +105,8 @@ public class ClassStuInfo implements Serializable {
                 ", qdzt='" + qdzt + '\'' +
                 ", qdid='" + qdid + '\'' +
                 ", twid='" + twid + '\'' +
+                ", qqTimes='" + qqTime + '\'' +
+                ", wdTimes='" + wdTime + '\'' +
                 '}';
     }
 
@@ -135,5 +204,37 @@ public class ClassStuInfo implements Serializable {
 
     public void setTwid(String twid) {
         this.twid = twid;
+    }
+
+    public int getQqTime() {
+        return qqTime;
+    }
+
+    public void setQqTime(int qqTime) {
+        this.qqTime = qqTime;
+    }
+
+    public int getCdTime() {
+        return cdTime;
+    }
+
+    public void setCdTime(int cdTime) {
+        this.cdTime = cdTime;
+    }
+
+    public int getQjTime() {
+        return qjTime;
+    }
+
+    public void setQjTime(int qjTime) {
+        this.qjTime = qjTime;
+    }
+
+    public int getWdTime() {
+        return wdTime;
+    }
+
+    public void setWdTime(int wdTime) {
+        this.wdTime = wdTime;
     }
 }

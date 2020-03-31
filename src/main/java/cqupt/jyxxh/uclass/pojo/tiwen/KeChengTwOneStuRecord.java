@@ -8,12 +8,27 @@ package cqupt.jyxxh.uclass.pojo.tiwen;
  * @version 1.0.0
  * @date created in 16:58 2020/2/19
  */
-public class KeChengTWOneStuRecord {
-    private String xm;//姓名
-    private String xh;//学号
-    private String yxm;//学院
-    private String nj;//年级
-    private int wdTimes;//未答次数
+public class KeChengTwOneStuRecord {
+    /**
+     * 姓名
+     */
+    private String xm;
+    /**
+     * 学号
+     */
+    private String xh;
+    /**
+     * 学院
+     */
+    private String yxm;
+    /**
+     * 年级
+     */
+    private String nj;
+    /**
+     * 未答次数
+     */
+    private int wdTime;
 
     @Override
     public String toString() {
@@ -22,7 +37,7 @@ public class KeChengTWOneStuRecord {
                 ", xh='" + xh + '\'' +
                 ", yxm='" + yxm + '\'' +
                 ", nj='" + nj + '\'' +
-                ", wdTimes=" + wdTimes +
+                ", wdTimes=" + wdTime +
                 '}';
     }
 
@@ -58,11 +73,11 @@ public class KeChengTWOneStuRecord {
         this.nj = nj;
     }
 
-    public int getWdTimes() {
-        return wdTimes;
+    public int getWdTime() {
+        return wdTime;
     }
 
-    public void setWdTimes(int wdTimes) {
-        this.wdTimes = wdTimes;
+    public void setWdTime(int wdTime) {
+        this.wdTime = wdTime;
     }
 }

@@ -11,8 +11,15 @@ import java.util.Map;
  * @date created in 18:27 2020/1/19
  */
 public class ObjResult {
-    private String th;//题号
-    private List<Letter> letters;//选项
+    /**
+     * 题号
+     */
+    private String th;
+
+    /**
+     * 选项
+     */
+    private List<Letter> letters;
 
     @Override
     public String toString() {

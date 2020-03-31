@@ -3,6 +3,7 @@ package cqupt.jyxxh.uclass.web;
 import cqupt.jyxxh.uclass.pojo.qiandao.KeChengQianDaoHistory;
 import cqupt.jyxxh.uclass.pojo.qiandao.QianDaoResult;
 import cqupt.jyxxh.uclass.pojo.qiandao.StuQianDaoHistory;
+import cqupt.jyxxh.uclass.pojo.qiandao.TeaInitiateQdParams;
 import cqupt.jyxxh.uclass.service.QianDaoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,11 +29,16 @@ import java.util.Map;
 @Controller
 public class UclassQianDao {
 
-    Logger logger = LoggerFactory.getLogger(UclassQianDao.class);
+
+    Logger logger=LoggerFactory.getLogger(UclassQianDao.class);
 
 
+    /**
+     * 签到功能的具体逻辑类
+     */
     @Autowired
-    private QianDaoService qianDaoService;           //签到功能的具体逻辑类
+    private  QianDaoService qianDaoService;
+
 
     /**
      * 教师发起签到
@@ -40,7 +46,7 @@ public class UclassQianDao {
      * @return ResponseEntity
      */
     @RequestMapping(value = "originateqiandao", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-    public ResponseEntity<Map<String,String>> originateQanDao(@RequestBody Map<String, String> param) {
+    public ResponseEntity<Map<String,String>> originateQanDao(@RequestBody TeaInitiateQdParams param) {
 
         //装载返回数据
         Map<String, String> massage = new HashMap<>();
@@ -59,7 +65,7 @@ public class UclassQianDao {
             }
             //日志
             if (logger.isInfoEnabled()) {
-                logger.info("发起签到成功！教学班：[{}],时间:[{}]", param.get("jxb"), param.get("week") + "周_星期" + param.get("work_day"));
+                logger.info("发起签到成功！教学班：[{}],时间:[{}]", param.getJxb(), param.getWeek() + "周_星期" + param.getWork_day());
             }
             //发起成功响应200
             massage.put("massage", "发起签到成功!");
@@ -100,14 +106,14 @@ public class UclassQianDao {
     /**
      * 教师给学生补签
      *
-     * @param param map集合 {"jxb":"教学班号","week":"上课周","work_day":"星期几","qdcs":"签到次数（针对这节课发起的第几次签到）","xh":"补签学生学号"}
+     * @param param map集合  json格式 {"qdid":"签到id","xh":"补签学生学号","bqlx":"补签类型"}
      * @return 响应信息
      */
     @RequestMapping(value = "tearetroactive", method = RequestMethod.PUT, produces = "application/json;charset=utf-8")
     public ResponseEntity<Map<String,String>> teaRetroactive(@RequestBody Map<String, String> param) {
 
         //响应信息
-        Map<String, String> massage = new HashMap<>();
+        Map<String, String> massage = new HashMap<>(2);
 
         try {
             // 补签操作
@@ -147,7 +153,7 @@ public class UclassQianDao {
     public ResponseEntity<KeChengQianDaoHistory> teaGetKcQdHistory(@RequestParam("jxb")String jxb){
         try{
             //调用service层方法
-            KeChengQianDaoHistory kcQDhistory = qianDaoService.getKcQDhistory(jxb);
+            KeChengQianDaoHistory kcQDhistory = qianDaoService.getKcQdHistory(jxb);
             //日志
             if (logger.isInfoEnabled()){
                 logger.info("教师获取教学班：[{}]的历史点名数据成功！",jxb);
@@ -161,7 +167,6 @@ public class UclassQianDao {
         //出错，响应500
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
-
 
     /**
      * 学生获取签到剩余时间和签到id
@@ -255,7 +260,7 @@ public class UclassQianDao {
     @RequestMapping(value = "stuqiandaohistory", method = RequestMethod.GET, produces = "application/json;charset=utf-8")
     public ResponseEntity<StuQianDaoHistory> stuGetQDhistory(@RequestParam("xh")String xh, @RequestParam("jxb")String jxb) {
         try {
-            StuQianDaoHistory stuQDhistory = qianDaoService.getStuQDhistory(xh, jxb);
+            StuQianDaoHistory stuQDhistory = qianDaoService.getStuQdHistory(xh, jxb);
             //日志
             if (logger.isInfoEnabled()) {
                 logger.info("学生[{}]获取教学班[{}]历史签到记录成功！", xh, jxb);

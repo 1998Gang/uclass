@@ -10,12 +10,31 @@ import java.util.List;
  * @date created in 16:03 2020/1/19
  */
 public class AnswerData {
-    private String twid;//提问id
-    private String xh;//学号
-    private String yxm;//学院名
-    private String xm;//姓名
-    private String questiontype;//问题类型，sub代表主观题，obj代表客观题。
-    private List<Answer> answers;//答案列表
+    /**
+     * 提问ID
+     */
+    private String twid;
+    /**
+     * 学号
+     */
+    private String xh;
+    /**
+     * 学院名
+     */
+    private String yxm;
+    /**
+     * 姓名
+     */
+    private String xm;
+    /**
+     * 问题类型，sub代表主观题，obj代表客观题。
+     */
+    private String questiontype;
+
+    /**
+     * 答案列表
+     */
+    private List<Answer> answers;
 
     @Override
     public String toString() {

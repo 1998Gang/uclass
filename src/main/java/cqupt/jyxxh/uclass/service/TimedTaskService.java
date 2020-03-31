@@ -1,10 +1,12 @@
 package cqupt.jyxxh.uclass.service;
 
-import checkers.units.quals.A;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
+
 
 /**
  * 定时任务
@@ -14,35 +16,40 @@ import org.springframework.transaction.annotation.Transactional;
  * @date created in 18:52 2020/2/13
  */
 
+
+@Service
 @EnableScheduling
 public class TimedTaskService {
 
-    @Autowired
-    private QianDaoService qianDaoService;  //签到功能实现类
+    /**
+     * 日志
+     */
+    Logger logger= LoggerFactory.getLogger(TimedTaskService.class);
 
+    /**
+     * redis操作对象
+     */
     @Autowired
-    private TiWenService tiWenService;    //课堂提问功能实现类
+    private RedisService redisService;
 
 
     /**
-     * 每天定时缓存中的签到数据，持久化到mysql数据库
-     * 12：30
-     * 18：30
+     * 每天定时清空缓存中的签到数据 以及提问数据
+     * 签到相关缓存在redis第5个数据库
+     * 提问相关缓存在redis第7个数据库
      * 23：30
-     * 三个时间
      */
-    @Scheduled(cron = "0 30 12,18,23 * *")
+    @Scheduled(cron = "0 30 23 * * *")
     public void qdData(){
-        qianDaoService.persistentQianDaoData();
-    }
+        try {
+            redisService.flushDB(4);
+            redisService.flushDB(6);
+            if (logger.isInfoEnabled()){
+                logger.info("定时任务成功清除redis第5个（签到相关）、第7个（提问相关）数据库！");
+            }
+        }catch (Exception e){
+            logger.error("调用定时任务[persistentQianDaoData()]失败！");
+        }
 
-    /**
-     * 每天定时将缓冲中的提问数据，持久化到mysql数据库
-     * 每天23：00
-     */
-    @Scheduled(cron = "0 0 23 * *")
-    public void twData(){
-        tiWenService.persistentTiWenData();
     }
-
 }

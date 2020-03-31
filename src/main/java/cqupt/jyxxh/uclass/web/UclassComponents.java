@@ -1,7 +1,7 @@
 package cqupt.jyxxh.uclass.web;
 
 import cqupt.jyxxh.uclass.pojo.Feeback;
-import cqupt.jyxxh.uclass.pojo.KbStuListData;
+import cqupt.jyxxh.uclass.pojo.ClassStuListData;
 import cqupt.jyxxh.uclass.pojo.SchoolTime;
 import cqupt.jyxxh.uclass.service.ComponentService;
 import org.slf4j.Logger;
@@ -31,9 +31,11 @@ public class UclassComponents {
 
     Logger logger=LoggerFactory.getLogger(UclassComponents.class);
 
+    /**
+     * u课堂一些小组件的service
+     */
     @Autowired
-    private ComponentService componentService;     //u课堂一些小组件的service
-
+    private  ComponentService componentService;
 
     /**
      * 获取教务时间
@@ -72,12 +74,12 @@ public class UclassComponents {
      * @return 名单的json数据
      */
     @RequestMapping(value = "kbstulist",method = RequestMethod.GET,produces = "application/json;charset=utf-8")
-    public ResponseEntity<KbStuListData> kbStuList(@RequestParam("jxb")String jxb){
+    public ResponseEntity<ClassStuListData> kbStuList(@RequestParam("jxb")String jxb){
 
 
         try{
             //获取上课学生名单数据。string
-            KbStuListData data = componentService.getKbStuListData(jxb);
+            ClassStuListData data = componentService.getClassStuListData(jxb);
 
             //判断数据是否为空
             if (null==data){
@@ -131,6 +133,11 @@ public class UclassComponents {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("服务器端出现未知错误！");
     }
 
+    /**
+     * 用户反馈信息
+     * @param feeback 反馈数据实体
+     * @return String
+     */
     @RequestMapping(value = "feedbackinfo",method = RequestMethod.POST,produces = "application/json;charset=utf-8")
     public ResponseEntity<String> feebackPoblems(@RequestBody Feeback feeback){
 

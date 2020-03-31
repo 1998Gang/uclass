@@ -19,14 +19,28 @@ import org.springframework.stereotype.Component;
 @Component
 public class GetDataFromWX {
 
-    private static final Logger logger= LoggerFactory.getLogger(GetDataFromWX.class);    //日志
+    /**
+     * 日志操作类
+     */
+    private static final Logger logger= LoggerFactory.getLogger(GetDataFromWX.class);
 
+    /**
+     *微信的auth.code2Session网址
+     */
     @Value("${WX.code2Session}")
-    private  String CODE2SESSION;      //微信的auth.code2Session网址
+    private  String CODE2SESSION;
+
+    /**
+     * 小程序的appid
+     */
     @Value("${WX.AppID}")
-    private  String APPID;              //小程序的appid
+    private  String APPID;
+
+    /**
+     * 小程序的appSercet
+     */
     @Value("${WX.AppSercet}")
-    private  String APPSERCET;         //小程序的appSercet
+    private  String APPSERCET;
 
 
 

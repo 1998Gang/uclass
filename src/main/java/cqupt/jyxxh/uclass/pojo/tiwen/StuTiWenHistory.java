@@ -10,12 +10,30 @@ import java.util.List;
  * @date created in 22:39 2020/2/13
  */
 public class StuTiWenHistory {
-    private String xh;//学号
-    private String jxb;//教学班
-    private int total;//本门课程提问总次数
-    private int hdTimes;//回答次数
-    private int wdTimes;//未回答次数
-    private List<StuTWRecord> stuTWRecordList;//学生回答提问情况记录
+    /**
+     * 学号
+     */
+    private String xh;
+    /**
+     * 教学班
+     */
+    private String jxb;
+    /**
+     * 本门课程提问总次数
+     */
+    private int total;
+    /**
+     * 回答次数
+     */
+    private int hdTimes;
+    /**
+     * 未回答次数
+     */
+    private int wdTimes;
+    /**
+     * 学生回答提问情况记录
+     */
+    private List<StuTWRecord> stuTWRecordList;
 
     @Override
     public String toString() {

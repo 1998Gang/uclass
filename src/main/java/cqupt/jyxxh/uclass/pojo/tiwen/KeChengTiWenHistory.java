@@ -8,9 +8,25 @@ import java.util.List;
  * @date created in 16:45 2020/2/19
  */
 public class KeChengTiWenHistory {
-    private String jxb;//教学班
-    private int total;//有未答题记录的总人次
-    private List<KeChengTWOneStuRecord> noAnswerStuList;
+    /**
+     * 教学班
+     */
+    private String jxb;
+
+    /**
+     * 有未答题记录的总人次
+     */
+    private int total;
+
+    /**
+     * 表示本门课程 过去提过几次问。
+     */
+    private int askTimes;
+
+    /**
+     * 没有回答问题的学生统计名单
+     */
+    private List<KeChengTwOneStuRecord> noAnswerStuList;
 
     @Override
     public String toString() {
@@ -37,11 +53,19 @@ public class KeChengTiWenHistory {
         this.total = total;
     }
 
-    public List<KeChengTWOneStuRecord> getNoAnswerStuList() {
+    public int getAskTimes() {
+        return askTimes;
+    }
+
+    public void setAskTimes(int askTimes) {
+        this.askTimes = askTimes;
+    }
+
+    public List<KeChengTwOneStuRecord> getNoAnswerStuList() {
         return noAnswerStuList;
     }
 
-    public void setNoAnswerStuList(List<KeChengTWOneStuRecord> noAnswerStuList) {
+    public void setNoAnswerStuList(List<KeChengTwOneStuRecord> noAnswerStuList) {
         this.noAnswerStuList = noAnswerStuList;
     }
 }

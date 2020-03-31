@@ -10,10 +10,22 @@ import java.util.List;
  * @date created in 16:43 2020/1/19
  */
 public class Answer {
-    private String th;//题号
-    private String subAnswer;//主观题答案
-    private List<String> objAnswer;//客观题答案
-    private List<String> imageUrl;//图片
+    /**
+     * 题号
+     */
+    private String th;
+    /**
+     * 主观题答案
+     */
+    private String subAnswer;
+    /**
+     * 客观题答案
+     */
+    private List<String> objAnswer;
+    /**
+     * 图片
+     */
+    private List<String> imageUrl;
 
     @Override
     public String toString() {

@@ -24,8 +24,11 @@ public class EncryptionUtil {
 
     Logger logger= LoggerFactory.getLogger(EncryptionUtil.class);
 
+    /**
+     *  加密密钥
+     */
     @Value("${AES.SECRET_KEY}")
-    private String SECRET_KEY;                  //加密密钥
+    private String secretKey;
 
     /**
      * 将字符串进行加密处理
@@ -41,7 +44,7 @@ public class EncryptionUtil {
             // 3.创建一个加密器
             Cipher instance = Cipher.getInstance("AES/ECB/PKCS5Padding");
             // 4.加载密钥
-            SecretKeySpec secretKeySpec=new SecretKeySpec(SECRET_KEY.getBytes(),"AES");
+            SecretKeySpec secretKeySpec=new SecretKeySpec(secretKey.getBytes(),"AES");
             // 5.选择加密
             instance.init(Cipher.ENCRYPT_MODE,secretKeySpec);
             // 6.加密数据
@@ -71,7 +74,7 @@ public class EncryptionUtil {
             // 3.创建一个加密器
             Cipher instance = Cipher.getInstance("AES/ECB/PKCS5Padding");
             // 4.加载密钥
-            SecretKeySpec secretKeySpec=new SecretKeySpec(SECRET_KEY.getBytes(),"AES");
+            SecretKeySpec secretKeySpec=new SecretKeySpec(secretKey.getBytes(),"AES");
             // 5.选择解密
             instance.init(Cipher.DECRYPT_MODE,secretKeySpec);
             // 6.使用Base64编码 将编码后的字符串 解嘛为加密步骤得到的字节数组。
