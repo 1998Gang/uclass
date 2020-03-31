@@ -107,8 +107,7 @@ public class TiWenService {
         try {
             //1.根据jxb week work_day 三个参数，查看缓存中是否有符合条件的 提问控制 数据。如果有说明有提问正在进行，反之亦然。
             Set<String> keys = redisService.keysTwkz(week, jxb, work_day);
-            //todo
-            System.out.println(keys);
+
             //1.1判断keys的长度。
             if (keys.size() == 0) {
                 //长度为0，说明当前没有提问正在进行，可能是时间过了。返回一个空的map集合
@@ -120,8 +119,7 @@ public class TiWenService {
 
                 //2.1.1获取剩余时间
                 long timeRemain = redisService.getTimeRemain(key, 6);
-                //todo
-                System.out.println(timeRemain);
+
                 //2.1.2如果剩余时间小于6秒，直接返回空map集合，表示获取失败。因为时间太短，加上延迟，基本无用。
                 if (timeRemain <= 6) {
                     return resultMap;
@@ -134,8 +132,7 @@ public class TiWenService {
 
                 //2.3根据提问Id 获取问题主体
                 WTZT wtzt = redisService.getWtzt(twid);
-                //todo
-                System.out.println(wtzt);
+
 
                 //2.4将数据添加到集合中
                 //提问id
@@ -201,8 +198,7 @@ public class TiWenService {
         try {
             //1.根据提问id(twid)获取问题主体，根据问题主体判断问题类型
             WTZT wtzt = redisService.getWtzt(twid);
-            //todo
-            System.out.println(wtzt);
+
 
             //2.获取未答题学生名单
             List<Map<String, String>> noAnswerStuList = new ArrayList<>();
@@ -361,8 +357,6 @@ public class TiWenService {
     private List<ObjResult> getObjResults(String twid, WTZT wtzt) throws JsonProcessingException {
         //1.统计各个选择题提交的答案。例：{1={A=2,B=5,D=10},2={A=3,B=6,C=8}}
         Map<String, Map<String, Integer>> countOptions = countOptions(twid);
-        //todo
-        System.out.println(countOptions);
 
         //实例化客观题统计对象，一个objResult是一个选择题的结果统计
         List<ObjResult> objResults = new ArrayList<>();
@@ -388,8 +382,7 @@ public class TiWenService {
             String maxOption="A";
             //本题的选项以及对应的次数
             Map<String, Integer> stringIntegerMap = countOptions.get(th);
-            //todo
-            System.out.println(stringIntegerMap+"本题的选项以及对应次数");
+
             Set<String> keys = stringIntegerMap.keySet();
             for (String key:keys){
                 //其中某一个答案的选择次数。
@@ -492,8 +485,7 @@ public class TiWenService {
 
         //1.根据twid获取本次提问学生提交的答案的keys
         Set<String> keys = redisService.keysAnswerStu(twid);
-        //todo
-        System.out.println(keys);
+
 
         //2.循环取出这些学的是答案。
         for (String key : keys) {
