@@ -6,12 +6,9 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author 彭渝刚
@@ -67,25 +64,22 @@ public class DelayEnduranceToMysqlService implements ServletContextListener {
         //初始化该线程池
         threadPoolTaskExecutor.initialize();
 
-        threadPoolTaskExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                while (true){
-                    EnduranceToMysql take = null;
-                    try {
-                        take = delayQueue.take();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    EnduranceToMysql finalTake = take;
-                    threadPoolTaskExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            assert finalTake != null;
-                            finalTake.endurance();
-                        }
-                    });
+        threadPoolTaskExecutor.execute(() -> {
+            while (true){
+                EnduranceToMysql take = null;
+                try {
+                    take = delayQueue.take();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
+                EnduranceToMysql finalTake = take;
+                threadPoolTaskExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        assert finalTake != null;
+                        finalTake.endurance();
+                    }
+                });
             }
         });
     }
